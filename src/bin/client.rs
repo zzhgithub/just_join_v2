@@ -18,7 +18,9 @@ use just_join::{
         client_sync_players, client_sync_players_state,
         player::{controller::CharacterControllerPlugin, ClientLobby},
     },
-    connection_config, PROTOCOL_ID,
+    connection_config,
+    tools::inspector_egui::inspector_ui,
+    PROTOCOL_ID,
 };
 use renet_visualizer::{RenetClientVisualizer, RenetVisualizerStyle};
 
@@ -62,6 +64,8 @@ fn main() {
         RenetVisualizerStyle::default(),
     ));
     app.insert_resource(ClientLobby::default());
+    // 调试工具
+    app.add_systems(Update, inspector_ui);
     // TODO: 其他系统
     app.add_systems(
         Update,

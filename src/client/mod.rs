@@ -1,5 +1,5 @@
 use bevy::prelude::{
-    Assets, Commands, Mesh, Quat, Query, Res, ResMut, StandardMaterial, Transform, Without,
+    Assets, Commands, Mesh, Quat, Query, Res, ResMut, StandardMaterial, Transform, Without, DespawnRecursiveExt,
 };
 use bevy_renet::renet::{transport::NetcodeClientTransport, RenetClient};
 
@@ -66,15 +66,15 @@ pub fn client_sync_players(
             }
             ServerMessages::PlayerRemove { id } => {
                 println!("Player {} disconnected.", id);
+                lobby.yaws.remove(&id);
+                lobby.pitch.remove(&id);
                 if let Some(PlayerInfo {
                     server_entity: _,
                     client_entity,
                 }) = lobby.players.remove(&id)
                 {
-                    commands.entity(client_entity).despawn();
+                    commands.entity(client_entity).despawn_recursive();
                 }
-                lobby.yaws.remove(&id);
-                lobby.pitch.remove(&id);
             }
         }
     }
