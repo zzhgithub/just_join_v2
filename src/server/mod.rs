@@ -69,7 +69,6 @@ pub fn server_connect_system(
                 visualizer.remove_client(*client_id);
                 println!("Player {} disconnected: {}", client_id, reason);
                 // 告诉所有人减少了一个用户
-                visualizer.remove_client(*client_id);
                 if let Some(player_entity) = server_lobby.players.remove(client_id) {
                     commands.entity(player_entity).despawn();
                 }
