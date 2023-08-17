@@ -7,11 +7,7 @@ use bevy::{
 };
 use bevy_inspector_egui::InspectorOptions;
 
-use crate::server::player::Player;
-
-use self::config::VIEW_RADIUS;
-
-pub mod config;
+use crate::{server::player::Player, VIEW_RADIUS};
 
 #[derive(Debug, Clone, Copy, Reflect, InspectorOptions)]
 pub struct Sphere3 {
