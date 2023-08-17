@@ -21,6 +21,7 @@ use bevy_renet::{
     RenetServerPlugin,
 };
 use just_join::{
+    common::ServerClipSpheresPlugin,
     connection_config,
     server::{deal_message_system, player::ServerLobby, server_connect_system, sync_body_and_head},
     PROTOCOL_ID,
@@ -83,6 +84,9 @@ fn main() {
     app.add_plugins(EguiPlugin);
     app.add_plugins(LookTransformPlugin);
     app.add_plugins(FpsCameraPlugin::default());
+
+    // 这里添加必要的系统
+    app.add_plugins(ServerClipSpheresPlugin);
 
     let (server, transport) = new_renet_server();
     app.insert_resource(server);

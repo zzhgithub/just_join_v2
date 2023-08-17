@@ -1,10 +1,11 @@
-use std::{net::UdpSocket, time::SystemTime};
+use std::{marker::PhantomData, net::UdpSocket, time::SystemTime};
 
 use bevy::{
     prelude::{App, EventReader, Input, IntoSystemConfigs, KeyCode, Local, Res, ResMut, Update},
     DefaultPlugins,
 };
 use bevy_egui::{EguiContexts, EguiPlugin};
+use bevy_inspector_egui::quick::ResourceInspectorPlugin;
 use bevy_renet::{
     renet::{
         transport::{ClientAuthentication, NetcodeClientTransport, NetcodeTransportError},
@@ -16,8 +17,12 @@ use bevy_renet::{
 use just_join::{
     client::{
         client_sync_players, client_sync_players_state,
-        player::{controller::CharacterControllerPlugin, ClientLobby},
+        player::{
+            controller::{CharacterController, CharacterControllerPlugin},
+            ClientLobby,
+        },
     },
+    common::{ClientClipSpheresPlugin, ClipSpheres},
     connection_config,
     tools::inspector_egui::inspector_ui,
     PROTOCOL_ID,
@@ -56,6 +61,7 @@ fn main() {
 
     // 游戏相关系统
     app.add_plugins(CharacterControllerPlugin);
+    app.add_plugins(ClientClipSpheresPlugin::<CharacterController> { data: PhantomData });
 
     let (client, transport) = new_renet_client();
     app.insert_resource(client);
@@ -66,6 +72,8 @@ fn main() {
     app.insert_resource(ClientLobby::default());
     // 调试工具
     app.add_systems(Update, inspector_ui);
+    app.add_plugins(ResourceInspectorPlugin::<ClipSpheres>::default());
+    app.register_type::<ClipSpheres>();
     // TODO: 其他系统
     app.add_systems(
         Update,

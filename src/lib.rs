@@ -5,6 +5,7 @@ use server::server_channel::ServerChannel;
 pub mod client;
 pub mod server;
 pub mod tools;
+pub mod common;
 
 pub const PRIVATE_KEY: &[u8; NETCODE_KEY_BYTES] = b"an example very very secret key."; // 32-bytes
 pub const PROTOCOL_ID: u64 = 7;
