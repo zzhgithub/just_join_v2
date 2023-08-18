@@ -1,6 +1,9 @@
 // 使用数据数据
 
-use bevy::prelude::Resource;
+use bevy::{
+    prelude::{ResMut, Resource},
+    tasks::{AsyncComputeTaskPool, Task},
+};
 use ndshape::{ConstShape, ConstShape3u32};
 use sled::Db;
 
@@ -20,7 +23,12 @@ impl MapDataBase {
     }
 
     // 通过chunkKey 查找体素数据
-    pub fn find_by_chunk_key(&self, chunk_key: ChunkKey) -> Vec<Voxel> {
+    pub fn find_by_chunk_key(
+        &mut self,
+        chunk_key: ChunkKey,
+        db_tasks: &mut DbSaveTasks,
+    ) -> Vec<Voxel> {
+        let pool = AsyncComputeTaskPool::get();
         let mut voxels = Vec::new();
         type SampleShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
         for _ in 0..SampleShape::SIZE {
@@ -33,17 +41,9 @@ impl MapDataBase {
                 // 这里在没有获取到的情况下使用算法的值
                 None => {
                     let new_voxels = gen_chunk_data_by_seed(1512354854, chunk_key);
-                    match self
-                        .db
-                        .insert(key, bincode::serialize(&new_voxels).unwrap())
-                    {
-                        Ok(_) => {
-                            println!("数据保存成功");
-                        }
-                        Err(err) => {
-                            println!("数据保存问题{:?}", err);
-                        }
-                    }
+                    let new_voxels_clone = new_voxels.clone();
+                    let task = pool.spawn(async move { (key.clone(), new_voxels_clone) });
+                    db_tasks.tasks.push(task);
                     new_voxels
                 }
             },
@@ -52,5 +52,28 @@ impl MapDataBase {
                 voxels
             }
         };
+    }
+}
+
+#[derive(Debug, Resource)]
+pub struct DbSaveTasks {
+    pub tasks: Vec<Task<([u8; 8], Vec<Voxel>)>>,
+}
+
+pub fn save_db_task_system(mut db_save_task: ResMut<DbSaveTasks>, db: ResMut<MapDataBase>) {
+    // 一次最多处理6个
+    let len = db_save_task.tasks.len().min(6);
+    for ele in db_save_task.tasks.drain(..len) {
+        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
+            Some((key, data)) => match db.db.insert(key, bincode::serialize(&data).unwrap()) {
+                Ok(_) => {
+                    // println!("数据保存成功");
+                }
+                Err(err) => {
+                    println!("数据保存问题{:?}", err);
+                }
+            },
+            None => {}
+        }
     }
 }

@@ -23,9 +23,11 @@ use bevy_renet::{
 use just_join::{
     common::ServerClipSpheresPlugin,
     connection_config,
-    server::{deal_message_system, player::ServerLobby, server_connect_system, sync_body_and_head},
-    voxel_world::map_database::MapDataBase,
-    PROTOCOL_ID, WORD_PATH,
+    server::{
+        chunk::ServerChunkPlugin, deal_message_system, player::ServerLobby, server_connect_system,
+        sync_body_and_head,
+    },
+    PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
 use smooth_bevy_cameras::{
@@ -88,14 +90,13 @@ fn main() {
 
     // 这里添加必要的系统
     app.add_plugins(ServerClipSpheresPlugin);
+    app.add_plugins(ServerChunkPlugin);
 
     let (server, transport) = new_renet_server();
     app.insert_resource(server);
     app.insert_resource(transport);
     app.insert_resource(RenetServerVisualizer::<200>::default());
     app.insert_resource(ServerLobby::default());
-    // init MapData
-    app.insert_resource(MapDataBase::new(WORD_PATH));
 
     app.add_systems(Startup, setup);
     app.add_systems(Update, update_visulizer_system);

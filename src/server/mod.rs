@@ -16,6 +16,7 @@ use self::{
     player::{PitchValue, Player, ServerLobby, YawValue},
 };
 
+pub mod chunk;
 pub mod networked_entities;
 pub mod player;
 pub mod server_channel;
