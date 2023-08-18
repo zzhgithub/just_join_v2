@@ -34,7 +34,8 @@ impl ChunkMap {
         }
     }
 
-    pub fn get_with_neighbor_full_y(&mut self, chunk_key: ChunkKey) -> Vec<Voxel> {
+    // 获取全部y轴的数据
+    pub fn get_with_neighbor_full_y(&self, chunk_key: ChunkKey) -> Vec<Voxel> {
         let mut result = Vec::new();
         type SampleShape = ConstShape3u32<CHUNK_SIZE_ADD_2_U32, 256, CHUNK_SIZE_ADD_2_U32>;
         type DataShape = ConstShape3u32<CHUNK_SIZE_ADD_2_U32, CHUNK_SIZE_U32, CHUNK_SIZE_ADD_2_U32>;
@@ -61,7 +62,109 @@ impl ChunkMap {
         result
     }
 
-    fn get_layer_neighbors(&mut self, chunk_key: ChunkKey) -> Vec<Voxel> {
+    pub fn get_neighbors(&self, chunk_key: ChunkKey) -> Vec<Voxel> {
+        let voxels = self.get(chunk_key);
+
+        type SampleShape =
+            ConstShape3u32<CHUNK_SIZE_ADD_2_U32, CHUNK_SIZE_ADD_2_U32, CHUNK_SIZE_ADD_2_U32>;
+        type DataShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
+
+        let px = &IVec3::new(1, 0, 0);
+        let nx = &IVec3::new(-1, 0, 0);
+        let pz = &IVec3::new(0, 0, 1);
+        let nz = &IVec3::new(0, 0, -1);
+        let py = &IVec3::new(0, 1, 1);
+        let ny = &IVec3::new(0, -1, 0);
+
+        let offsets = vec![px, nx, pz, nz, py, ny];
+        let mut map: HashMap<IVec3, Vec<Voxel>> = HashMap::new();
+        for ele in offsets {
+            let new_key = ChunkKey(chunk_key.0 + ele.clone());
+            let _ = match self.get(new_key) {
+                Some(v) => {
+                    map.insert(ele.clone(), v.clone());
+                }
+                None => (),
+            };
+        }
+        let mut result = Vec::new();
+        for i in 0..SampleShape::SIZE {
+            let [x, y, z] = SampleShape::delinearize(i);
+            if x != 0
+                && x != CHUNK_SIZE_U32 + 1
+                && z != 0
+                && z != CHUNK_SIZE_U32 + 1
+                && y == CHUNK_SIZE_U32 + 1
+            {
+                // y轴
+                let index = DataShape::linearize([x - 1, 0, z - 1]);
+                let v = map.get(py);
+                result.push(Self::get_by_index(v, index));
+            } else if x != 0
+                && x != CHUNK_SIZE_U32 + 1
+                && z != 0
+                && z != CHUNK_SIZE_U32 + 1
+                && y == 0
+            {
+                let index = DataShape::linearize([x - 1, CHUNK_SIZE_U32 - 1, z - 1]);
+                let v: Option<&Vec<Voxel>> = map.get(ny);
+                result.push(Self::get_by_index(v, index));
+            } else if y != 0
+                && y != CHUNK_SIZE_U32 + 1
+                && z != 0
+                && z != CHUNK_SIZE_U32 + 1
+                && x == CHUNK_SIZE_U32 + 1
+            {
+                // y轴
+                let index = DataShape::linearize([0, y - 1, z - 1]);
+                let v: Option<&Vec<Voxel>> = map.get(px);
+                result.push(Self::get_by_index(v, index));
+            } else if y != 0
+                && y != CHUNK_SIZE_U32 + 1
+                && z != 0
+                && z != CHUNK_SIZE_U32 + 1
+                && x == 0
+            {
+                let index = DataShape::linearize([CHUNK_SIZE_U32 - 1, y - 1, z - 1]);
+                let v = map.get(nx);
+                result.push(Self::get_by_index(v, index));
+            } else if x != 0
+                && x != CHUNK_SIZE_U32 + 1
+                && y != 0
+                && y != CHUNK_SIZE_U32 + 1
+                && z == CHUNK_SIZE_U32 + 1
+            {
+                // z轴
+                let index = DataShape::linearize([x - 1, y - 1, 0]);
+                let v = map.get(pz);
+                result.push(Self::get_by_index(v, index));
+            } else if x != 0
+                && x != CHUNK_SIZE_U32 + 1
+                && y != 0
+                && y != CHUNK_SIZE_U32 + 1
+                && z == 0
+            {
+                let index = DataShape::linearize([x - 1, y - 1, CHUNK_SIZE_U32 - 1]);
+                let v = map.get(nz);
+                result.push(Self::get_by_index(v, index));
+            } else if x > 0
+                && x < CHUNK_SIZE_U32 + 1
+                && y > 0
+                && y < CHUNK_SIZE_U32 + 1
+                && z > 0
+                && z < CHUNK_SIZE_U32 + 1
+            {
+                let index = DataShape::linearize([x - 1, y - 1, z - 1]);
+                result.push(Self::get_by_index(voxels, index));
+            } else {
+                result.push(Voxel::EMPTY);
+            }
+        }
+        result
+    }
+
+    // 生成mesh时使用生成一层
+    fn get_layer_neighbors(&self, chunk_key: ChunkKey) -> Vec<Voxel> {
         let voxels = self.get(chunk_key);
 
         type SampleShape =
@@ -116,4 +219,3 @@ impl ChunkMap {
         result
     }
 }
-

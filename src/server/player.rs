@@ -3,7 +3,9 @@ use bevy::{
     transform::TransformBundle,
     utils::HashMap,
 };
-use bevy_rapier3d::prelude::{Collider, LockedAxes, RigidBody, Velocity};
+use bevy_rapier3d::prelude::{
+    Ccd, Collider, ColliderMassProperties, LockedAxes, RigidBody, Sleeping,
+};
 
 #[derive(Debug, Component)]
 pub struct Player {
@@ -25,14 +27,15 @@ pub fn server_create_player(
         .spawn(Player { id: client_id })
         .insert(TransformBundle::from(transform))
         .insert(RigidBody::Dynamic)
-        .insert(LockedAxes::ROTATION_LOCKED | LockedAxes::TRANSLATION_LOCKED_Y)
-        .insert(Velocity::default())
-        // TODO: 这里暂时写死后面要变成配置化的数据
+        .insert(Sleeping::default())
+        .insert(ColliderMassProperties::Mass(300.0))
+        .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Collider::capsule(
             (-0.5 * 1.9 * Vec3::Y).into(),
             (0.5 * (1.9 - 0.9) * Vec3::Y).into(),
             0.3,
         ))
+        .insert(Ccd::enabled())
         .insert(YawValue::default())
         .insert(PitchValue::default())
         .id()

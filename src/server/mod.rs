@@ -1,5 +1,8 @@
-use bevy::prelude::{Commands, Entity, EventReader, Query, ResMut, Transform};
-use bevy_rapier3d::prelude::Velocity;
+use bevy::prelude::{Commands, Entity, EventReader, Query, ResMut, Transform, Vec3, With};
+use bevy_rapier3d::{
+    prelude::{RapierContext, RapierRigidBodyHandle},
+    rapier::prelude::RigidBodyMassProps,
+};
 use bevy_renet::renet::{RenetServer, ServerEvent};
 use renet_visualizer::RenetServerVisualizer;
 
@@ -21,6 +24,7 @@ pub mod networked_entities;
 pub mod player;
 pub mod server_channel;
 pub mod server_messages;
+pub mod terrain_physics;
 
 /**
  * 处理client连接获取断开时的操作
@@ -52,7 +56,7 @@ pub fn server_connect_system(
                 }
                 // 2. 创建这个用户并(注意这里不用mesh 直接创建 一个物理对象就可以了。因为服务器不关心物体的姿态)
                 // TODO: 这里的值后面要去历史中的？
-                let transform = Transform::from_xyz(0., 0., 0.);
+                let transform = Transform::from_xyz(0., 60., 0.);
                 let player_entity = server_create_player(&mut commands, transform, *client_id);
                 // 角色进入游戏大厅缓存中
                 server_lobby.players.insert(*client_id, player_entity);
@@ -86,16 +90,28 @@ pub fn deal_message_system(
     mut commands: Commands,
     mut server: ResMut<RenetServer>,
     lobby: ResMut<ServerLobby>,
+    mut context: ResMut<RapierContext>,
+    query: Query<(Entity, &RapierRigidBodyHandle), With<Player>>,
 ) {
+    let xz = Vec3::new(1.0, 0.0, 1.0);
     for client_id in server.clients_id() {
         while let Some(message) = server.receive_message(client_id, ClientChannel::Input) {
             let player_input: PlayerInput = bincode::deserialize(&message).unwrap();
             match player_input {
                 PlayerInput::MOVE(vec3) => {
                     if let Some(player_entity) = lobby.players.get(&client_id) {
-                        let mut velocity = Velocity::default();
-                        velocity.linvel = vec3;
-                        commands.entity(*player_entity).insert(velocity);
+                        if let Ok((_, handle)) = query.get(*player_entity) {
+                            if let Some(body) = context.bodies.get_mut(handle.0) {
+                                let mass_props: &RigidBodyMassProps = body.mass_properties();
+                                let effective_mass = mass_props.effective_mass();
+                                let velocity: Vec3 = (*body.linvel()).into();
+                                // 作用冲量
+                                body.apply_impulse(
+                                    ((vec3 - velocity * xz) * effective_mass.x).into(),
+                                    true,
+                                );
+                            }
+                        }
                     }
                 }
                 PlayerInput::YAW(yaw) => {

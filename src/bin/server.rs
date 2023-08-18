@@ -25,7 +25,7 @@ use just_join::{
     connection_config,
     server::{
         chunk::ServerChunkPlugin, deal_message_system, player::ServerLobby, server_connect_system,
-        sync_body_and_head,
+        sync_body_and_head, terrain_physics::TerrainPhysicsPlugin,
     },
     PROTOCOL_ID,
 };
@@ -68,10 +68,10 @@ fn setup(mut commands: Commands) {
         .spawn(Camera3dBundle::default())
         .insert(FpsCameraBundle::new(
             FpsCameraController {
-                enabled: false,
+                // enabled: false,
                 ..Default::default()
             },
-            Vec3::new(-2.0, 5.0, 5.0),
+            Vec3::new(-2.0, 60.0, 5.0),
             Vec3::new(0., 0., 0.),
             Vec3::Y,
         ));
@@ -91,6 +91,7 @@ fn main() {
     // 这里添加必要的系统
     app.add_plugins(ServerClipSpheresPlugin);
     app.add_plugins(ServerChunkPlugin);
+    app.add_plugins(TerrainPhysicsPlugin);
 
     let (server, transport) = new_renet_server();
     app.insert_resource(server);

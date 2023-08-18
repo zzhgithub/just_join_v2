@@ -31,6 +31,18 @@ pub fn generate_offset_array_with_y_0(chunk_distance: i32) -> Vec<IVec3> {
     offsets
 }
 
+pub fn generate_offset_array(chunk_distance: i32) -> Vec<IVec3> {
+    let mut offsets = Vec::new();
+    for x in -chunk_distance as i32..=chunk_distance as i32 {
+        for y in -chunk_distance as i32..=chunk_distance as i32 {
+            for z in -chunk_distance as i32..=chunk_distance as i32 {
+                offsets.push(IVec3::new(x, y, z));
+            }
+        }
+    }
+    offsets
+}
+
 #[derive(Debug, Resource, Clone)]
 pub struct NeighbourOffest(pub Vec<IVec3>);
 
@@ -52,7 +64,15 @@ pub fn find_chunk_keys_array_by_shpere_y_0(sphere: Sphere3, offsets: Vec<IVec3>)
         .collect()
 }
 
-// offsets 已经改变成了平面为零的情况 数据需要扩展的是y轴
+pub fn find_chunk_keys_array_by_shpere(sphere: Sphere3, offsets: Vec<IVec3>) -> Vec<ChunkKey> {
+    let center_chunk_point = get_chunk_key_i3_by_vec3(sphere.center);
+    offsets
+        .iter()
+        .map(|&ele| ChunkKey(center_chunk_point + ele))
+        .collect()
+}
+
+// offsets 已经改变成了平面为零的情况 数据需要扩展的是y轴c
 pub fn find_chunk_keys_by_shpere_to_full_height(
     sphere: Sphere3,
     offsets: Vec<IVec3>,
