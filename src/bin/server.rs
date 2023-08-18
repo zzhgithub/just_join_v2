@@ -24,7 +24,8 @@ use just_join::{
     common::ServerClipSpheresPlugin,
     connection_config,
     server::{deal_message_system, player::ServerLobby, server_connect_system, sync_body_and_head},
-    PROTOCOL_ID,
+    voxel_world::map_database::MapDataBase,
+    PROTOCOL_ID, WORD_PATH,
 };
 use renet_visualizer::RenetServerVisualizer;
 use smooth_bevy_cameras::{
@@ -93,6 +94,8 @@ fn main() {
     app.insert_resource(transport);
     app.insert_resource(RenetServerVisualizer::<200>::default());
     app.insert_resource(ServerLobby::default());
+    // init MapData
+    app.insert_resource(MapDataBase::new(WORD_PATH));
 
     app.add_systems(Startup, setup);
     app.add_systems(Update, update_visulizer_system);

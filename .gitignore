@@ -1,1 +1,5 @@
 /target
+/world_test
+trace-*.json
+.DS_Store
+*/.DS_Store
