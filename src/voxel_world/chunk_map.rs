@@ -1,6 +1,6 @@
 use bevy::{
     prelude::{IVec3, Resource},
-    utils::HashMap,
+    utils::HashMap, reflect::Reflect,
 };
 use ndshape::{ConstShape, ConstShape3u32};
 
@@ -8,7 +8,7 @@ use crate::{CHUNK_SIZE, CHUNK_SIZE_ADD_2_U32, CHUNK_SIZE_U32};
 
 use super::{chunk::ChunkKey, voxel::Voxel};
 
-#[derive(Debug, Clone, Default, Resource)]
+#[derive(Debug, Clone, Default, Resource, Reflect)]
 pub struct ChunkMap {
     pub map_data: HashMap<ChunkKey, Vec<Voxel>>,
 }
@@ -17,6 +17,28 @@ impl ChunkMap {
     pub fn new() -> Self {
         let data_map = HashMap::<ChunkKey, Vec<Voxel>>::new();
         Self { map_data: data_map }
+    }
+
+    pub fn chunk_for_mesh_ready(&self, chunk_key: ChunkKey) -> bool {
+        let px = &IVec3::new(1, 0, 0);
+        let nx = &IVec3::new(-1, 0, 0);
+        let pz = &IVec3::new(0, 0, 1);
+        let nz = &IVec3::new(0, 0, -1);
+
+        let offsets = vec![px, nx, pz, nz];
+        let last_inex = -128 / CHUNK_SIZE + 1;
+
+        for y_offset in last_inex..=128 / CHUNK_SIZE {
+            for offset in offsets.iter() {
+                let mut new_key = chunk_key.clone();
+                new_key.0.y = y_offset;
+                new_key.0 = new_key.0 + **offset;
+                if !self.map_data.contains_key(&new_key) {
+                    return false;
+                }
+            }
+        }
+        true
     }
 
     pub fn get(&self, key: ChunkKey) -> Option<&Vec<Voxel>> {

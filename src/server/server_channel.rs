@@ -9,6 +9,7 @@ use bevy_renet::renet::{ChannelConfig, SendType};
 pub enum ServerChannel {
     ServerMessages,
     NetworkedEntities,
+    ChunkResult,
 }
 
 impl From<ServerChannel> for u8 {
@@ -16,6 +17,7 @@ impl From<ServerChannel> for u8 {
         match channel_id {
             ServerChannel::NetworkedEntities => 0,
             ServerChannel::ServerMessages => 1,
+            ServerChannel::ChunkResult => 2,
         }
     }
 }
@@ -32,6 +34,14 @@ impl ServerChannel {
                 channel_id: Self::ServerMessages.into(),
                 max_memory_usage_bytes: 10 * 1024 * 1024,
                 send_type: SendType::ReliableOrdered {
+                    resend_time: Duration::from_millis(200),
+                },
+            },
+            // FIXME: 这里流量太多了！！
+            ChannelConfig {
+                channel_id: Self::ChunkResult.into(),
+                max_memory_usage_bytes: 10 * 1024 * 1024,
+                send_type: SendType::ReliableUnordered {
                     resend_time: Duration::from_millis(200),
                 },
             },

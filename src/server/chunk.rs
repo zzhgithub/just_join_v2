@@ -32,7 +32,8 @@ pub fn server_chunk_generate_system(
                 // chunk_map.gen_chunk_data(key);
                 if !chunk_map.map_data.contains_key(&key) {
                     //  这里可以判断一下是否是 已经加载的数据
-                    chunk_map.write_chunk(key, db.find_by_chunk_key(key, db_save_tasks.as_mut()));
+                    let data = db.find_by_chunk_key(key, db_save_tasks.as_mut());
+                    chunk_map.write_chunk(key, data);
                 }
             },
         );
@@ -45,8 +46,8 @@ impl Plugin for ServerChunkPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         // init MapData
         app.insert_resource(MapDataBase::new(WORD_PATH));
-        app.insert_resource(ChunkMap::new());
         app.insert_resource(generate_offset_resoure(VIEW_RADIUS));
+        app.insert_resource(ChunkMap::new());
         app.insert_resource(DbSaveTasks { tasks: Vec::new() });
 
         app.add_systems(Update, server_chunk_generate_system);

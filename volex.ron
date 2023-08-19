@@ -1,0 +1,23 @@
+(
+    voxels:{
+        7:(type_name:"BaiscSton",type_ch_name:"基岩",default:(index:8,path:"textures/基岩.png"),normal:{}),
+        6:(type_name:"Sand",type_ch_name:"沙子",default:(index:7,path:"textures/沙子.png"),normal:{}),
+        5:(type_name:"Water",type_ch_name:"水",default:(index:6,path:"textures/水.png"),normal:{}),
+        4:(type_name:"Sown",type_ch_name:"雪方块",default:(index:5,path:"textures/雪.png"),normal:{}),
+        3:(type_name:"Grass",type_ch_name:"草方块",default:(index:4,path:"textures/grass_a.png"),normal:{
+            4:(index:3,path:"textures/草坪.png"),
+            1:(index:1,path:"textures/003.png"),
+        }),
+        1:(type_name:"Stone",type_ch_name:"岩石块",default:(index:0,path:"textures/002.png"),normal:{}),
+        2:(type_name:"Soli",type_ch_name:"土壤",default:(index:1,path:"textures/003.png"),normal:{})},
+        files:[
+            "textures/002.png",
+            "textures/003.png",
+            "textures/001.png",
+            "textures/草坪.png",
+            "textures/grass_a.png",
+            "textures/雪.png",
+            "textures/水.png",
+            "textures/沙子.png",
+            "textures/基岩.png"
+            ])

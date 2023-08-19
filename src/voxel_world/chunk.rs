@@ -3,11 +3,12 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use bevy::prelude::{IVec3, Resource, Vec3};
+use bevy::{prelude::{IVec3, Resource, Vec3}, reflect::Reflect};
+use serde::{Deserialize, Serialize};
 
 use crate::{common::Sphere3, CHUNK_SIZE};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Reflect)]
 pub struct ChunkKey(pub IVec3);
 
 impl ChunkKey {

@@ -11,6 +11,8 @@ pub enum ClientChannel {
     Input,
     // 用户指令
     Command,
+    // 区块数据请求
+    ChunkQuery,
 }
 
 impl From<ClientChannel> for u8 {
@@ -18,6 +20,7 @@ impl From<ClientChannel> for u8 {
         match channel_id {
             ClientChannel::Command => 0,
             ClientChannel::Input => 1,
+            ClientChannel::ChunkQuery => 2,
         }
     }
 }
@@ -35,7 +38,13 @@ impl ClientChannel {
             ChannelConfig {
                 channel_id: Self::Command.into(),
                 max_memory_usage_bytes: 5 * 1024 * 1024,
-
+                send_type: SendType::ReliableOrdered {
+                    resend_time: Duration::ZERO,
+                },
+            },
+            ChannelConfig {
+                channel_id: Self::ChunkQuery.into(),
+                max_memory_usage_bytes: 5 * 1024 * 1024,
                 send_type: SendType::ReliableOrdered {
                     resend_time: Duration::ZERO,
                 },

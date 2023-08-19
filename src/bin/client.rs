@@ -17,6 +17,7 @@ use bevy_renet::{
 use just_join::{
     client::{
         client_sync_players, client_sync_players_state,
+        mesh_display::ClientMeshPlugin,
         player::{
             controller::{CharacterController, CharacterControllerPlugin},
             ClientLobby,
@@ -62,6 +63,7 @@ fn main() {
     // 游戏相关系统
     app.add_plugins(CharacterControllerPlugin);
     app.add_plugins(ClientClipSpheresPlugin::<CharacterController> { data: PhantomData });
+    app.add_plugins(ClientMeshPlugin);
 
     let (client, transport) = new_renet_client();
     app.insert_resource(client);

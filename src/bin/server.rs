@@ -24,8 +24,9 @@ use just_join::{
     common::ServerClipSpheresPlugin,
     connection_config,
     server::{
-        chunk::ServerChunkPlugin, deal_message_system, player::ServerLobby, server_connect_system,
-        sync_body_and_head, terrain_physics::TerrainPhysicsPlugin,
+        async_chunk::ChunkDataPlugin, chunk::ServerChunkPlugin, deal_message_system,
+        player::ServerLobby, server_connect_system, sync_body_and_head,
+        terrain_physics::TerrainPhysicsPlugin,
     },
     PROTOCOL_ID,
 };
@@ -92,6 +93,7 @@ fn main() {
     app.add_plugins(ServerClipSpheresPlugin);
     app.add_plugins(ServerChunkPlugin);
     app.add_plugins(TerrainPhysicsPlugin);
+    app.add_plugins(ChunkDataPlugin);
 
     let (server, transport) = new_renet_server();
     app.insert_resource(server);

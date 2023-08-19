@@ -1,5 +1,6 @@
 use bevy::prelude::{
-    Assets, Commands, Mesh, Quat, Query, Res, ResMut, StandardMaterial, Transform, Without, DespawnRecursiveExt,
+    Assets, Commands, DespawnRecursiveExt, Mesh, Quat, Query, Res, ResMut, StandardMaterial,
+    Transform, Without,
 };
 use bevy_renet::renet::{transport::NetcodeClientTransport, RenetClient};
 
@@ -17,9 +18,12 @@ use self::player::{
     ClientLobby,
 };
 
+pub mod chunk_query;
 pub mod client_channel;
+pub mod mesh_display;
 pub mod player;
 pub mod player_input;
+pub mod voxels;
 
 // 同步创建或者删除角色
 pub fn client_sync_players(

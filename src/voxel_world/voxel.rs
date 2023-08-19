@@ -1,10 +1,11 @@
+use bevy::reflect::Reflect;
 use block_mesh::{MergeVoxel, Voxel as MeshVoxel, VoxelVisibility};
 use serde::{Deserialize, Serialize};
 
 /**
  * 体素类型
  */
-#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, Reflect)]
 pub struct Voxel {
     pub id: u8,
 }

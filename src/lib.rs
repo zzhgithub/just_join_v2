@@ -10,6 +10,7 @@ pub mod voxel_world;
 
 pub const PRIVATE_KEY: &[u8; NETCODE_KEY_BYTES] = b"an example very very secret key."; // 32-bytes
 pub const WORD_PATH: &str = "world_test";
+pub const MATERIAL_RON: &str = "volex.ron";
 pub const PROTOCOL_ID: u64 = 7;
 
 pub type SmallKeyHashMap<K, V> = ahash::AHashMap<K, V>;

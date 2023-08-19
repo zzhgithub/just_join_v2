@@ -32,6 +32,11 @@ bevy_renet = "0.0.9"
 renet_visualizer = { version = "0.0.6", features = ["bevy"] }
 smooth-bevy-cameras = "0.9.0"
 
+walkdir = "2.3.3"
+structopt = "0.3"
+ron = "0.8.0"
+bevy_console = "0.8.0"
+
 [profile.dev.package.bevy_rapier3d]
 opt-level = 3
 
