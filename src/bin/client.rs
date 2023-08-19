@@ -1,7 +1,10 @@
 use std::{marker::PhantomData, net::UdpSocket, time::SystemTime};
 
 use bevy::{
-    prelude::{App, EventReader, Input, IntoSystemConfigs, KeyCode, Local, Res, ResMut, Update},
+    prelude::{
+        AmbientLight, App, EventReader, Input, IntoSystemConfigs, KeyCode, Local, Res, ResMut,
+        Update,
+    },
     DefaultPlugins,
 };
 use bevy_egui::{EguiContexts, EguiPlugin};
@@ -71,6 +74,11 @@ fn main() {
     app.insert_resource(RenetClientVisualizer::<200>::new(
         RenetVisualizerStyle::default(),
     ));
+    // 设置一个环境光照强度
+    app.insert_resource(AmbientLight {
+        brightness: 1.06,
+        ..Default::default()
+    });
     app.insert_resource(ClientLobby::default());
     // 调试工具
     app.add_systems(Update, inspector_ui);

@@ -14,7 +14,6 @@ use bevy_renet::renet::RenetClient;
 use crate::{
     common::ClipSpheres,
     server::{chunk_result::ChunkResult, server_channel::ServerChannel},
-    tools::all_empty,
     voxel_world::{
         chunk::{
             find_chunk_keys_array_by_shpere_y_0, generate_offset_resoure, ChunkKey, NeighbourOffest,
@@ -134,7 +133,6 @@ pub fn async_chunk_result(
         let chunk_result: ChunkResult = bincode::deserialize(&message).unwrap();
         match chunk_result {
             ChunkResult::ChunkData { key, data } => {
-                // println!("{:?}",data);
                 let task = pool.spawn(async move { (key, data) });
                 chunk_sync_task.tasks.push(task);
             }
@@ -150,10 +148,6 @@ pub fn save_chunk_result(
     for ele in chunk_sync_task.tasks.drain(..l) {
         match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
             Some((chunk_key, data)) => {
-                if all_empty(data.clone()) {
-                } else {
-                    println!("{:?}", chunk_key);
-                }
                 chunk_map.write_chunk(chunk_key, data);
             }
             None => {}
@@ -203,9 +197,7 @@ pub fn update_mesh_system(
                                     .id(),
                             );
                         }
-                        None => {
-                            println!("All None");
-                        }
+                        None => {}
                     };
                     match gen_mesh_water(pick_water(voxels.clone()), material_config.clone()) {
                         Some(water_mesh) => {
