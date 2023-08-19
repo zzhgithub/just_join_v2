@@ -14,6 +14,7 @@ use bevy_renet::renet::RenetClient;
 use crate::{
     common::ClipSpheres,
     server::{chunk_result::ChunkResult, server_channel::ServerChannel},
+    tools::get_empty_chunk,
     voxel_world::{
         chunk::{
             find_chunk_keys_array_by_shpere_y_0, generate_offset_resoure, ChunkKey, NeighbourOffest,
@@ -134,6 +135,10 @@ pub fn async_chunk_result(
         match chunk_result {
             ChunkResult::ChunkData { key, data } => {
                 let task = pool.spawn(async move { (key, data) });
+                chunk_sync_task.tasks.push(task);
+            }
+            ChunkResult::ChunkEmpty(key) => {
+                let task = pool.spawn(async move { (key, get_empty_chunk()) });
                 chunk_sync_task.tasks.push(task);
             }
         }

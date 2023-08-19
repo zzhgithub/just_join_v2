@@ -9,4 +9,5 @@ pub enum ChunkResult {
         key: ChunkKey,
         data: Vec<Voxel>,
     },
+    ChunkEmpty(ChunkKey),
 }

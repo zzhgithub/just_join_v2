@@ -6,6 +6,7 @@ use bevy_renet::renet::RenetServer;
 
 use crate::{
     client::{chunk_query::ChunkQuery, client_channel::ClientChannel},
+    tools::all_empty,
     voxel_world::{
         chunk_map::ChunkMap,
         map_database::{DbSaveTasks, MapDataBase},
@@ -38,21 +39,22 @@ pub fn deal_chunk_query_system(
                     for y_offset in last_inex..=128 / CHUNK_SIZE {
                         let mut new_key = chunk_key.clone();
                         new_key.0.y = y_offset;
-                        let message: Vec<u8>;
+                        let voxels;
                         if let Some(data) = chunk_map.map_data.get(&new_key) {
-                            message = bincode::serialize(&ChunkResult::ChunkData {
-                                key: new_key.clone(),
-                                data: data.clone(),
-                            })
-                            .unwrap();
+                            voxels = data.clone();
                         } else {
-                            let data = db.find_by_chunk_key(new_key, db_save_task.as_mut());
-                            message = bincode::serialize(&ChunkResult::ChunkData {
-                                key: new_key.clone(),
-                                data: data,
-                            })
-                            .unwrap();
+                            voxels = db.find_by_chunk_key(new_key, db_save_task.as_mut());
                         }
+                        let message = if all_empty(&voxels) {
+                            bincode::serialize(&ChunkResult::ChunkEmpty(new_key.clone())).unwrap()
+                        } else {
+                            bincode::serialize(&ChunkResult::ChunkData {
+                                key: new_key.clone(),
+                                data: voxels.clone(),
+                            })
+                            .unwrap()
+                        };
+
                         let task = pool.spawn(async move { (client_id, message) });
                         tasks.tasks.push(task);
                     }
