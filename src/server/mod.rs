@@ -27,6 +27,7 @@ pub mod player;
 pub mod server_channel;
 pub mod server_messages;
 pub mod terrain_physics;
+pub mod time_sync;
 
 /**
  * 处理client连接获取断开时的操作

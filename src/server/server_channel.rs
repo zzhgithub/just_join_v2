@@ -10,6 +10,7 @@ pub enum ServerChannel {
     ServerMessages,
     NetworkedEntities,
     ChunkResult,
+    TimsSync,
 }
 
 impl From<ServerChannel> for u8 {
@@ -18,6 +19,7 @@ impl From<ServerChannel> for u8 {
             ServerChannel::NetworkedEntities => 0,
             ServerChannel::ServerMessages => 1,
             ServerChannel::ChunkResult => 2,
+            ServerChannel::TimsSync => 3,
         }
     }
 }
@@ -44,6 +46,11 @@ impl ServerChannel {
                 send_type: SendType::ReliableUnordered {
                     resend_time: Duration::from_millis(200),
                 },
+            },
+            ChannelConfig {
+                channel_id: Self::TimsSync.into(),
+                max_memory_usage_bytes: 10 * 1024 * 1024,
+                send_type: SendType::Unreliable,
             },
         ]
     }

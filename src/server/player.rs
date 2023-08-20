@@ -31,8 +31,8 @@ pub fn server_create_player(
         .insert(ColliderMassProperties::Mass(300.0))
         .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Collider::capsule(
-            (-0.5 * 1.9 * Vec3::Y).into(),
-            (0.5 * (1.9 - 0.9) * Vec3::Y).into(),
+            (-0.5 * 1.7 * Vec3::Y).into(),
+            (0.5 * (1.7 - 0.9) * Vec3::Y).into(),
             0.3,
         ))
         .insert(Ccd::enabled())

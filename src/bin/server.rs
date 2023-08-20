@@ -28,6 +28,7 @@ use just_join::{
         player::ServerLobby, server_connect_system, sync_body_and_head,
         terrain_physics::TerrainPhysicsPlugin,
     },
+    sky::ServerSkyPlugins,
     PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
@@ -94,6 +95,7 @@ fn main() {
     app.add_plugins(ServerChunkPlugin);
     app.add_plugins(TerrainPhysicsPlugin);
     app.add_plugins(ChunkDataPlugin);
+    app.add_plugins(ServerSkyPlugins);
 
     let (server, transport) = new_renet_server();
     app.insert_resource(server);

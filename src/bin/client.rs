@@ -28,6 +28,7 @@ use just_join::{
     },
     common::{ClientClipSpheresPlugin, ClipSpheres},
     connection_config,
+    sky::ClientSkyPlugins,
     tools::inspector_egui::inspector_ui,
     PROTOCOL_ID,
 };
@@ -67,6 +68,7 @@ fn main() {
     app.add_plugins(CharacterControllerPlugin);
     app.add_plugins(ClientClipSpheresPlugin::<CharacterController> { data: PhantomData });
     app.add_plugins(ClientMeshPlugin);
+    app.add_plugins(ClientSkyPlugins);
 
     let (client, transport) = new_renet_client();
     app.insert_resource(client);

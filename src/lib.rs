@@ -5,6 +5,7 @@ use server::server_channel::ServerChannel;
 pub mod client;
 pub mod common;
 pub mod server;
+pub mod sky;
 pub mod tools;
 pub mod voxel_world;
 
