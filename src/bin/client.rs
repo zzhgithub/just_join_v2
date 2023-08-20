@@ -25,12 +25,13 @@ use just_join::{
             controller::{CharacterController, CharacterControllerPlugin},
             ClientLobby,
         },
+        ray_cast::MeshRayCastPlugin,
     },
     common::{ClientClipSpheresPlugin, ClipSpheres},
     connection_config,
     sky::ClientSkyPlugins,
     tools::inspector_egui::inspector_ui,
-    PROTOCOL_ID,
+    CLIENT_DEBUG, PROTOCOL_ID,
 };
 use renet_visualizer::{RenetClientVisualizer, RenetVisualizerStyle};
 
@@ -69,13 +70,12 @@ fn main() {
     app.add_plugins(ClientClipSpheresPlugin::<CharacterController> { data: PhantomData });
     app.add_plugins(ClientMeshPlugin);
     app.add_plugins(ClientSkyPlugins);
+    app.add_plugins(MeshRayCastPlugin);
 
     let (client, transport) = new_renet_client();
     app.insert_resource(client);
     app.insert_resource(transport);
-    app.insert_resource(RenetClientVisualizer::<200>::new(
-        RenetVisualizerStyle::default(),
-    ));
+
     // 设置一个环境光照强度
     app.insert_resource(AmbientLight {
         brightness: 1.06,
@@ -83,9 +83,15 @@ fn main() {
     });
     app.insert_resource(ClientLobby::default());
     // 调试工具
-    app.add_systems(Update, inspector_ui);
-    app.add_plugins(ResourceInspectorPlugin::<ClipSpheres>::default());
-    app.register_type::<ClipSpheres>();
+    if CLIENT_DEBUG {
+        app.add_systems(Update, inspector_ui);
+        app.insert_resource(RenetClientVisualizer::<200>::new(
+            RenetVisualizerStyle::default(),
+        ));
+        app.add_plugins(ResourceInspectorPlugin::<ClipSpheres>::default());
+        app.register_type::<ClipSpheres>();
+        app.add_systems(Update, update_visulizer_system);
+    }
     // TODO: 其他系统
     app.add_systems(
         Update,
@@ -94,7 +100,6 @@ fn main() {
     );
 
     // 这只负责展示 player 和 mesh的展示! 没有本地的物理引擎
-    app.add_systems(Update, update_visulizer_system);
     app.add_systems(Update, panic_on_error_system);
     app.run();
 }

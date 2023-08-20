@@ -23,6 +23,7 @@ pub mod client_channel;
 pub mod mesh_display;
 pub mod player;
 pub mod player_input;
+pub mod ray_cast;
 pub mod voxels;
 
 // 同步创建或者删除角色

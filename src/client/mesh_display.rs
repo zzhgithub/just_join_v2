@@ -9,6 +9,7 @@ use bevy::{
     tasks::{AsyncComputeTaskPool, Task},
     utils::HashMap,
 };
+use bevy_mod_raycast::RaycastMesh;
 use bevy_renet::renet::RenetClient;
 
 use crate::{
@@ -28,6 +29,7 @@ use crate::{
 use super::{
     chunk_query::ChunkQuery,
     client_channel::ClientChannel,
+    ray_cast::MyRaycastSet,
     voxels::{
         mesh::{gen_mesh, gen_mesh_water, pick_water},
         mesh_material::{BindlessMaterial, MaterialStorge},
@@ -185,20 +187,23 @@ pub fn update_mesh_system(
                             mesh_manager.entities.insert(
                                 chunk_key,
                                 commands
-                                    .spawn(MaterialMeshBundle {
-                                        transform: Transform::from_xyz(
-                                            (chunk_key.0.x * CHUNK_SIZE) as f32
-                                                - CHUNK_SIZE as f32 / 2.0
-                                                - 1.0,
-                                            -128.0 + CHUNK_SIZE as f32 / 2.0,
-                                            (chunk_key.0.z * CHUNK_SIZE) as f32
-                                                - CHUNK_SIZE as f32 / 2.0
-                                                - 1.0,
-                                        ),
-                                        mesh: mesh_handle.clone(),
-                                        material: materials.0.clone(),
-                                        ..Default::default()
-                                    })
+                                    .spawn((
+                                        MaterialMeshBundle {
+                                            transform: Transform::from_xyz(
+                                                (chunk_key.0.x * CHUNK_SIZE) as f32
+                                                    - CHUNK_SIZE as f32 / 2.0
+                                                    - 1.0,
+                                                -128.0 + CHUNK_SIZE as f32 / 2.0,
+                                                (chunk_key.0.z * CHUNK_SIZE) as f32
+                                                    - CHUNK_SIZE as f32 / 2.0
+                                                    - 1.0,
+                                            ),
+                                            mesh: mesh_handle.clone(),
+                                            material: materials.0.clone(),
+                                            ..Default::default()
+                                        },
+                                        RaycastMesh::<MyRaycastSet>::default(), // Make this mesh ray cast-able
+                                    ))
                                     .id(),
                             );
                         }

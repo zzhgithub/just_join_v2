@@ -12,7 +12,7 @@ use bevy_atmosphere::prelude::AtmosphereCamera;
 use crate::server::player::Player;
 
 use self::{
-    controller::{BodyTag, CharacterController, HeadTag, YawTag, ThirdPerson},
+    controller::{BodyTag, CameraTag, CharacterController, HeadTag, ThirdPerson, YawTag},
     look::{LookDirection, LookEntity},
 };
 
@@ -116,7 +116,7 @@ pub fn client_create_player(
             })
             // 天空合作还没有启用
             .insert(AtmosphereCamera::default())
-            .insert(LookDirection::default())
+            .insert((LookDirection::default(), CameraTag))
             .id();
         commands
             .entity(body)
