@@ -10,4 +10,9 @@ pub enum ChunkResult {
         data: Vec<Voxel>,
     },
     ChunkEmpty(ChunkKey),
+    ChunkUpdateOne {
+        chunk_key: ChunkKey,
+        pos: [u32; 3],
+        voxel_type: Voxel,
+    },
 }

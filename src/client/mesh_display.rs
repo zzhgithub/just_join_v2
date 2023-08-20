@@ -2,15 +2,16 @@ use std::collections::HashSet;
 
 use bevy::{
     prelude::{
-        AlphaMode, AssetServer, Assets, Color, Commands, Entity, Handle, IntoSystemConfigs, Last,
-        MaterialMeshBundle, MaterialPlugin, Mesh, Plugin, PreUpdate, Res, ResMut, Resource,
-        StandardMaterial, Startup, Transform, Update,
+        AlphaMode, AssetServer, Assets, Color, Commands, Component, Entity, Handle,
+        IntoSystemConfigs, Last, MaterialMeshBundle, MaterialPlugin, Mesh, Plugin, PreUpdate, Res,
+        ResMut, Resource, StandardMaterial, Startup, Transform, Update,
     },
     tasks::{AsyncComputeTaskPool, Task},
     utils::HashMap,
 };
 use bevy_mod_raycast::RaycastMesh;
 use bevy_renet::renet::RenetClient;
+use ndshape::{ConstShape, ConstShape3u32};
 
 use crate::{
     common::ClipSpheres,
@@ -23,7 +24,7 @@ use crate::{
         chunk_map::ChunkMap,
         voxel::Voxel,
     },
-    CHUNK_SIZE, MATERIAL_RON, VIEW_RADIUS,
+    CHUNK_SIZE, CHUNK_SIZE_U32, MATERIAL_RON, VIEW_RADIUS,
 };
 
 use super::{
@@ -56,6 +57,11 @@ pub struct MeshTasks {
 pub struct ChunkSyncTask {
     pub tasks: Vec<Task<(ChunkKey, Vec<Voxel>)>>,
 }
+
+#[derive(Resource)]
+pub struct ChunkUpdateTask {
+    pub tasks: Vec<Task<ChunkKey>>,
+}
 pub struct ClientMeshPlugin;
 
 impl Plugin for ClientMeshPlugin {
@@ -66,6 +72,7 @@ impl Plugin for ClientMeshPlugin {
         app.insert_resource(MeshTasks { tasks: Vec::new() });
         app.insert_resource(generate_offset_resoure(VIEW_RADIUS));
         app.insert_resource(ChunkSyncTask { tasks: Vec::new() });
+        app.insert_resource(ChunkUpdateTask { tasks: Vec::new() });
         app.add_systems(Startup, setup);
 
         // mesh_加载和更新相关
@@ -73,7 +80,10 @@ impl Plugin for ClientMeshPlugin {
             PreUpdate,
             (gen_mesh_system, async_chunk_result).run_if(bevy_renet::transport::client_connected()),
         );
-        app.add_systems(Update, (update_mesh_system, save_chunk_result));
+        app.add_systems(
+            Update,
+            (update_mesh_system, save_chunk_result, update_chunk_mesh),
+        );
         app.add_systems(Last, deleter_mesh_system);
     }
 }
@@ -128,10 +138,14 @@ pub fn gen_mesh_system(
 }
 
 pub fn async_chunk_result(
+    mesh_manager: Res<MeshManager>,
     mut client: ResMut<RenetClient>,
     mut chunk_sync_task: ResMut<ChunkSyncTask>,
+    mut chunk_map: ResMut<ChunkMap>,
+    mut chunk_update_task: ResMut<ChunkUpdateTask>,
 ) {
     let pool = AsyncComputeTaskPool::get();
+    let mut key_set: HashSet<(usize, ChunkKey)> = HashSet::new();
     while let Some(message) = client.receive_message(ServerChannel::ChunkResult) {
         let chunk_result: ChunkResult = bincode::deserialize(&message).unwrap();
         match chunk_result {
@@ -142,6 +156,118 @@ pub fn async_chunk_result(
             ChunkResult::ChunkEmpty(key) => {
                 let task = pool.spawn(async move { (key, get_empty_chunk()) });
                 chunk_sync_task.tasks.push(task);
+            }
+            ChunkResult::ChunkUpdateOne {
+                chunk_key,
+                pos,
+                voxel_type,
+            } => {
+                // 1. 判断 更新 chunkmap的数据
+                if let Some(voxel) = chunk_map.map_data.get_mut(&chunk_key) {
+                    type SampleShape =
+                        ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
+                    let index = SampleShape::linearize(pos) as usize;
+                    voxel[index] = voxel_type;
+                    let mut clone_chunk_key = chunk_key.clone();
+                    clone_chunk_key.0.y = 0;
+                    key_set.insert((1, clone_chunk_key.clone()));
+                    // 2. 刷新mesh的task 注意是刷新的task
+                    if pos[0] == 0 {
+                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        new_chunk_key_i3.x -= 1;
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                    }
+                    if pos[0] == CHUNK_SIZE_U32 - 1 {
+                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        new_chunk_key_i3.x += 1;
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                    }
+                    if pos[2] == 0 {
+                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        new_chunk_key_i3.z -= 1;
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                    }
+                    if pos[2] == CHUNK_SIZE_U32 - 1 {
+                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        new_chunk_key_i3.z += 1;
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                    }
+                }
+            }
+        }
+    }
+    // 这里解决处理顺序
+    let mut sorted_vec: Vec<(usize, ChunkKey)> = key_set.into_iter().collect();
+    sorted_vec.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap().reverse());
+
+    for (_, key) in sorted_vec.iter() {
+        let chunk_key: ChunkKey = key.clone();
+        if let Some(_) = mesh_manager.entities.get(key) {
+            let task = pool.spawn(async move { chunk_key });
+            chunk_update_task.tasks.push(task);
+        }
+    }
+}
+
+pub fn update_chunk_mesh(
+    mut commands: Commands,
+    mut chunk_update_task: ResMut<ChunkUpdateTask>,
+    material_config: Res<MaterailConfiguration>,
+    chunk_map: Res<ChunkMap>,
+    mut mesh_manager: ResMut<MeshManager>,
+    mut mesh_assets: ResMut<Assets<Mesh>>,
+) {
+    let l = chunk_update_task.tasks.len().min(16);
+    for ele in chunk_update_task.tasks.drain(..l) {
+        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
+            Some(chunk_key) => update_mesh(
+                &mut commands,
+                chunk_map.as_ref(),
+                chunk_key.clone(),
+                material_config.clone(),
+                mesh_manager.as_mut(),
+                mesh_assets.as_mut(),
+            ),
+            None => {}
+        }
+    }
+}
+
+pub fn update_mesh(
+    commands: &mut Commands,
+    chunk_map: &ChunkMap,
+    chunk_key_y0: ChunkKey,
+    material_config: MaterailConfiguration,
+    mesh_manager: &mut MeshManager,
+    mesh_assets: &mut Assets<Mesh>,
+) {
+    let volexs: Vec<Voxel> = chunk_map.get_with_neighbor_full_y(chunk_key_y0);
+    match gen_mesh(volexs.to_owned(), material_config.clone()) {
+        Some(render_mesh) => {
+            let mesh_handle = mesh_manager.mesh_storge.get(&chunk_key_y0).unwrap();
+            if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                *mesh = render_mesh;
+            }
+            // 没有生成mesh就不管反正后面要生成
+        }
+        None => {
+            mesh_manager.mesh_storge.remove(&chunk_key_y0);
+            if let Some(entity) = mesh_manager.entities.remove(&chunk_key_y0) {
+                commands.entity(entity).despawn();
+            }
+        }
+    };
+    match gen_mesh_water(pick_water(volexs.clone()), material_config.clone()) {
+        Some(water_mesh) => {
+            let mesh_handle = mesh_manager.water_mesh_storge.get(&chunk_key_y0).unwrap();
+            if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                *mesh = water_mesh;
+            }
+        }
+        None => {
+            mesh_manager.water_mesh_storge.remove(&chunk_key_y0);
+            if let Some(entity) = mesh_manager.water_entities.remove(&chunk_key_y0) {
+                commands.entity(entity).despawn();
             }
         }
     }
@@ -161,6 +287,12 @@ pub fn save_chunk_result(
         }
     }
 }
+
+#[derive(Debug, Component)]
+pub struct TerrainMesh;
+
+#[derive(Debug, Component)]
+pub struct WaterMesh;
 
 pub fn update_mesh_system(
     mut commands: Commands,
@@ -202,6 +334,7 @@ pub fn update_mesh_system(
                                             material: materials.0.clone(),
                                             ..Default::default()
                                         },
+                                        TerrainMesh,
                                         RaycastMesh::<MyRaycastSet>::default(), // Make this mesh ray cast-able
                                     ))
                                     .id(),
@@ -241,6 +374,7 @@ pub fn update_mesh_system(
                                         }),
                                         ..Default::default()
                                     })
+                                    .insert(WaterMesh)
                                     .id(),
                             );
                         }

@@ -23,6 +23,7 @@ use just_join::{
         mesh_display::ClientMeshPlugin,
         player::{
             controller::{CharacterController, CharacterControllerPlugin},
+            mouse_control::mouse_button_system,
             ClientLobby,
         },
         ray_cast::MeshRayCastPlugin,
@@ -95,7 +96,11 @@ fn main() {
     // TODO: 其他系统
     app.add_systems(
         Update,
-        (client_sync_players, client_sync_players_state)
+        (
+            client_sync_players,
+            client_sync_players_state,
+            mouse_button_system,
+        )
             .run_if(bevy_renet::transport::client_connected()),
     );
 

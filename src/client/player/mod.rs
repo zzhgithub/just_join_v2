@@ -19,6 +19,7 @@ use self::{
 pub mod controller;
 pub mod look;
 pub mod player_input;
+pub mod mouse_control;
 
 #[derive(Debug)]
 pub struct PlayerInfo {

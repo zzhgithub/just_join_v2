@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use bevy::{
     prelude::{
         Commands, Component, Entity, GlobalTransform, IntoSystemConfigs, Last, Plugin, PreUpdate,
-        Res, ResMut, Resource, SystemSet, Transform, Vec3,
+        Query, Res, ResMut, Resource, SystemSet, Transform, Vec3,
     },
     tasks::{AsyncComputeTaskPool, Task},
     utils::HashMap,
@@ -148,6 +148,7 @@ impl Plugin for TerrainPhysicsPlugin {
             entities: HashMap::default(),
         })
         .insert_resource(ColliderTasksManager::default())
+        .insert_resource(ColliderUpdateTasksManager::default())
         .add_systems(
             PreUpdate,
             server_update_collider_task_system.in_set(ColliderSystem::ColliderTask),
@@ -158,6 +159,7 @@ impl Plugin for TerrainPhysicsPlugin {
                 .in_set(ColliderSystem::ColliderSpawn)
                 .after(ColliderSystem::ColliderTask),
         )
+        .add_systems(PreUpdate, update_codiller)
         .add_systems(
             Last,
             despawn_collider.in_set(ColliderSystem::ColliderDespawn),
@@ -212,4 +214,34 @@ pub fn gen_collider(voxels: Vec<Voxel>) -> Option<Collider> {
     let collider_indices: Vec<[u32; 3]> = indices.chunks(3).map(|i| [i[0], i[1], i[2]]).collect();
     let collider = Collider::trimesh(collider_vertices, collider_indices);
     Some(collider)
+}
+
+#[derive(Debug, Resource, Default)]
+pub struct ColliderUpdateTasksManager {
+    pub tasks: Vec<Task<(Entity, ChunkKey, Vec<Voxel>)>>,
+}
+
+fn update_codiller(
+    mut commands: Commands,
+    mut collider_update_tasks_manager: ResMut<ColliderUpdateTasksManager>,
+    mut query: Query<(Entity, &mut Collider, &TerrainPhysics)>,
+    mut collider_manager: ResMut<ColliderManager>,
+) {
+    let len = collider_update_tasks_manager.tasks.len().min(256);
+    for ele in collider_update_tasks_manager.tasks.drain(..len) {
+        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
+            Some((entity, chunk_key, voxels)) => {
+                if let Ok((_, mut collider, _)) = query.get_mut(entity) {
+                    if let Some(c) = gen_collider(voxels) {
+                        *collider = c;
+                    } else {
+                        if let Some(entity) = collider_manager.entities.remove(&chunk_key) {
+                            commands.entity(entity).despawn();
+                        }
+                    }
+                }
+            }
+            None => {}
+        }
+    }
 }

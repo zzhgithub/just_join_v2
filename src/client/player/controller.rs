@@ -149,6 +149,7 @@ fn toggle_grab_cursor(window: &mut Window) {
 
 // 光标显示或者隐藏系统
 fn cursor_grab(
+    mut flags: ResMut<ControllerFlag>,
     keys: Res<Input<KeyCode>>,
     controller_query: Query<&CharacterController>,
     mut primary_window: Query<&mut Window, With<PrimaryWindow>>,
@@ -158,6 +159,8 @@ fn cursor_grab(
         if let Ok(mut window) = primary_window.get_single_mut() {
             if keys.just_pressed(input_map.toggle_grab_cursor) {
                 toggle_grab_cursor(&mut window);
+                // 添加其他按钮是否生效逻辑
+                flags.flag = !flags.flag;
             }
         } else {
             warn!("Primary window not found for `cursor_grab`!");

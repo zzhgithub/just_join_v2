@@ -41,6 +41,7 @@ pub fn generate_offset_array(chunk_distance: i32) -> Vec<IVec3> {
             }
         }
     }
+    offsets.push(IVec3::ZERO);
     offsets
 }
 

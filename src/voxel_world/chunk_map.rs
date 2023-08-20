@@ -95,7 +95,7 @@ impl ChunkMap {
         let nx = &IVec3::new(-1, 0, 0);
         let pz = &IVec3::new(0, 0, 1);
         let nz = &IVec3::new(0, 0, -1);
-        let py = &IVec3::new(0, 1, 1);
+        let py = &IVec3::new(0, 1, 0);
         let ny = &IVec3::new(0, -1, 0);
 
         let offsets = vec![px, nx, pz, nz, py, ny];

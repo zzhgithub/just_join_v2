@@ -145,8 +145,8 @@ pub fn touth_mesh_ray_cast(
             let normal = hit.normal();
             if CLIENT_DEBUG {
                 gizmos.ray(hit_point, normal, Color::RED);
-                gizmos.circle(hit_point, normal, 0.05, Color::BLACK);
             }
+            gizmos.circle(hit_point, normal, 0.05, Color::BLACK);
             let center_point = get_pos_chunk_center(hit_point, normal);
             let out_center_point = get_pos_chunk_center(hit_point, -normal);
 
