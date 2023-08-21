@@ -1,6 +1,7 @@
 use std::{marker::PhantomData, net::UdpSocket, time::SystemTime};
 
 use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::{
         AmbientLight, App, EventReader, Input, IntoSystemConfigs, KeyCode, Local, Res, ResMut,
         Update,
@@ -20,6 +21,7 @@ use bevy_renet::{
 use just_join::{
     client::{
         client_sync_players, client_sync_players_state,
+        console_commands::ConsoleCommandPlugins,
         mesh_display::ClientMeshPlugin,
         player::{
             controller::{CharacterController, CharacterControllerPlugin},
@@ -72,6 +74,7 @@ fn main() {
     app.add_plugins(ClientMeshPlugin);
     app.add_plugins(ClientSkyPlugins);
     app.add_plugins(MeshRayCastPlugin);
+    app.add_plugins(ConsoleCommandPlugins);
 
     let (client, transport) = new_renet_client();
     app.insert_resource(client);
@@ -85,6 +88,12 @@ fn main() {
     app.insert_resource(ClientLobby::default());
     // 调试工具
     if CLIENT_DEBUG {
+        app.add_plugins((
+            // Adds frame time diagnostics
+            FrameTimeDiagnosticsPlugin,
+            // Adds a system that prints diagnostics to the console
+            LogDiagnosticsPlugin::default(),
+        ));
         app.add_systems(Update, inspector_ui);
         app.insert_resource(RenetClientVisualizer::<200>::new(
             RenetVisualizerStyle::default(),

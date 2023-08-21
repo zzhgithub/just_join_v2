@@ -20,6 +20,7 @@ use self::player::{
 
 pub mod chunk_query;
 pub mod client_channel;
+pub mod console_commands;
 pub mod mesh_display;
 pub mod player;
 pub mod player_input;

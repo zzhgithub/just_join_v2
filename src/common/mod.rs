@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{collections::HashSet, marker::PhantomData};
 
 use bevy::{
     prelude::{Component, Plugin, PreUpdate, Query, ResMut, Resource, Transform, Vec3, With},
@@ -84,12 +84,14 @@ pub fn update_all_clip_shpere_system(
     mut server_clip_spheres: ResMut<ServerClipSpheres>,
     query: Query<(&Player, &Transform)>,
 ) {
+    let mut old_keys: HashSet<u64> = server_clip_spheres.clip_spheres.keys().cloned().collect();
     for (player, transform) in query.iter() {
         let client_id = player.id;
         let sphere = Sphere3 {
             center: transform.translation,
             radius: VIEW_RADIUS,
         };
+        old_keys.remove(&client_id);
         if let Some(clip_sphere) = server_clip_spheres.clip_spheres.get_mut(&client_id) {
             clip_sphere.old_sphere = clip_sphere.new_sphere;
             clip_sphere.new_sphere = sphere;
@@ -102,5 +104,9 @@ pub fn update_all_clip_shpere_system(
                 },
             );
         }
+    }
+    // 
+    for old_key in old_keys.iter() {
+        server_clip_spheres.clip_spheres.remove(old_key);
     }
 }

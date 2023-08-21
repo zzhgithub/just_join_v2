@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::{
+    collections::HashSet,
+    time::{Duration, Instant},
+};
 
 use bevy::{
     prelude::{
@@ -7,6 +10,7 @@ use bevy::{
         ResMut, Resource, StandardMaterial, Startup, Transform, Update,
     },
     tasks::{AsyncComputeTaskPool, Task},
+    time::{Time, Timer, TimerMode},
     utils::HashMap,
 };
 use bevy_mod_raycast::RaycastMesh;
@@ -45,7 +49,7 @@ pub struct MeshManager {
     pub entities: HashMap<ChunkKey, Entity>,
     pub water_entities: HashMap<ChunkKey, Entity>,
     pub fast_key: HashSet<ChunkKey>,
-    pub data_status: HashMap<ChunkKey, bool>,
+    pub data_status: HashMap<ChunkKey, (bool, Instant)>,
 }
 
 #[derive(Resource)]
@@ -73,12 +77,17 @@ impl Plugin for ClientMeshPlugin {
         app.insert_resource(generate_offset_resoure(VIEW_RADIUS));
         app.insert_resource(ChunkSyncTask { tasks: Vec::new() });
         app.insert_resource(ChunkUpdateTask { tasks: Vec::new() });
+        app.insert_resource(CycleCheckTimer(Timer::new(
+            bevy::utils::Duration::from_millis(1000 * 2),
+            TimerMode::Repeating,
+        )));
         app.add_systems(Startup, setup);
 
         // mesh_加载和更新相关
         app.add_systems(
             PreUpdate,
-            (gen_mesh_system, async_chunk_result).run_if(bevy_renet::transport::client_connected()),
+            (gen_mesh_system, async_chunk_result, cycle_check_mesh)
+                .run_if(bevy_renet::transport::client_connected()),
         );
         app.add_systems(
             Update,
@@ -123,15 +132,23 @@ pub fn gen_mesh_system(
             if let Some(_state) = mesh_manager.data_status.get(&key) {
                 if chunk_map.chunk_for_mesh_ready(key) {
                     mesh_manager.fast_key.insert(key);
-                    mesh_manager.data_status.insert(key, true);
+                    mesh_manager.data_status.insert(key, (true, Instant::now()));
                     let volexs: Vec<Voxel> = chunk_map.get_with_neighbor_full_y(key);
                     let task = pool.spawn(async move { (volexs.clone(), key.clone()) });
                     mesh_task.tasks.push(task);
                 }
             } else {
-                let message = bincode::serialize(&ChunkQuery::GetFullY(key)).unwrap();
-                client.send_message(ClientChannel::ChunkQuery, message);
-                mesh_manager.data_status.insert(key, false);
+                if !chunk_map.chunk_for_mesh_ready(key) {
+                    let message = bincode::serialize(&ChunkQuery::GetFullY(key)).unwrap();
+                    client.send_message(ClientChannel::ChunkQuery, message);
+                    mesh_manager
+                        .data_status
+                        .insert(key, (false, Instant::now()));
+                } else {
+                    mesh_manager
+                        .data_status
+                        .insert(key, (false, Instant::now()));
+                }
             }
         }
     }
@@ -416,6 +433,40 @@ pub fn deleter_mesh_system(
         if let Some(entity) = mesh_manager.water_entities.remove(&chunk_key) {
             mesh_manager.fast_key.remove(&chunk_key);
             commands.entity(entity).despawn();
+        }
+        mesh_manager.data_status.remove(&chunk_key);
+    }
+}
+
+// 定期检查丢包问题
+
+#[derive(Resource)]
+pub struct CycleCheckTimer(Timer);
+
+fn cycle_check_mesh(
+    mut timer: ResMut<CycleCheckTimer>,
+    time: Res<Time>,
+    mut mesh_manager: ResMut<MeshManager>,
+    mut client: ResMut<RenetClient>,
+) {
+    timer.0.tick(time.delta());
+    if timer.0.finished() {
+        for (key, (state, instant)) in mesh_manager.data_status.clone().iter() {
+            let now: Instant = Instant::now();
+            let duration: Duration = now - *instant;
+            // 每2s检查一下五秒内没有加载好的数据
+            if !state && duration.as_millis() > 5 * 1000 {
+                // println!("超时重新请求chunkkey{:?}", key);
+                let message = bincode::serialize(&ChunkQuery::GetFullY(key.clone())).unwrap();
+                client.send_message(ClientChannel::ChunkQuery, message);
+            }
+            if duration.as_millis() > 5 * 1000
+                && !mesh_manager.entities.contains_key(key)
+                && mesh_manager.fast_key.contains(key)
+            {
+                println!("数据修复2");
+                mesh_manager.fast_key.remove(key);
+            }
         }
     }
 }

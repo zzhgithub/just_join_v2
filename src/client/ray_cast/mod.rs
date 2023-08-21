@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
-        AlphaMode, Assets, Color, Commands, Gizmos, GlobalTransform, Mesh, PbrBundle, Plugin,
-        Query, ResMut, StandardMaterial, Startup, Transform, Update, Vec3, Visibility, With,
-        Without,
+        AlphaMode, Assets, Color, Commands, Entity, Gizmos, GlobalTransform, Mesh, PbrBundle,
+        Plugin, Query, ResMut, StandardMaterial, Startup, Transform, Update, Vec3, Visibility,
+        With, Without,
     },
     reflect::Reflect,
     render::render_resource::PrimitiveTopology,
@@ -16,7 +16,7 @@ use crate::{CLIENT_DEBUG, TOUCH_RADIUS};
 
 use self::choose_cube::{ChooseCube, HelpCube};
 
-use super::player::controller::CameraTag;
+use super::{mesh_display::TerrainMesh, player::controller::CameraTag};
 
 pub mod choose_cube;
 
@@ -110,10 +110,11 @@ fn create_cube_wireframe(size: f32) -> Mesh {
 }
 
 pub fn touth_mesh_ray_cast(
-    mut raycast: Raycast<MyRaycastSet>,
+    mut raycast: Raycast,
     query: Query<&GlobalTransform, With<CameraTag>>,
     mut choose_cube: ResMut<ChooseCube>,
     mut gizmos: Gizmos,
+    query_mesh: Query<Entity, &TerrainMesh>,
     mut query_help_cube: Query<
         (&mut Transform, &mut Visibility),
         (With<HelpCube>, Without<CameraTag>),
@@ -134,6 +135,13 @@ pub fn touth_mesh_ray_cast(
         ray,
         &RaycastSettings {
             // 遇到第一个就退出
+            filter: &|entity| {
+                if let Ok(_) = query_mesh.get(entity) {
+                    return true;
+                } else {
+                    return false;
+                }
+            },
             early_exit_test: &|_| true,
             ..Default::default()
         },
