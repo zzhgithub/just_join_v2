@@ -52,5 +52,6 @@ pub fn check_mesh_state(
     } else {
         println!("Not has data state");
     }
+    mesh_state_command.reply("Reply in check_mesh_state");
     mesh_state_command.ok();
 }
