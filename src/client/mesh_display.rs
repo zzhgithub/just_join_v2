@@ -462,6 +462,7 @@ fn cycle_check_mesh(
             if !state && duration.as_millis() > 5 * 1000 {
                 // println!("超时重新请求chunkkey{:?}", key);
                 let message = bincode::serialize(&ChunkQuery::GetFullY(key.clone())).unwrap();
+                // todo 对边缘数据不处理！
                 client.send_message(ClientChannel::ChunkQuery, message);
             }
             if duration.as_millis() > 5 * 1000

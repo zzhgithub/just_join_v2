@@ -28,7 +28,7 @@ pub const CHUNK_SIZE_ADD_2_U32: u32 = CHUNK_SIZE_U32 + 2;
 pub const MAX_TEXTURE_COUNT: usize = 9;
 // 物体选择半径
 pub const TOUCH_RADIUS: f32 = 5.;
-pub const CLIENT_DEBUG: bool = true;
+pub const CLIENT_DEBUG: bool = false;
 
 pub fn connection_config() -> ConnectionConfig {
     ConnectionConfig {

@@ -51,7 +51,9 @@ cargo run --release --bin client
   - [ ] 网络优化项
 
 # 游戏截图
-
+![a](pic/a.png)
+![b](pic/b.png)
+![c](pic/c.png)
 
 
 # 游戏理念
