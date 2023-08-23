@@ -1,14 +1,16 @@
 use bevy::{
     prelude::{
-        warn, Component, Entity, EventReader, Input, IntoSystemConfigs, IntoSystemSetConfigs,
-        KeyCode, Mat4, Plugin, PreUpdate, Query, Res, ResMut, Resource, Startup, SystemSet,
-        Transform, Update, Vec3, Visibility, With,
+        in_state, warn, Component, Entity, EventReader, Input, IntoSystemConfigs,
+        IntoSystemSetConfigs, KeyCode, Mat4, OnEnter, Plugin, PreUpdate, Query, Res, ResMut,
+        Resource, SystemSet, Transform, Update, Vec3, Visibility, With,
     },
     window::{CursorGrabMode, PrimaryWindow, Window},
 };
 use bevy_renet::renet::RenetClient;
 
-use crate::client::{client_channel::ClientChannel, player_input::PlayerInput};
+use crate::client::{
+    client_channel::ClientChannel, player_input::PlayerInput, state_manager::GameState,
+};
 
 use super::{
     look::{
@@ -90,7 +92,7 @@ impl Plugin for CharacterControllerPlugin {
         app.add_event::<PitchEvent>()
             .add_event::<YawEvent>()
             .init_resource::<MouseSettings>()
-            .add_systems(Startup, initial_grab_cursor)
+            .add_systems(OnEnter(GameState::Game), initial_grab_cursor)
             .insert_resource(ControllerFlag { flag: true })
             .configure_sets(
                 PreUpdate,
@@ -107,13 +109,16 @@ impl Plugin for CharacterControllerPlugin {
                 (
                     cursor_grab,
                     toggle_third_person,
-                    (input_to_send).in_set(ControllerSet::InputToEvent),
+                    (input_to_send)
+                        .in_set(ControllerSet::InputToEvent)
+                        .run_if(bevy_renet::transport::client_connected()),
                     (input_to_look).in_set(ControllerSet::InputToLook),
                     (forward_up)
                         .in_set(ControllerSet::ForwardUp)
                         .after(ControllerSet::InputToEvent)
                         .after(ControllerSet::InputToLook),
-                ),
+                )
+                    .run_if(in_state(GameState::Game)),
             );
         // 发送message系统
         app.add_systems(

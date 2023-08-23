@@ -86,7 +86,11 @@ impl Plugin for ClientMeshPlugin {
         // mesh_加载和更新相关
         app.add_systems(
             PreUpdate,
-            (gen_mesh_system, async_chunk_result, cycle_check_mesh)
+            (
+                gen_mesh_system,
+                async_chunk_result,
+                // cycle_check_mesh,
+            )
                 .run_if(bevy_renet::transport::client_connected()),
         );
         app.add_systems(

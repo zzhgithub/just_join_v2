@@ -38,6 +38,12 @@ ron = "0.8.0"
 bevy_console = "0.8.0"
 bevy_mod_raycast = "0.13.0"
 clap = { version = "=4.1.10", features = ["derive"] }
+egui-notify = "0.8.0"
+# 解决依赖冲突
+num-rational = "^0.4.1"
+fxhash = "^0.2.1"
+simba = "^0.8"
+
 
 [profile.dev.package.bevy_rapier3d]
 opt-level = 3

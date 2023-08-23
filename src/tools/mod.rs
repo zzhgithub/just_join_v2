@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub mod inspector_egui;
+pub mod string;
 
 pub fn all_empty(voxels: &Vec<Voxel>) -> bool {
     for ele in voxels.iter() {

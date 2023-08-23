@@ -43,7 +43,7 @@ pub fn check_mesh_state(
         println!("Not has water entitiy");
     }
     if mesh_manager.fast_key.contains(&chunk_key) {
-        println!("Has faste Key");
+        println!("Has fast Key");
     } else {
         println!("Not has fast Key");
     }
