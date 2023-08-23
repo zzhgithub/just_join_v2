@@ -3,7 +3,10 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use bevy::{prelude::{IVec3, Resource, Vec3}, reflect::Reflect};
+use bevy::{
+    prelude::{IVec3, Resource, Vec3},
+    reflect::Reflect,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{common::Sphere3, CHUNK_SIZE};
@@ -51,6 +54,20 @@ pub struct NeighbourOffest(pub Vec<IVec3>);
 pub fn generate_offset_resoure(radius: f32) -> NeighbourOffest {
     let chunk_distance = radius as i32 / CHUNK_SIZE;
     let mut offsets = generate_offset_array_with_y_0(chunk_distance);
+    // itself
+    offsets.push(IVec3::ZERO);
+
+    NeighbourOffest(offsets)
+}
+pub fn generate_offset_resoure_min_1(radius: f32) -> NeighbourOffest {
+    let mut chunk_distance = radius as i32 / CHUNK_SIZE;
+    chunk_distance -= 1;
+
+    let mut offsets = if chunk_distance > 0 {
+        generate_offset_array_with_y_0(chunk_distance)
+    } else {
+        Vec::new()
+    };
     // itself
     offsets.push(IVec3::ZERO);
 

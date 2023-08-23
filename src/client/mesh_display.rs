@@ -23,7 +23,8 @@ use crate::{
     tools::get_empty_chunk,
     voxel_world::{
         chunk::{
-            find_chunk_keys_array_by_shpere_y_0, generate_offset_resoure, ChunkKey, NeighbourOffest,
+            find_chunk_keys_array_by_shpere_y_0, generate_offset_resoure,
+            generate_offset_resoure_min_1, ChunkKey, NeighbourOffest,
         },
         chunk_map::ChunkMap,
         voxel::Voxel,
@@ -86,11 +87,7 @@ impl Plugin for ClientMeshPlugin {
         // mesh_加载和更新相关
         app.add_systems(
             PreUpdate,
-            (
-                gen_mesh_system,
-                async_chunk_result,
-                // cycle_check_mesh,
-            )
+            (gen_mesh_system, async_chunk_result, cycle_check_mesh)
                 .run_if(bevy_renet::transport::client_connected()),
         );
         app.add_systems(
@@ -452,15 +449,24 @@ fn cycle_check_mesh(
     time: Res<Time>,
     mut mesh_manager: ResMut<MeshManager>,
     mut client: ResMut<RenetClient>,
+    clip_spheres: Res<ClipSpheres>,
 ) {
     timer.0.tick(time.delta());
     if timer.0.finished() {
+        let need_keys: HashSet<ChunkKey> = find_chunk_keys_array_by_shpere_y_0(
+            clip_spheres.new_sphere,
+            generate_offset_resoure_min_1(VIEW_RADIUS).0.clone(),
+        )
+        .iter()
+        .map(|k| k.clone())
+        .collect();
+
         for (key, (state, instant)) in mesh_manager.data_status.clone().iter() {
             let now: Instant = Instant::now();
             let duration: Duration = now - *instant;
             // 每2s检查一下五秒内没有加载好的数据
-            if !state && duration.as_millis() > 5 * 1000 {
-                // println!("超时重新请求chunkkey{:?}", key);
+            if !state && duration.as_millis() > 5 * 1000 && need_keys.contains(key) {
+                println!("超时重新请求chunkkey{:?}", key);
                 let message = bincode::serialize(&ChunkQuery::GetFullY(key.clone())).unwrap();
                 // todo 对边缘数据不处理！
                 client.send_message(ClientChannel::ChunkQuery, message);
