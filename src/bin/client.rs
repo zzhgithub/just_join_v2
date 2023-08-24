@@ -11,7 +11,7 @@ use just_join::{
         ConnectionAddr, GameState,
     },
     tools::inspector_egui::inspector_ui,
-    CLIENT_DEBUG,
+    CLIENT_DEBUG, staff::StaffInfoPlugin,
 };
 
 fn main() {
@@ -23,6 +23,7 @@ fn main() {
     app.add_plugins(RenetClientPlugin);
     app.add_plugins(NetcodeClientPlugin);
     app.add_plugins(EguiPlugin);
+    app.add_plugins(StaffInfoPlugin);
 
     app.add_plugins((SplashPlugin, MenuPlugin, NotificationPlugin, GamePlugin));
     // 调试工具
