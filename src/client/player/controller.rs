@@ -58,7 +58,7 @@ impl Default for CharacterController {
             fly: false,
             walk_speed: 5.0,
             run_speed: 8.0,
-            jump_speed: 6.0,
+            jump_speed: 5.0,
             velocity: Vec3::ZERO,
             jumping: false,
             input_state: InputState::default(),
