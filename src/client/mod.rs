@@ -27,6 +27,7 @@ pub mod player_input;
 pub mod ray_cast;
 pub mod state_manager;
 pub mod voxels;
+pub mod ui;
 
 // 同步创建或者删除角色
 pub fn client_sync_players(

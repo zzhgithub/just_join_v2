@@ -6,12 +6,16 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
 use just_join::{
-    client::state_manager::{
-        game::GamePlugin, menu::MenuPlugin, notification::NotificationPlugin, splash::SplashPlugin,
-        ConnectionAddr, GameState,
+    client::{
+        state_manager::{
+            game::GamePlugin, menu::MenuPlugin, notification::NotificationPlugin,
+            splash::SplashPlugin, ConnectionAddr, GameState,
+        },
+        ui::UiResourcePlugin,
     },
+    staff::StaffInfoPlugin,
     tools::inspector_egui::inspector_ui,
-    CLIENT_DEBUG, staff::StaffInfoPlugin,
+    CLIENT_DEBUG,
 };
 
 fn main() {
@@ -24,6 +28,7 @@ fn main() {
     app.add_plugins(NetcodeClientPlugin);
     app.add_plugins(EguiPlugin);
     app.add_plugins(StaffInfoPlugin);
+    app.add_plugins(UiResourcePlugin);
 
     app.add_plugins((SplashPlugin, MenuPlugin, NotificationPlugin, GamePlugin));
     // 调试工具

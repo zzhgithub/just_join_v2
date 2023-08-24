@@ -3,19 +3,25 @@ use std::time::Duration;
 use bevy::{
     app::AppExit,
     prelude::{
-        in_state, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, ResMut, States,
-        Update,
+        in_state, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, Res, ResMut,
+        Resource, States, Update,
     },
 };
 use bevy_egui::{egui, EguiContexts};
 
-use crate::tools::string::{is_port, is_valid_server_address};
+use crate::{
+    client::ui::{test::toggle_ui, tool_box::tool_box, UiPicResourceManager},
+    staff::StaffInfoStroge,
+    tools::string::{is_port, is_valid_server_address},
+    CLIENT_DEBUG,
+};
 
 use super::{notification::Notification, ConnectionAddr, GameState};
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum MenuState {
     Main,
+    Test,
     Multiplayer,
     #[default]
     Disabled,
@@ -26,8 +32,10 @@ pub struct MenuPlugin;
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_state::<MenuState>();
+        app.insert_resource(TestResource::default());
         app.add_systems(OnEnter(GameState::Menu), setup);
         app.add_systems(Update, menu_main.run_if(in_state(MenuState::Main)));
+        app.add_systems(Update, test.run_if(in_state(MenuState::Test)));
         app.add_systems(
             Update,
             menu_multiplayer.run_if(in_state(MenuState::Multiplayer)),
@@ -119,9 +127,47 @@ fn menu_main(
             menu_state.set(MenuState::Disabled);
             game_state.set(GameState::Splash);
         }
+
+        if CLIENT_DEBUG {
+            if ui.button("测试").clicked() {
+                menu_state.set(MenuState::Test);
+            }
+        }
     });
 }
 
 fn setup(mut menu_state: ResMut<NextState<MenuState>>) {
     menu_state.set(MenuState::Main);
+}
+
+#[derive(Debug, Resource, Default)]
+pub struct TestResource {
+    pub flag: bool,
+}
+
+fn test(
+    mut contexts: EguiContexts,
+    mut menu_state: ResMut<NextState<MenuState>>,
+    mut test_resource: ResMut<TestResource>,
+    staff_info_stroge: Res<StaffInfoStroge>,
+    ui_pic_resource_manager: Res<UiPicResourceManager>,
+) {
+    // 这里要处理数据一次
+    if let Some((_, staff)) = staff_info_stroge.data.iter().next() {
+        let text_id = contexts.image_id(&staff.icon.clone());
+        let bod_id = contexts.image_id(&ui_pic_resource_manager.tool_box_border);
+        let ctx = contexts.ctx_mut();
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Testing:");
+            let mut num: usize = 999;
+            // test start
+            toggle_ui(ui, &mut test_resource.flag);
+            tool_box(ui, &mut test_resource.flag, &mut num, text_id, bod_id);
+            // test end
+            if ui.button("Back").clicked() {
+                // 状态转移到 多人游戏的设置
+                menu_state.set(MenuState::Main);
+            }
+        });
+    }
 }

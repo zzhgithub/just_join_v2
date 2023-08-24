@@ -1,5 +1,8 @@
 use bevy::{
-    prelude::{warn, App, AssetServer, Commands, Handle, Image, Plugin, Res, Resource, Startup},
+    prelude::{
+        warn, App, AssetServer, Commands, Handle, Image, IntoSystemConfigs, Plugin, Res, ResMut,
+        Resource, Startup, SystemSet,
+    },
     utils::HashMap,
 };
 
@@ -31,48 +34,51 @@ impl StaffInfoStroge {
     }
 }
 
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub enum StaffSet {
+    Init,
+}
+
 pub struct StaffInfoPlugin;
 
 impl Plugin for StaffInfoPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup);
+        app.insert_resource(StaffInfoStroge {
+            data: HashMap::default(),
+        });
+        app.add_systems(Startup, setup.in_set(StaffSet::Init));
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let mut stroge = StaffInfoStroge {
-        data: HashMap::default(),
-    };
-    stroge.register(Staff {
+fn setup(mut storge: ResMut<StaffInfoStroge>, asset_server: Res<AssetServer>) {
+    storge.register(Staff {
         id: 0,
         name: String::from("Stone"),
         icon: asset_server.load("textures/002.png"),
         voxel: Some(Stone::into_voxel()),
     });
-    stroge.register(Staff {
+    storge.register(Staff {
         id: 1,
         name: String::from("Grass"),
         icon: asset_server.load("textures/草坪.png"),
         voxel: Some(Grass::into_voxel()),
     });
-    stroge.register(Staff {
+    storge.register(Staff {
         id: 2,
         name: String::from("Soli"),
         icon: asset_server.load("textures/003.png"),
         voxel: Some(Soli::into_voxel()),
     });
-    stroge.register(Staff {
+    storge.register(Staff {
         id: 3,
         name: String::from("Sand"),
         icon: asset_server.load("textures/沙子.png"),
         voxel: Some(Sand::into_voxel()),
     });
-    stroge.register(Staff {
+    storge.register(Staff {
         id: 4,
         name: String::from("Sown"),
         icon: asset_server.load("textures/雪.png"),
         voxel: Some(Sown::into_voxel()),
     });
-
-    commands.insert_resource(stroge);
 }
