@@ -8,6 +8,7 @@ pub mod server;
 pub mod sky;
 pub mod staff;
 pub mod tools;
+pub mod users;
 pub mod voxel_world;
 
 pub const PRIVATE_KEY: &[u8; NETCODE_KEY_BYTES] = b"an example very very secret key."; // 32-bytes

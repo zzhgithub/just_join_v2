@@ -10,6 +10,7 @@ use bevy_rapier3d::prelude::{
 #[derive(Debug, Component)]
 pub struct Player {
     pub id: u64,
+    pub username: String,
 }
 
 #[derive(Debug, Default, Resource)]
@@ -22,9 +23,13 @@ pub fn server_create_player(
     commands: &mut Commands,
     transform: Transform,
     client_id: u64,
+    username: String,
 ) -> Entity {
     commands
-        .spawn(Player { id: client_id })
+        .spawn(Player {
+            id: client_id,
+            username: username,
+        })
         .insert(TransformBundle::from(transform))
         .insert(RigidBody::Dynamic)
         .insert(Sleeping::default())

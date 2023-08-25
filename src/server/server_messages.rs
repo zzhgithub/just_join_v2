@@ -8,6 +8,7 @@ pub enum ServerMessages {
         entity: Entity,
         id: u64,
         translation: [f32; 3],
+        username: String,
     },
     // 删除角色
     PlayerRemove {

@@ -26,8 +26,8 @@ pub mod player;
 pub mod player_input;
 pub mod ray_cast;
 pub mod state_manager;
-pub mod voxels;
 pub mod ui;
+pub mod voxels;
 
 // 同步创建或者删除角色
 pub fn client_sync_players(
@@ -46,8 +46,9 @@ pub fn client_sync_players(
                 entity,
                 id,
                 translation,
+                username,
             } => {
-                println!("Player {} connected.", id);
+                println!("Player {}|{} connected.", id, username);
                 // 创建物体的人物实体 只有mesh
 
                 let (client_entity, yaw, head) = client_create_player(
@@ -56,6 +57,7 @@ pub fn client_sync_players(
                     client_id,
                     materials.as_mut(),
                     meshes.as_mut(),
+                    username,
                     client_id == id,
                 );
 

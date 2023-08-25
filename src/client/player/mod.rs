@@ -4,10 +4,12 @@ use bevy::{
         GlobalTransform, Mat4, Mesh, PbrBundle, Quat, Resource, StandardMaterial, Transform, Vec3,
         Visibility,
     },
+    text::{Text, TextAlignment, TextSection, TextStyle},
     transform::TransformBundle,
     utils::HashMap,
 };
 use bevy_atmosphere::prelude::AtmosphereCamera;
+use bevy_mod_billboard::BillboardTextBundle;
 
 use crate::server::player::Player;
 
@@ -18,8 +20,8 @@ use self::{
 
 pub mod controller;
 pub mod look;
-pub mod player_input;
 pub mod mouse_control;
+pub mod player_input;
 
 #[derive(Debug)]
 pub struct PlayerInfo {
@@ -43,13 +45,17 @@ pub fn client_create_player(
     client_id: u64,
     materials: &mut Assets<StandardMaterial>,
     meshes: &mut Assets<Mesh>,
+    username: String,
     is_current: bool,
 ) -> (Entity, Entity, Entity) {
     let box_y = 1.0;
     let cube = meshes.add(Mesh::from(shape::Cube { size: 1.0 }));
     let red = materials.add(Color::hex("800000").unwrap().into());
 
-    let mut body_entry = commands.spawn(Player { id: client_id });
+    let mut body_entry = commands.spawn(Player {
+        id: client_id,
+        username: username.clone(),
+    });
     body_entry
         .insert(BodyTag)
         .insert(TransformBundle::from(transform))
@@ -102,6 +108,32 @@ pub fn client_create_player(
             ..Default::default()
         })
         .id();
+
+    let color = if is_current {
+        Color::GREEN
+    } else {
+        Color::YELLOW
+    };
+    // 这里要添加广告牌！
+    let billboard = commands
+        .spawn(BillboardTextBundle {
+            text: Text::from_sections([TextSection {
+                value: format!("[{}]", username.clone()),
+                style: TextStyle {
+                    font_size: 30.0,
+                    color: color,
+                    ..Default::default()
+                },
+            }])
+            .with_alignment(TextAlignment::Center),
+            transform: Transform {
+                translation: Vec3::new(0., 0.8, 0.),
+                scale: Vec3::splat(0.0035),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .id();
     if is_current {
         let eye = -Vec3::Z * 2.0;
         let center = -Vec3::Z * 10.0;
@@ -122,11 +154,11 @@ pub fn client_create_player(
         commands
             .entity(body)
             .insert(LookEntity(camera))
-            .push_children(&[yaw]);
+            .push_children(&[yaw, billboard]);
         commands.entity(yaw).push_children(&[body_model, head]);
         commands.entity(head).push_children(&[head_model, camera]);
     } else {
-        commands.entity(body).push_children(&[yaw]);
+        commands.entity(body).push_children(&[yaw, billboard]);
         commands.entity(yaw).push_children(&[body_model, head]);
         commands.entity(head).push_children(&[head_model]);
     }

@@ -877,6 +877,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_mod_billboard"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1680dd7d6ff174dc86f50465a37d89aec8b6ae22f1b62c6579152fb399bfae21"
+dependencies = [
+ "bevy",
+ "bitflags 2.4.0",
+]
+
+[[package]]
 name = "bevy_mod_raycast"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2630,6 +2640,7 @@ dependencies = [
  "bevy_atmosphere",
  "bevy_console",
  "bevy_egui",
+ "bevy_mod_billboard",
  "bevy_mod_raycast",
  "bevy_rapier3d",
  "bevy_renet",

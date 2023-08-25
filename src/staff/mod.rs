@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        warn, App, AssetServer, Commands, Handle, Image, IntoSystemConfigs, Plugin, Res, ResMut,
-        Resource, Startup, SystemSet,
+        warn, App, AssetServer, Handle, Image, IntoSystemConfigs, Plugin, Res, ResMut, Resource,
+        Startup, SystemSet,
     },
     utils::HashMap,
 };

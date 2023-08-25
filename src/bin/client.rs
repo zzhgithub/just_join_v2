@@ -4,6 +4,7 @@ use bevy::{
     DefaultPlugins,
 };
 use bevy_egui::EguiPlugin;
+use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
 use just_join::{
     client::{
@@ -24,6 +25,7 @@ fn main() {
     app.add_state::<GameState>();
     app.insert_resource(ConnectionAddr::default());
 
+    app.add_plugins(BillboardPlugin);
     app.add_plugins(RenetClientPlugin);
     app.add_plugins(NetcodeClientPlugin);
     app.add_plugins(EguiPlugin);

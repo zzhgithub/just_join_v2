@@ -43,6 +43,7 @@ egui-notify = "0.8.0"
 num-rational = "^0.4.1"
 fxhash = "^0.2.1"
 simba = "^0.8"
+bevy_mod_billboard = "0.4.0"
 
 
 [profile.dev.package.bevy_rapier3d]

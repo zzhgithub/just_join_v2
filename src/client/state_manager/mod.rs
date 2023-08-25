@@ -8,7 +8,7 @@ use bevy_renet::renet::{
     RenetClient,
 };
 
-use crate::{connection_config, PROTOCOL_ID};
+use crate::{connection_config, users::Username, PROTOCOL_ID};
 
 pub mod game;
 pub mod menu;
@@ -78,7 +78,7 @@ pub fn new_renet_client(connection_addr: ConnectionAddr) -> (RenetClient, Netcod
         client_id,
         protocol_id: PROTOCOL_ID,
         server_addr,
-        user_data: None,
+        user_data: Some(Username(connection_addr.nickname).to_netcode_user_data()),
     };
 
     let transport = NetcodeClientTransport::new(current_time, authentication, socket).unwrap();

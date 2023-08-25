@@ -1,9 +1,9 @@
-use bevy::prelude::{Commands, Entity, EventReader, Query, ResMut, Transform, Vec3, With};
+use bevy::prelude::{Commands, Entity, EventReader, Query, Res, ResMut, Transform, Vec3, With};
 use bevy_rapier3d::{
     prelude::{RapierContext, RapierRigidBodyHandle},
     rapier::prelude::RigidBodyMassProps,
 };
-use bevy_renet::renet::{RenetServer, ServerEvent};
+use bevy_renet::renet::{transport::NetcodeServerTransport, RenetServer, ServerEvent};
 use renet_visualizer::RenetServerVisualizer;
 
 use crate::{
@@ -12,6 +12,7 @@ use crate::{
         player::server_create_player, server_channel::ServerChannel,
         server_messages::ServerMessages,
     },
+    users::Username,
 };
 
 use self::{
@@ -40,11 +41,14 @@ pub fn server_connect_system(
     players: Query<(Entity, &Player, &Transform)>,
     mut server: ResMut<RenetServer>,
     mut server_lobby: ResMut<ServerLobby>,
+    transport: Res<NetcodeServerTransport>,
 ) {
     for event in server_events.iter() {
         match event {
             ServerEvent::ClientConnected { client_id } => {
-                println!("Player {} connected.", client_id);
+                let user_data = transport.user_data(client_id.clone()).unwrap();
+                let username = Username::from_user_data(&user_data).0;
+                println!("Player {}|{} connected.", client_id, username);
                 visualizer.add_client(*client_id);
                 // 1. 先通知 当前连接 其他的已经存在的用户数据
                 for (entity, player, transform) in players.iter() {
@@ -53,6 +57,7 @@ pub fn server_connect_system(
                         id: player.id,
                         entity,
                         translation,
+                        username: player.username.clone(),
                     })
                     .unwrap();
                     server.send_message(*client_id, ServerChannel::ServerMessages, message);
@@ -60,7 +65,8 @@ pub fn server_connect_system(
                 // 2. 创建这个用户并(注意这里不用mesh 直接创建 一个物理对象就可以了。因为服务器不关心物体的姿态)
                 // TODO: 这里的值后面要去历史中的？
                 let transform = Transform::from_xyz(0., 60., 0.);
-                let player_entity = server_create_player(&mut commands, transform, *client_id);
+                let player_entity =
+                    server_create_player(&mut commands, transform, *client_id, username.clone());
                 // 角色进入游戏大厅缓存中
                 server_lobby.players.insert(*client_id, player_entity);
                 // 3. 通知全部客户端知道
@@ -69,6 +75,7 @@ pub fn server_connect_system(
                     id: *client_id,
                     entity: player_entity,
                     translation,
+                    username: username.clone(),
                 })
                 .unwrap();
                 server.broadcast_message(ServerChannel::ServerMessages, message);
