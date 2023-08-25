@@ -2,6 +2,9 @@
 
 此仓库是 https://github.com/zzhgithub/just_join 的网络化重构施工中。敬请期待。
 
+
+> 现在Windows i5 cpu 机器都很卡。在优化中
+
 # 启动方法
 For Server
 ```shell
@@ -24,6 +27,7 @@ cargo run --release --bin client
 - [x] 加载水体
   - [ ] 更好的水体 
 - [x] 网络多人游戏(基础功能)
+  - [x] 展示用户名
   - [ ] 用户名密码登录
   - [ ] 多人的聊天系统
   - [ ] 范围语音

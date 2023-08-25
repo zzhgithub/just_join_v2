@@ -2,6 +2,8 @@
 
 this rep is rebuild from https://github.com/zzhgithub/just_join. The goal is to make the original project support the online multiplayer game
 
+> Ka Le on windows i5 cpu. optimizing!
+
 # Usage
 For Server
 ```shell
@@ -23,6 +25,7 @@ cargo run --release --bin client
 - [x] Load water
   - [ ] better water displaying
 - [x] online multiplayer game(fundationally)
+  - [x] display username
   - [ ] sign in with username and password
   - [ ] chat system
   - [ ] range voice
