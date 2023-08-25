@@ -2,7 +2,7 @@
 
 this rep is rebuild from https://github.com/zzhgithub/just_join. The goal is to make the original project support the online multiplayer game
 
-> Ka Le on windows i5 cpu. optimizing!
+> ~~Ka Le on windows i5 cpu. optimizing!~~
 
 # Usage
 For Server
@@ -15,6 +15,15 @@ For Client
 ```shell
 cargo run --release --bin client
 ```
+
+# Controller
+- W - forward
+- S - backward
+- A - left
+- D - right
+- Space - Jump
+- ESC - toggle grab cursor
+- T - toggle One/Thrid Person
 
 # Feature List
 - [x] Load unlimited maps

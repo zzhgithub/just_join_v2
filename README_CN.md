@@ -3,7 +3,7 @@
 此仓库是 https://github.com/zzhgithub/just_join 的网络化重构施工中。敬请期待。
 
 
-> 现在Windows i5 cpu 机器都很卡。在优化中
+> ~~现在Windows i5 cpu 机器都很卡。在优化中~~
 
 # 启动方法
 For Server
@@ -16,6 +16,15 @@ For Client
 ```shell
 cargo run --release --bin client
 ```
+
+# 控制
+- W 前
+- S 后
+- A 左
+- D 右
+- Space 跳
+- ESC 光标
+- T 切换视角
 
 # 功能列表
 
