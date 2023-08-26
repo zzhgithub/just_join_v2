@@ -19,9 +19,11 @@ pub fn mouse_button_system(
     mut client: ResMut<RenetClient>,
 ) {
     if !controller_flag.flag {
+        // println!("3:{}", controller_flag.flag);
         return;
     }
     if mouse_button_input.just_pressed(MouseButton::Left) {
+        // println!("4:{}", controller_flag.flag);
         // 破坏方块
         if let Some(pos) = choose_cube.center {
             let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(pos);

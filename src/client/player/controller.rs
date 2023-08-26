@@ -163,8 +163,10 @@ fn cursor_grab(
         if let Ok(mut window) = primary_window.get_single_mut() {
             if keys.just_pressed(input_map.toggle_grab_cursor) {
                 toggle_grab_cursor(&mut window);
+                // println!("1:{}", flags.flag);
                 // 添加其他按钮是否生效逻辑
-                flags.flag = !flags.flag;
+                flags.as_mut().flag = !flags.flag;
+                // println!("2:{}", flags.flag);
             }
         } else {
             warn!("Primary window not found for `cursor_grab`!");

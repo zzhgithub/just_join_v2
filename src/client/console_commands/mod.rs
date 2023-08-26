@@ -1,3 +1,5 @@
+use std::f32::consts::E;
+
 use bevy::prelude::{App, EventReader, IntoSystemConfigs, Plugin, PreUpdate, Res, ResMut, Update};
 use bevy_console::{
     AddConsoleCommand, ConsoleCommandEntered, ConsoleOpen, ConsolePlugin, ConsoleSet,
@@ -22,7 +24,11 @@ impl Plugin for ConsoleCommandPlugins {
 
 // 保持打开时不能操作人物
 fn sync_flags(mut controller_flag: ResMut<ControllerFlag>, console_open: Res<ConsoleOpen>) {
-    controller_flag.flag = !console_open.open;
+    if console_open.open {
+        controller_flag.flag = false;
+    } else {
+        // 这里怎么知道其他的状态呢？
+    }
 }
 
 fn raw_commands(mut console_commands: EventReader<ConsoleCommandEntered>) {
