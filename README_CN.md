@@ -48,7 +48,7 @@ cargo run --release --bin client
   - [ ] 背包
   - [ ] 生存模式
 - [ ] UI
-  - [ ] toolbar
+  - [x] toolbar
   - [ ] 背包
   - [ ] 人物展示
   - [ ] 地图

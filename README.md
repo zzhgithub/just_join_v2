@@ -46,7 +46,7 @@ cargo run --release --bin client
   - [ ] knapsack system
   - [ ] Survival Mode
 - [ ] UI
-  - [ ] toolbar
+  - [x] toolbar
   - [ ] knapsack system
   - [ ] multiplayer show
   - [ ] on time map
