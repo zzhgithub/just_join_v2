@@ -13,6 +13,10 @@ use crate::{
         server_messages::ServerMessages,
     },
     users::Username,
+    voxel_world::{
+        map_database::MapDataBase,
+        player_state::{PlayerOntimeState, PlayerState, StorgePlayerState},
+    },
 };
 
 use self::{
@@ -38,10 +42,11 @@ pub fn server_connect_system(
     mut commands: Commands,
     mut server_events: EventReader<ServerEvent>,
     mut visualizer: ResMut<RenetServerVisualizer<200>>,
-    players: Query<(Entity, &Player, &Transform)>,
+    players: Query<(Entity, &Player, &Transform, &PlayerOntimeState)>,
     mut server: ResMut<RenetServer>,
     mut server_lobby: ResMut<ServerLobby>,
     transport: Res<NetcodeServerTransport>,
+    mut map_database: ResMut<MapDataBase>,
 ) {
     for event in server_events.iter() {
         match event {
@@ -51,7 +56,7 @@ pub fn server_connect_system(
                 println!("Player {}|{} connected.", client_id, username);
                 visualizer.add_client(*client_id);
                 // 1. 先通知 当前连接 其他的已经存在的用户数据
-                for (entity, player, transform) in players.iter() {
+                for (entity, player, transform, _) in players.iter() {
                     let translation: [f32; 3] = transform.translation.into();
                     let message = bincode::serialize(&ServerMessages::PlayerCreate {
                         id: player.id,
@@ -63,10 +68,20 @@ pub fn server_connect_system(
                     server.send_message(*client_id, ServerChannel::ServerMessages, message);
                 }
                 // 2. 创建这个用户并(注意这里不用mesh 直接创建 一个物理对象就可以了。因为服务器不关心物体的姿态)
-                // TODO: 这里的值后面要去历史中的？
                 let transform = Transform::from_xyz(0., 60., 0.);
+                // -- 获取 到用户的信息
+                let mut player_state;
+                if let Some(state) = map_database.get_player_state(username.clone()) {
+                    // 获取历史数据
+                    player_state = state;
+                } else {
+                    // 第一次新建数据
+                    player_state = PlayerState::default();
+                    player_state.position = [0., 60., 0.];
+                }
+
                 let player_entity =
-                    server_create_player(&mut commands, transform, *client_id, username.clone());
+                    server_create_player(&mut commands, player_state, *client_id, username.clone());
                 // 角色进入游戏大厅缓存中
                 server_lobby.players.insert(*client_id, player_entity);
                 // 3. 通知全部客户端知道
@@ -85,6 +100,16 @@ pub fn server_connect_system(
                 println!("Player {} disconnected: {}", client_id, reason);
                 // 告诉所有人减少了一个用户
                 if let Some(player_entity) = server_lobby.players.remove(client_id) {
+                    // 在用户断开连接是保存用户数据到数据库
+                    match players.get(player_entity) {
+                        Ok((_, player, tf, state)) => {
+                            let mut save_state = state.0.clone();
+                            save_state.position =
+                                [tf.translation.x, tf.translation.y, tf.translation.z];
+                            map_database.save_player_state(player.username.clone(), save_state);
+                        }
+                        Err(_) => {}
+                    }
                     commands.entity(player_entity).despawn();
                 }
 

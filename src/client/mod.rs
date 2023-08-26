@@ -1,13 +1,13 @@
 use bevy::prelude::{
-    Assets, Commands, DespawnRecursiveExt, Mesh, Quat, Query, Res, ResMut, StandardMaterial,
-    Transform, Without,
+    Assets, Commands, DespawnRecursiveExt, Entity, Mesh, Quat, Query, Res, ResMut,
+    StandardMaterial, Transform, Without,
 };
 use bevy_renet::renet::{transport::NetcodeClientTransport, RenetClient};
 
 use crate::{
     client::player::PlayerInfo,
     server::{
-        networked_entities::NetworkedEntities, server_channel::ServerChannel,
+        networked_entities::NetworkedEntities, player::Player, server_channel::ServerChannel,
         server_messages::ServerMessages,
     },
 };
@@ -93,6 +93,7 @@ pub fn client_sync_players(
 // 同步角色移动或者头部移动
 pub fn client_sync_players_state(
     mut commands: Commands,
+    players: Query<Entity, &Player>,
     mut yaw_query: Query<(&YawTag, &mut Transform)>,
     mut patch_query: Query<(&HeadTag, &mut Transform), Without<YawTag>>,
     mut client: ResMut<RenetClient>,
@@ -119,7 +120,9 @@ pub fn client_sync_players_state(
                     translation,
                     ..Default::default()
                 };
-                commands.entity(*client_entity).insert(transform);
+                if let Ok(entity) = players.get(*client_entity) {
+                    commands.entity(entity).insert(transform);
+                }
             }
 
             if let Some(entity) = lobby.yaws.get(&client_id) {

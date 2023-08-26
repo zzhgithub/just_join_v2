@@ -82,6 +82,7 @@ impl Plugin for GamePlugin {
                 mouse_button_system,
                 panic_on_error_system,
             )
+                .chain()
                 .run_if(bevy_renet::transport::client_connected())
                 .run_if(in_state(GameState::Game)),
         );

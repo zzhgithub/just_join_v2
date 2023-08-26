@@ -7,6 +7,8 @@ use bevy_rapier3d::prelude::{
     Ccd, Collider, ColliderMassProperties, LockedAxes, RigidBody, Sleeping,
 };
 
+use crate::voxel_world::player_state::{PlayerOntimeState, PlayerState};
+
 #[derive(Debug, Component)]
 pub struct Player {
     pub id: u64,
@@ -21,10 +23,12 @@ pub struct ServerLobby {
 
 pub fn server_create_player(
     commands: &mut Commands,
-    transform: Transform,
+    player_state: PlayerState,
     client_id: u64,
     username: String,
 ) -> Entity {
+    let pos = player_state.position.clone();
+    let transform = Transform::from_xyz(pos[0], pos[1], pos[2]);
     commands
         .spawn(Player {
             id: client_id,
@@ -43,6 +47,7 @@ pub fn server_create_player(
         .insert(Ccd::enabled())
         .insert(YawValue::default())
         .insert(PitchValue::default())
+        .insert(PlayerOntimeState(player_state))
         .id()
 }
 
