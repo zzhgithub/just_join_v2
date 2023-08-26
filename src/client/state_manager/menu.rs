@@ -3,14 +3,20 @@ use std::time::Duration;
 use bevy::{
     app::AppExit,
     prelude::{
-        in_state, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, Res, ResMut,
-        Resource, States, Update,
+        in_state, Entity, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, Query, Res,
+        ResMut, Resource, States, Update, With,
     },
+    window::{PrimaryWindow, Window},
 };
-use bevy_egui::{egui, EguiContexts};
+use bevy_egui::{egui, EguiContext, EguiContexts, EguiUserTextures};
 
 use crate::{
-    client::ui::{test::toggle_ui, tool_box::tool_box, UiPicResourceManager},
+    client::ui::{
+        test::toggle_ui,
+        tool_bar::{tool_bar, ToolBar},
+        tool_box::tool_box,
+        UiPicResourceManager,
+    },
     staff::StaffInfoStroge,
     tools::string::{is_port, is_valid_server_address},
     CLIENT_DEBUG,
@@ -33,6 +39,7 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_state::<MenuState>();
         app.insert_resource(TestResource::default());
+        app.insert_resource(ToolBar::default());
         app.add_systems(OnEnter(GameState::Menu), setup);
         app.add_systems(Update, menu_main.run_if(in_state(MenuState::Main)));
         app.add_systems(Update, test.run_if(in_state(MenuState::Test)));
@@ -146,28 +153,44 @@ pub struct TestResource {
 }
 
 fn test(
-    mut contexts: EguiContexts,
+    // mut contexts: EguiContexts,
+    mut q: Query<
+        (
+            Entity,
+            &'static mut EguiContext,
+            Option<&'static PrimaryWindow>,
+        ),
+        With<Window>,
+    >,
+    user_textures: Res<EguiUserTextures>,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut test_resource: ResMut<TestResource>,
     staff_info_stroge: Res<StaffInfoStroge>,
     ui_pic_resource_manager: Res<UiPicResourceManager>,
+    mut tool_bar_data: ResMut<ToolBar>,
 ) {
-    // 这里要处理数据一次
-    if let Some((_, staff)) = staff_info_stroge.data.iter().next() {
-        let text_id = contexts.image_id(&staff.icon.clone());
-        let bod_id = contexts.image_id(&ui_pic_resource_manager.tool_box_border);
-        let ctx = contexts.ctx_mut();
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Testing:");
-            let mut num: usize = 999;
-            // test start
-            toggle_ui(ui, &mut test_resource.flag);
-            tool_box(ui, &mut test_resource.flag, &mut num, text_id, bod_id);
-            // test end
-            if ui.button("Back").clicked() {
-                // 状态转移到 多人游戏的设置
-                menu_state.set(MenuState::Main);
-            }
-        });
+    if let Ok((_, ctx, _)) = q.get_single_mut() {
+        if let Some((_, staff)) = staff_info_stroge.data.iter().next() {
+            let text_id = user_textures.image_id(&staff.icon.clone());
+            let bod_id = user_textures.image_id(&ui_pic_resource_manager.tool_box_border);
+            egui::CentralPanel::default().show(ctx.into_inner().get_mut(), |ui| {
+                ui.heading("Testing:");
+                let mut num: usize = 999;
+                // test start
+                toggle_ui(ui, &mut test_resource.flag);
+                tool_box(ui, &mut test_resource.flag, &mut num, text_id, bod_id);
+                tool_bar(
+                    ui,
+                    &mut tool_bar_data,
+                    |image| user_textures.image_id(image),
+                    bod_id.clone(),
+                );
+                // test end
+                if ui.button("Back").clicked() {
+                    // 状态转移到 多人游戏的设置
+                    menu_state.set(MenuState::Main);
+                }
+            });
+        }
     }
 }

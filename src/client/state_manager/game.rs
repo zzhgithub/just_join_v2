@@ -2,14 +2,14 @@ use std::marker::PhantomData;
 
 use bevy::{
     prelude::{
-        in_state, AmbientLight, Commands, EventReader, Input, IntoSystemConfigs, KeyCode, Local,
-        NextState, OnEnter, Plugin, Query, Res, ResMut, States, Update, Vec2, With,
+        in_state, AmbientLight, Commands, Entity, EventReader, Input, IntoSystemConfigs, KeyCode,
+        Local, NextState, OnEnter, Plugin, Query, Res, ResMut, States, Update, Vec2, With,
     },
     window::{PrimaryWindow, Window},
 };
 use bevy_egui::{
-    egui::{self, epaint::Shadow, Color32},
-    EguiContexts,
+    egui::{self, epaint::Shadow, Color32,},
+    EguiContext, EguiContexts, EguiUserTextures,
 };
 use bevy_renet::renet::{transport::NetcodeTransportError, RenetClient};
 use renet_visualizer::{RenetClientVisualizer, RenetVisualizerStyle};
@@ -25,6 +25,10 @@ use crate::{
             ClientLobby,
         },
         ray_cast::MeshRayCastPlugin,
+        ui::{
+            tool_bar::{tool_bar, ToolBar},
+            UiPicResourceManager,
+        },
     },
     common::ClientClipSpheresPlugin,
     sky::ClientSkyPlugins,
@@ -58,7 +62,7 @@ impl Plugin for GamePlugin {
         );
         app.add_systems(
             Update,
-            egui_center_cursor_system.run_if(in_state(PlayState::Main)),
+            (egui_center_cursor_system, mian_ui).run_if(in_state(PlayState::Main)),
         );
         // 这里是系统
         app.add_plugins(CharacterControllerPlugin);
@@ -133,35 +137,9 @@ pub fn egui_center_cursor_system(
     let Ok(window) = window_qurey.get_single() else{return;};
     let size = Vec2::new(window.width(), window.height());
     // 透明的屏幕！
-    let my_frame = egui::containers::Frame {
-        inner_margin: egui::style::Margin {
-            left: 10.,
-            right: 10.,
-            top: 10.,
-            bottom: 10.,
-        },
-        outer_margin: egui::style::Margin {
-            left: 10.,
-            right: 10.,
-            top: 10.,
-            bottom: 10.,
-        },
-        rounding: egui::Rounding {
-            nw: 1.0,
-            ne: 1.0,
-            sw: 1.0,
-            se: 1.0,
-        },
-        shadow: Shadow {
-            extrusion: 1.0,
-            color: Color32::TRANSPARENT,
-        },
-        fill: Color32::TRANSPARENT,
-        stroke: egui::Stroke::new(2.0, Color32::TRANSPARENT),
-    };
 
     egui::CentralPanel::default()
-        .frame(my_frame)
+        .frame(frame_transparent())
         .show(ctx, |ui| {
             // 计算十字准星的位置和大小
             let crosshair_size = 20.0;
@@ -204,4 +182,71 @@ pub fn egui_center_cursor_system(
 
             // todo 这里也可以添加下方物品栏
         });
+}
+
+fn mian_ui(
+    mut q: Query<
+        (
+            Entity,
+            &'static mut EguiContext,
+            Option<&'static PrimaryWindow>,
+        ),
+        With<Window>,
+    >,
+    user_textures: Res<EguiUserTextures>,
+    ui_pic_resource_manager: Res<UiPicResourceManager>,
+    mut tool_bar_data: ResMut<ToolBar>,
+) {
+    if let Ok((_, ctx, _)) = q.get_single_mut() {
+        let bod_id = user_textures.image_id(&ui_pic_resource_manager.tool_box_border);
+        egui::TopBottomPanel::bottom("tool_bar_bottom")
+            .frame(frame_transparent())
+            .resizable(false)
+            .min_height(5.0)
+            .show_separator_line(false)
+            .show(ctx.into_inner().get_mut(), |ui| {
+                ui.horizontal_centered(|ui| {
+                    ui.vertical_centered_justified(|ui| {
+                        tool_bar(
+                            ui,
+                            &mut tool_bar_data,
+                            |image| user_textures.image_id(image),
+                            bod_id.clone(),
+                        );
+                    });
+                });
+            });
+    }
+}
+
+// fn controller_tool_bar(mut tool_bar_data: ResMut<ToolBar>) {}
+
+fn frame_transparent() -> egui::containers::Frame {
+    egui::containers::Frame {
+        inner_margin: egui::style::Margin {
+            left: 10.,
+            right: 10.,
+            top: 10.,
+            bottom: 10.,
+        },
+        outer_margin: egui::style::Margin {
+            left: 10.,
+            right: 10.,
+            top: 10.,
+            bottom: 10.,
+        },
+        rounding: egui::Rounding {
+            nw: 1.0,
+            ne: 1.0,
+            sw: 1.0,
+            se: 1.0,
+        },
+        shadow: Shadow {
+            extrusion: 1.0,
+            color: Color32::TRANSPARENT,
+        },
+        fill: Color32::TRANSPARENT,
+        stroke: egui::Stroke::new(2.0, Color32::TRANSPARENT),
+        ..Default::default()
+    }
 }

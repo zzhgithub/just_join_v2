@@ -84,7 +84,6 @@ pub enum ControllerSet {
     InputToLook,
     ForwardUp,
 }
-
 pub struct CharacterControllerPlugin;
 
 impl Plugin for CharacterControllerPlugin {

@@ -7,6 +7,7 @@ use crate::staff::{StaffInfoStroge, StaffSet};
 
 // 这里是尝试管理自定义UI的
 pub mod test;
+pub mod tool_bar;
 pub mod tool_box;
 
 // 加载staff到egui
