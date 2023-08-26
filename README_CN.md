@@ -37,6 +37,7 @@ cargo run --release --bin client
   - [ ] 更好的水体 
 - [x] 网络多人游戏(基础功能)
   - [x] 展示用户名
+  - [x] 保存用户位置等信息
   - [ ] 用户名密码登录
   - [ ] 多人的聊天系统
   - [ ] 范围语音
@@ -66,7 +67,9 @@ cargo run --release --bin client
 # 游戏截图
 ![a](pic/a.png)
 ![b](pic/b.png)
-![c](pic/c.png)
+<!-- ![c](pic/c.png) -->
+![d](pic/d.png)
+![e](pic/e.png)
 
 
 # 游戏理念

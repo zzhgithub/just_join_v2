@@ -35,6 +35,7 @@ cargo run --release --bin client
   - [ ] better water displaying
 - [x] online multiplayer game(fundationally)
   - [x] display username
+  - [x] save players last position stuff
   - [ ] sign in with username and password
   - [ ] chat system
   - [ ] range voice
@@ -65,4 +66,6 @@ cargo run --release --bin client
 # screenshot
 ![a](pic/a.png)
 ![b](pic/b.png)
-![c](pic/c.png)
+<!-- ![c](pic/c.png) -->
+![d](pic/d.png)
+![e](pic/e.png)
