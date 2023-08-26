@@ -1,5 +1,3 @@
-use std::f32::consts::E;
-
 use bevy::prelude::{App, EventReader, IntoSystemConfigs, Plugin, PreUpdate, Res, ResMut, Update};
 use bevy_console::{
     AddConsoleCommand, ConsoleCommandEntered, ConsoleOpen, ConsolePlugin, ConsoleSet,
