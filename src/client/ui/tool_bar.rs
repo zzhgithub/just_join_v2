@@ -63,23 +63,31 @@ pub fn tool_bar(
     mut get_texture_egui: impl FnMut(&Handle<Image>) -> Option<egui::TextureId>,
     tool_box_border: Option<egui::TextureId>,
 ) {
-    ui.horizontal_centered(|ui| {
-        for index in 0..=9 {
-            let tool_box_data = &mut toolbar.tools[index as usize];
-            let tool_box_item = tool_box(
-                ui,
-                &mut tool_box_data.active,
-                &mut tool_box_data.num,
-                if let Some(data) = tool_box_data.staff.clone() {
-                    get_texture_egui(&data.icon.clone())
-                } else {
-                    None
-                },
-                tool_box_border,
-            );
-            if tool_box_item.clicked() {
-                toolbar.active(index as usize);
+    let mut rect = ui.available_rect_before_wrap();
+    let ori_width = rect.width();
+    let center_width = (64.0 + 2.) * 10. + 10. * 8.;
+    rect.set_left(rect.left() + (ori_width - center_width) * 0.5);
+    rect.set_right(rect.right() - (ori_width - center_width) * 0.5);
+    rect.set_top(rect.bottom() - 50.0);
+    ui.allocate_ui_at_rect(rect, |ui| {
+        ui.horizontal(|ui| {
+            for index in 0..=9 {
+                let tool_box_data = &mut toolbar.tools[index as usize];
+                let tool_box_item = tool_box(
+                    ui,
+                    &mut tool_box_data.active,
+                    &mut tool_box_data.num,
+                    if let Some(data) = tool_box_data.staff.clone() {
+                        get_texture_egui(&data.icon.clone())
+                    } else {
+                        None
+                    },
+                    tool_box_border,
+                );
+                if tool_box_item.clicked() {
+                    toolbar.active(index as usize);
+                }
             }
-        }
+        });
     });
 }
