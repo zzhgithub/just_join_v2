@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
 use bevy::{
+    input::mouse::MouseWheel,
     prelude::{
         in_state, AmbientLight, Commands, Entity, EventReader, Input, IntoSystemConfigs, KeyCode,
         Local, NextState, OnEnter, Plugin, Query, Res, ResMut, States, Update, Vec2, With,
@@ -8,7 +9,7 @@ use bevy::{
     window::{PrimaryWindow, Window},
 };
 use bevy_egui::{
-    egui::{self, epaint::Shadow, Color32,},
+    egui::{self, epaint::Shadow, Color32},
     EguiContext, EguiContexts, EguiUserTextures,
 };
 use bevy_renet::renet::{transport::NetcodeTransportError, RenetClient};
@@ -62,7 +63,8 @@ impl Plugin for GamePlugin {
         );
         app.add_systems(
             Update,
-            (egui_center_cursor_system, mian_ui).run_if(in_state(PlayState::Main)),
+            (egui_center_cursor_system, mian_ui, controller_tool_bar)
+                .run_if(in_state(PlayState::Main)),
         );
         // 这里是系统
         app.add_plugins(CharacterControllerPlugin);
@@ -219,7 +221,48 @@ fn mian_ui(
     }
 }
 
-// fn controller_tool_bar(mut tool_bar_data: ResMut<ToolBar>) {}
+#[macro_export]
+macro_rules! add_keyboard_toolbar {
+    ($key: expr,$value: expr,$class: expr,$change:expr) => {
+        if $class.just_pressed($key) {
+            $change.active($value);
+        }
+    };
+}
+
+// 键盘控制 toolbar
+fn controller_tool_bar(
+    mut tool_bar_data: ResMut<ToolBar>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut mouse_wheel_events: EventReader<MouseWheel>,
+) {
+    for event in mouse_wheel_events.iter() {
+        // println!("{:?}", event);
+        let y = event.y;
+        if y > 0. {
+            tool_bar_data.active_next();
+        } else if y < 0. {
+            tool_bar_data.active_pre();
+        }
+    }
+    add_keyboard_toolbar!(KeyCode::Key1, 0, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key2, 1, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key3, 2, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key4, 3, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key5, 4, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key6, 5, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key7, 6, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key8, 7, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key9, 8, keyboard_input, tool_bar_data);
+    add_keyboard_toolbar!(KeyCode::Key0, 9, keyboard_input, tool_bar_data);
+
+    if keyboard_input.just_pressed(KeyCode::Right) {
+        tool_bar_data.active_next();
+    }
+    if keyboard_input.just_pressed(KeyCode::Left) {
+        tool_bar_data.active_pre();
+    }
+}
 
 fn frame_transparent() -> egui::containers::Frame {
     egui::containers::Frame {

@@ -5,7 +5,7 @@ use crate::staff::Staff;
 
 use super::tool_box::tool_box;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ToolBox {
     pub staff: Option<Staff>,
     pub num: usize,
@@ -22,7 +22,7 @@ impl Default for ToolBox {
     }
 }
 
-#[derive(Debug, Resource, Default)]
+#[derive(Debug, Resource, Default, Clone)]
 pub struct ToolBar {
     pub tools: [ToolBox; 10],
     pub active_index: usize,
@@ -37,6 +37,22 @@ impl ToolBar {
             } else {
                 self.tools[i].active = false;
             }
+        }
+    }
+    pub fn active_next(&mut self) {
+        self.active_index += 1;
+        if self.active_index > 9 {
+            self.active(0);
+        } else {
+            self.active(self.active_index);
+        }
+    }
+    pub fn active_pre(&mut self) {
+        if self.active_index == 0 {
+            self.active(9);
+        } else {
+            self.active_index -= 1;
+            self.active(self.active_index);
         }
     }
 }
