@@ -16,8 +16,20 @@ pub struct Staff {
     pub name: String,
     // 物品图示
     pub icon: Handle<Image>,
-    // 如果可以的 怎么生成体素
-    pub voxel: Option<Voxel>,
+    // 物品类型
+    pub staff_type: StaffType,
+}
+
+#[derive(Debug, Clone)]
+pub enum StaffType {
+    // 体素方块
+    Voxel(Voxel),
+    // 工具(staff id)
+    Tool(usize),
+    // 特殊的可放置的物体
+    Sp(usize),
+    // 消耗品
+    Consumable(usize),
 }
 
 #[derive(Debug, Resource)]
@@ -55,30 +67,30 @@ fn setup(mut storge: ResMut<StaffInfoStroge>, asset_server: Res<AssetServer>) {
         id: 0,
         name: String::from("Stone"),
         icon: asset_server.load("textures/002.png"),
-        voxel: Some(Stone::into_voxel()),
+        staff_type: StaffType::Voxel(Stone::into_voxel()),
     });
     storge.register(Staff {
         id: 1,
         name: String::from("Grass"),
         icon: asset_server.load("textures/草坪.png"),
-        voxel: Some(Grass::into_voxel()),
+        staff_type: StaffType::Voxel(Grass::into_voxel()),
     });
     storge.register(Staff {
         id: 2,
         name: String::from("Soli"),
         icon: asset_server.load("textures/003.png"),
-        voxel: Some(Soli::into_voxel()),
+        staff_type: StaffType::Voxel(Soli::into_voxel()),
     });
     storge.register(Staff {
         id: 3,
         name: String::from("Sand"),
         icon: asset_server.load("textures/沙子.png"),
-        voxel: Some(Sand::into_voxel()),
+        staff_type: StaffType::Voxel(Sand::into_voxel()),
     });
     storge.register(Staff {
         id: 4,
         name: String::from("Sown"),
         icon: asset_server.load("textures/雪.png"),
-        voxel: Some(Sown::into_voxel()),
+        staff_type: StaffType::Voxel(Sown::into_voxel()),
     });
 }

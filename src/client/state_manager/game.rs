@@ -35,6 +35,7 @@ use crate::{
     },
     common::ClientClipSpheresPlugin,
     sky::ClientSkyPlugins,
+    staff::StaffInfoStroge,
     CLIENT_DEBUG,
 };
 
@@ -109,6 +110,9 @@ fn setup(
     mut commands: Commands,
     connection_addr: Res<ConnectionAddr>,
     mut play_state: ResMut<NextState<PlayState>>,
+    // 下面两个量临时测试使用
+    mut tool_bar_data: ResMut<ToolBar>,
+    staff_infos: Res<StaffInfoStroge>,
 ) {
     let (client, transport) = new_renet_client(connection_addr.clone());
     commands.insert_resource(client);
@@ -119,6 +123,13 @@ fn setup(
     });
     commands.insert_resource(ClientLobby::default());
     play_state.set(PlayState::Main);
+
+    // FIXME: 测试代码临时加载 staff到物品栏
+    let mut i = 0;
+    for (_id, staff) in staff_infos.data.iter() {
+        tool_bar_data.load_staff(i.clone(), staff.clone(), 999);
+        i += 1;
+    }
 }
 
 fn update_visulizer_system(

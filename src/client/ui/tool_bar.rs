@@ -1,7 +1,7 @@
 use bevy::prelude::{Handle, Image, Resource};
 use bevy_egui::egui;
 
-use crate::staff::Staff;
+use crate::staff::{Staff, StaffType};
 
 use super::tool_box::tool_box;
 
@@ -29,6 +29,22 @@ pub struct ToolBar {
 }
 
 impl ToolBar {
+    // 加载物品
+    pub fn load_staff(&mut self, index: usize, staff: Staff, num: usize) {
+        self.tools[index % 10] = ToolBox {
+            staff: Some(staff),
+            num: num,
+            ..Default::default()
+        };
+    }
+    // 当前激活中的物品
+    pub fn staff_type(&self) -> Option<StaffType> {
+        if let Some(staff) = &self.tools[self.active_index].staff {
+            Some(staff.staff_type.clone())
+        } else {
+            None
+        }
+    }
     pub fn active(&mut self, index: usize) {
         self.active_index = index;
         for i in 0..=9 {
