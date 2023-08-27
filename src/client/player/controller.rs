@@ -6,6 +6,7 @@ use bevy::{
     },
     window::{CursorGrabMode, PrimaryWindow, Window},
 };
+use bevy_egui::EguiSet;
 use bevy_renet::renet::RenetClient;
 
 use crate::client::{
@@ -106,7 +107,7 @@ impl Plugin for CharacterControllerPlugin {
             .add_systems(
                 PreUpdate,
                 (
-                    cursor_grab,
+                    cursor_grab.after(EguiSet::InitContexts),
                     toggle_third_person,
                     (input_to_send)
                         .in_set(ControllerSet::InputToEvent)

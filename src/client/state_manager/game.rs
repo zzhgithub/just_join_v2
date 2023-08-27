@@ -1,16 +1,18 @@
 use std::marker::PhantomData;
 
 use bevy::{
+    app::AppExit,
     input::mouse::MouseWheel,
     prelude::{
-        in_state, AmbientLight, Commands, Entity, EventReader, Input, IntoSystemConfigs, KeyCode,
-        Local, NextState, OnEnter, Plugin, Query, Res, ResMut, States, Update, Vec2, With,
+        in_state, AmbientLight, Commands, Entity, EventReader, EventWriter, Input,
+        IntoSystemConfigs, KeyCode, Local, NextState, OnEnter, Plugin, Query, Res, ResMut, States,
+        Update, Vec2, With,
     },
-    window::{PrimaryWindow, Window},
+    window::{PrimaryWindow, Window, WindowCloseRequested},
 };
 use bevy_egui::{
     egui::{self, epaint::Shadow, Color32},
-    EguiContext, EguiContexts, EguiUserTextures,
+    EguiContext, EguiContexts, EguiSet, EguiUserTextures,
 };
 use bevy_renet::renet::{transport::NetcodeTransportError, RenetClient};
 use renet_visualizer::{RenetClientVisualizer, RenetVisualizerStyle};
@@ -54,6 +56,7 @@ impl Plugin for GamePlugin {
         app.add_state::<PlayState>();
         app.add_systems(OnEnter(GameState::Game), setup);
         if CLIENT_DEBUG {}
+        // app.insert_resource();
         app.insert_resource(RenetClientVisualizer::<200>::new(
             RenetVisualizerStyle::default(),
         ));
@@ -64,7 +67,8 @@ impl Plugin for GamePlugin {
         app.add_systems(
             Update,
             (egui_center_cursor_system, mian_ui, controller_tool_bar)
-                .run_if(in_state(PlayState::Main)),
+                .run_if(in_state(PlayState::Main))
+                .after(EguiSet::InitContexts),
         );
         // 这里是系统
         app.add_plugins(CharacterControllerPlugin);
@@ -85,6 +89,10 @@ impl Plugin for GamePlugin {
                 .chain()
                 .run_if(bevy_renet::transport::client_connected())
                 .run_if(in_state(GameState::Game)),
+        );
+        app.add_systems(
+            Update,
+            disconnect_on_close.run_if(bevy_renet::transport::client_connected()),
         );
     }
 }
@@ -292,5 +300,16 @@ fn frame_transparent() -> egui::containers::Frame {
         fill: Color32::TRANSPARENT,
         stroke: egui::Stroke::new(2.0, Color32::TRANSPARENT),
         ..Default::default()
+    }
+}
+
+fn disconnect_on_close(
+    mut exit: EventWriter<AppExit>,
+    mut closed: EventReader<WindowCloseRequested>,
+    mut client: ResMut<RenetClient>,
+) {
+    for _ in closed.iter() {
+        client.disconnect();
+        exit.send(AppExit);
     }
 }

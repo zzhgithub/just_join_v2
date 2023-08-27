@@ -1,6 +1,7 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{App, Update},
+    prelude::{App, PluginGroup, Update},
+    window::{ExitCondition, WindowPlugin},
     DefaultPlugins,
 };
 use bevy_egui::EguiPlugin;
@@ -21,7 +22,12 @@ use just_join::{
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins);
+    app.add_plugins(WindowPlugin {
+        exit_condition: ExitCondition::OnAllClosed,
+        close_when_requested: false,
+        ..Default::default()
+    });
+    app.add_plugins(DefaultPlugins.build().disable::<WindowPlugin>());
     app.add_state::<GameState>();
     app.insert_resource(ConnectionAddr::default());
 
