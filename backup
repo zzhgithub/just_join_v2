@@ -1,3 +1,4 @@
 血条 https://github.com/sparten11740/bevy_health_bar3d
 Lz4压缩解压 https://crates.io/crates/lz4
 其他人的地形实现 https://github.com/jameshiew/infinigen
+粒子系统 https://crates.io/crates/bevy_hanabi

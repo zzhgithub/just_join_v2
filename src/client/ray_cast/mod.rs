@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         AlphaMode, Assets, Color, Commands, Entity, Gizmos, GlobalTransform, Mesh, PbrBundle,
-        Plugin, Query, ResMut, StandardMaterial, Startup, Transform, Update, Vec3, Visibility,
+        Plugin, Query, Res, ResMut, StandardMaterial, Startup, Transform, Update, Vec3, Visibility,
         With, Without,
     },
     reflect::Reflect,
@@ -16,7 +16,10 @@ use crate::{CLIENT_DEBUG, TOUCH_RADIUS};
 
 use self::choose_cube::{ChooseCube, HelpCube};
 
-use super::{mesh_display::TerrainMesh, player::controller::CameraTag};
+use super::{
+    mesh_display::TerrainMesh,
+    player::{controller::CameraTag, mouse_control::AttackTimer},
+};
 
 pub mod choose_cube;
 
@@ -119,6 +122,7 @@ pub fn touth_mesh_ray_cast(
         (&mut Transform, &mut Visibility),
         (With<HelpCube>, Without<CameraTag>),
     >,
+    attack_timer: Res<AttackTimer>,
 ) {
     let Ok((mut chue_pos,mut visibility)) = query_help_cube.get_single_mut() else{
         println!("not found Cube.");
@@ -154,7 +158,11 @@ pub fn touth_mesh_ray_cast(
             if CLIENT_DEBUG {
                 gizmos.ray(hit_point, normal, Color::RED);
             }
-            gizmos.circle(hit_point, normal, 0.05, Color::BLACK);
+            gizmos.circle(hit_point, normal, 0.1, Color::BLACK);
+            if let Some(timer) = &attack_timer.timer {
+                let rate = timer.elapsed().as_millis() as f32 / timer.duration().as_millis() as f32;
+                gizmos.circle(hit_point, normal, 0.1 * rate, Color::BLUE);
+            }
             let center_point = get_pos_chunk_center(hit_point, normal);
             let out_center_point = get_pos_chunk_center(hit_point, -normal);
 

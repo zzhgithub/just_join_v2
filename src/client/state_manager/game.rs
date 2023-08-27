@@ -24,7 +24,7 @@ use crate::{
         mesh_display::ClientMeshPlugin,
         player::{
             controller::{CharacterController, CharacterControllerPlugin},
-            mouse_control::mouse_button_system,
+            mouse_control::MouseControlPlugin,
             ClientLobby,
         },
         ray_cast::MeshRayCastPlugin,
@@ -72,19 +72,21 @@ impl Plugin for GamePlugin {
                 .after(EguiSet::InitContexts),
         );
         // 这里是系统
-        app.add_plugins(CharacterControllerPlugin);
-        app.add_plugins(ClientClipSpheresPlugin::<CharacterController> { data: PhantomData });
-        app.add_plugins(ClientMeshPlugin);
-        app.add_plugins(ClientSkyPlugins);
-        app.add_plugins(MeshRayCastPlugin);
-        app.add_plugins(ConsoleCommandPlugins);
+        app.add_plugins((
+            CharacterControllerPlugin,
+            ClientClipSpheresPlugin::<CharacterController> { data: PhantomData },
+            ClientMeshPlugin,
+            ClientSkyPlugins,
+            MeshRayCastPlugin,
+            ConsoleCommandPlugins,
+            MouseControlPlugin,
+        ));
 
         app.add_systems(
             Update,
             (
                 client_sync_players,
                 client_sync_players_state,
-                mouse_button_system,
                 panic_on_error_system,
             )
                 .chain()
