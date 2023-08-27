@@ -54,6 +54,13 @@ pub fn server_connect_system(
                 let user_data = transport.user_data(client_id.clone()).unwrap();
                 let username = Username::from_user_data(&user_data).0;
                 println!("Player {}|{} connected.", client_id, username);
+                if server_lobby.names.contains(&username) {
+                    // 相同用户名重复登录
+                    server.remove_connection(client_id.clone());
+                    println!("Player {}|{} 重复登录 已经被阻止.", client_id, username);
+                    continue;
+                }
+                server_lobby.names.insert(username.clone());
                 visualizer.add_client(*client_id);
                 // 1. 先通知 当前连接 其他的已经存在的用户数据
                 for (entity, player, transform, _) in players.iter() {
@@ -96,6 +103,13 @@ pub fn server_connect_system(
                 server.broadcast_message(ServerChannel::ServerMessages, message);
             }
             ServerEvent::ClientDisconnected { client_id, reason } => {
+                match reason {
+                    // 从服务端失去连接的不进行处理
+                    bevy_renet::renet::DisconnectReason::DisconnectedByServer => {
+                        continue;
+                    }
+                    _ => {}
+                }
                 visualizer.remove_client(*client_id);
                 println!("Player {} disconnected: {}", client_id, reason);
                 // 告诉所有人减少了一个用户
@@ -106,6 +120,7 @@ pub fn server_connect_system(
                             let mut save_state = state.0.clone();
                             save_state.position =
                                 [tf.translation.x, tf.translation.y, tf.translation.z];
+                            server_lobby.names.remove(&player.username.clone());
                             map_database.save_player_state(player.username.clone(), save_state);
                         }
                         Err(_) => {}

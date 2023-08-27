@@ -1,3 +1,4 @@
+use ahash::HashSet;
 use bevy::{
     prelude::{Commands, Component, Entity, Resource, Transform, Vec3},
     transform::TransformBundle,
@@ -19,6 +20,7 @@ pub struct Player {
 pub struct ServerLobby {
     // client_id ==> entity
     pub players: HashMap<u64, Entity>,
+    pub names: HashSet<String>,
 }
 
 pub fn server_create_player(

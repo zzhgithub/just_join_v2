@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, time::Duration};
 
 use bevy::{
     app::AppExit,
@@ -38,7 +38,7 @@ use crate::{
     CLIENT_DEBUG,
 };
 
-use super::{new_renet_client, ConnectionAddr, GameState};
+use super::{new_renet_client, notification::Notification, ConnectionAddr, GameState};
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum PlayState {
@@ -92,7 +92,15 @@ impl Plugin for GamePlugin {
         );
         app.add_systems(
             Update,
-            disconnect_on_close.run_if(bevy_renet::transport::client_connected()),
+            disconnect_on_close
+                .run_if(in_state(GameState::Game))
+                .run_if(bevy_renet::transport::client_connected()),
+        );
+        app.add_systems(
+            Update,
+            client_do_disconnected
+                .run_if(in_state(GameState::Game))
+                .run_if(bevy_renet::transport::client_just_diconnected()),
         );
     }
 }
@@ -134,6 +142,31 @@ fn panic_on_error_system(mut renet_error: EventReader<NetcodeTransportError>) {
     for e in renet_error.iter() {
         panic!("{}", e);
     }
+}
+
+fn client_do_disconnected(
+    client: Res<RenetClient>,
+    mut play_state: ResMut<NextState<PlayState>>,
+    mut game_state: ResMut<NextState<GameState>>,
+    // mut menu_state: ResMut<NextState<MenuState>>,
+    mut notification: ResMut<Notification>,
+) {
+    let mut message = "连接异常";
+    match client.disconnect_reason() {
+        Some(reason) => match reason {
+            bevy_renet::renet::DisconnectReason::DisconnectedByServer => {
+                message = "用户名已经存在";
+            }
+            _ => {}
+        },
+        None => {}
+    }
+    notification
+        .toasts
+        .error(message)
+        .set_duration(Some(Duration::from_secs(5)));
+    play_state.set(PlayState::Disabled);
+    game_state.set(GameState::Menu);
 }
 
 // 中心十字

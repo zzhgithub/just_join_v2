@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         in_state, warn, Component, Entity, EventReader, Input, IntoSystemConfigs,
-        IntoSystemSetConfigs, KeyCode, Mat4, OnEnter, Plugin, PreUpdate, Query, Res, ResMut,
-        Resource, SystemSet, Transform, Update, Vec3, Visibility, With,
+        IntoSystemSetConfigs, KeyCode, Mat4, OnEnter, OnExit, Plugin, PreUpdate, Query, Res,
+        ResMut, Resource, SystemSet, Transform, Update, Vec3, Visibility, With,
     },
     window::{CursorGrabMode, PrimaryWindow, Window},
 };
@@ -120,6 +120,7 @@ impl Plugin for CharacterControllerPlugin {
                 )
                     .run_if(in_state(GameState::Game)),
             );
+        app.add_systems(OnExit(GameState::Game), back_grab_cursor);
         // 发送message系统
         app.add_systems(
             Update,
@@ -133,6 +134,19 @@ impl Plugin for CharacterControllerPlugin {
 fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
     if let Ok(mut window) = primary_window.get_single_mut() {
         toggle_grab_cursor(&mut window);
+    } else {
+        warn!("Primary window not found for `initial_grab_cursor`!");
+    }
+}
+
+fn back_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
+    if let Ok(mut window) = primary_window.get_single_mut() {
+        match window.cursor.grab_mode {
+            _ => {
+                window.cursor.grab_mode = CursorGrabMode::None;
+                window.cursor.visible = true;
+            }
+        }
     } else {
         warn!("Primary window not found for `initial_grab_cursor`!");
     }
