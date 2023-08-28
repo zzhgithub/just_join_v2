@@ -20,6 +20,12 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      - name: Update system and development tools
+        run: |
+          sudo apt install -y libasound2-dev pkg-config;
+          rustup update
+          cargo update
+
       - name: Rust Clippy
         uses: actions-rs/cargo@v1
         with:
