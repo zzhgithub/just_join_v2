@@ -1,4 +1,10 @@
 use ndshape::{ConstShape, ConstShape2u32, ConstShape3u32};
+#[cfg(target_arch = "aarch64")]
+use noise::{
+    permutationtable::PermutationTable,
+    utils::{NoiseMapBuilder, PlaneMapBuilder},
+};
+#[cfg(target_arch = "x86_64")]
 use simdnoise::NoiseBuilder;
 
 use crate::{
@@ -115,7 +121,25 @@ pub fn check_water(voxels: Vec<Voxel>, point: [u32; 3]) -> bool {
     return voxels[index as usize].id == Water::ID;
 }
 
+#[cfg(target_arch = "aarch64")]
+pub fn noise2d(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
+    use noise::core::perlin::perlin_2d;
+
+    let hasher = PermutationTable::new(seed as u32);
+    let low_x = (chunk_key.0.x * CHUNK_SIZE) as f64;
+    let low_y = (chunk_key.0.y * CHUNK_SIZE) as f64;
+
+    let build = PlaneMapBuilder::new_fn(perlin_2d, &hasher)
+        .set_size(CHUNK_SIZE as usize, CHUNK_SIZE as usize)
+        .set_x_bounds(low_x, low_x + 16.)
+        .set_y_bounds(low_y, low_y + 16.)
+        .build();
+    let noise: Vec<f32> = build.iter().map(|x| x.clone() as f32).collect();
+    noise
+}
+
 // 生成2d的柏林噪声
+#[cfg(target_arch = "x86_64")]
 pub fn noise2d(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
     let (noise, _max, _min) = NoiseBuilder::fbm_2d_offset(
         (chunk_key.0.x * CHUNK_SIZE) as f32,
@@ -130,24 +154,24 @@ pub fn noise2d(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
     noise
 }
 
-pub fn noise3d(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
-    let (noise, _max, _min) = NoiseBuilder::fbm_3d_offset(
-        (chunk_key.0.x * CHUNK_SIZE) as f32,
-        CHUNK_SIZE as usize,
-        (chunk_key.0.y * CHUNK_SIZE) as f32,
-        CHUNK_SIZE as usize,
-        (chunk_key.0.z * CHUNK_SIZE) as f32,
-        CHUNK_SIZE as usize,
-    )
-    .with_seed(seed)
-    .with_freq(0.1)
-    .with_octaves(5)
-    // .with_gain(2.0)
-    .with_lacunarity(0.5)
-    .generate();
+#[cfg(target_arch = "aarch64")]
+pub fn noise2d_ridge(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
+    use noise::core::open_simplex::open_simplex_2d;
+
+    let hasher = PermutationTable::new(seed as u32);
+    let low_x = (chunk_key.0.x * CHUNK_SIZE) as f64;
+    let low_y = (chunk_key.0.y * CHUNK_SIZE) as f64;
+
+    let build = PlaneMapBuilder::new_fn(open_simplex_2d, &hasher)
+        .set_size(CHUNK_SIZE as usize, CHUNK_SIZE as usize)
+        .set_x_bounds(low_x, low_x + 16.)
+        .set_y_bounds(low_y, low_y + 16.)
+        .build();
+    let noise: Vec<f32> = build.iter().map(|x| x.clone() as f32).collect();
     noise
 }
 
+#[cfg(target_arch = "x86_64")]
 pub fn noise2d_ridge(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
     let (noise, _, _) = NoiseBuilder::ridge_2d_offset(
         (chunk_key.0.x * CHUNK_SIZE) as f32,
@@ -164,6 +188,25 @@ pub fn noise2d_ridge(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
     noise
 }
 
+#[cfg(target_arch = "aarch64")]
+// 尝试产生 洞穴的噪声
+pub fn noise3d_2(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
+    use noise::core::open_simplex::open_simplex_3d;
+
+    let hasher = PermutationTable::new(seed as u32);
+    let low_x = (chunk_key.0.x * CHUNK_SIZE) as f64;
+    let low_y = (chunk_key.0.y * CHUNK_SIZE) as f64;
+
+    let build = PlaneMapBuilder::new_fn(open_simplex_3d, &hasher)
+        .set_size(CHUNK_SIZE as usize, CHUNK_SIZE as usize)
+        .set_x_bounds(low_x, low_x + 16.)
+        .set_y_bounds(low_y, low_y + 16.)
+        .build();
+    let noise: Vec<f32> = build.iter().map(|x| x.clone() as f32).collect();
+    noise
+}
+
+#[cfg(target_arch = "x86_64")]
 // 尝试产生 洞穴的噪声
 pub fn noise3d_2(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
     let (noise, _, _) = NoiseBuilder::fbm_3d_offset(
