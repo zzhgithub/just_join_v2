@@ -105,7 +105,7 @@ pub fn update_all_clip_shpere_system(
             );
         }
     }
-    // 
+    //
     for old_key in old_keys.iter() {
         server_clip_spheres.clip_spheres.remove(old_key);
     }

@@ -45,8 +45,8 @@ pub fn deal_attack_time(
         if timer.finished() {
             // 这处理完毕了 要删除物体了！
             broke_cube_event.send(BrokeCubeEvent {
-                chunk_key: attack_timer.chunk_key.clone(),
-                xyz: attack_timer.xyz.clone(),
+                chunk_key: attack_timer.chunk_key,
+                xyz: attack_timer.xyz,
             });
             attack_timer.timer = None;
         }
@@ -88,9 +88,9 @@ pub fn mouse_button_system(
         if let Some(pos) = choose_cube.center {
             let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(pos);
             // 判断计时器是否存在
-            let test_chunk_key = attack_timer.chunk_key.clone();
-            let test_xyz = attack_timer.xyz.clone();
-            if let Some(_) = &mut attack_timer.timer {
+            let test_chunk_key = attack_timer.chunk_key;
+            let test_xyz = attack_timer.xyz;
+            if attack_timer.timer.is_some() {
                 // FIXME: 理论上不会走到这个分支
                 if test_chunk_key == chunk_key && test_xyz == xyz {
                     // 和原来位置一样不处理
@@ -100,12 +100,12 @@ pub fn mouse_button_system(
                         bevy::utils::Duration::from_millis(1000 * 5),
                         TimerMode::Once,
                     ));
-                    attack_timer.chunk_key = chunk_key.clone();
-                    attack_timer.xyz = xyz.clone();
+                    attack_timer.chunk_key = chunk_key;
+                    attack_timer.xyz = xyz;
                 }
             } else {
-                attack_timer.chunk_key = chunk_key.clone();
-                attack_timer.xyz = xyz.clone();
+                attack_timer.chunk_key = chunk_key;
+                attack_timer.xyz = xyz;
                 // FIXME: 后续根据体素块 和 当前物体来判断
                 attack_timer.timer = Some(Timer::new(
                     bevy::utils::Duration::from_millis(1000 * 5),
@@ -124,26 +124,17 @@ pub fn mouse_button_system(
     }
 
     if mouse_button_input.just_pressed(MouseButton::Right) {
-        match tool_bar_data.staff_type() {
-            Some(staff_type) => {
-                match staff_type {
-                    crate::staff::StaffType::Voxel(voxel_type) => {
-                        if let Some(pos) = choose_cube.out_center {
-                            let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(pos);
-                            let message = bincode::serialize(&ChunkQuery::Change {
-                                chunk_key: chunk_key,
-                                pos: xyz,
-                                voxel_type: voxel_type,
-                            })
-                            .unwrap();
-                            client.send_message(ClientChannel::ChunkQuery, message);
-                        }
-                    }
-                    // TODO: 对其他的物品类型进行处理
-                    _ => {}
-                }
+        if let Some(crate::staff::StaffType::Voxel(voxel_type)) = tool_bar_data.staff_type() {
+            if let Some(pos) = choose_cube.out_center {
+                let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(pos);
+                let message = bincode::serialize(&ChunkQuery::Change {
+                    chunk_key,
+                    pos: xyz,
+                    voxel_type,
+                })
+                .unwrap();
+                client.send_message(ClientChannel::ChunkQuery, message);
             }
-            None => {}
         }
 
         // 这里按下了鼠标右边键 创建方块

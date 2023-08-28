@@ -1,6 +1,7 @@
 use bevy::{
     prelude::{IVec3, Resource},
-    utils::HashMap, reflect::Reflect,
+    reflect::Reflect,
+    utils::HashMap,
 };
 use ndshape::{ConstShape, ConstShape3u32};
 
@@ -30,9 +31,9 @@ impl ChunkMap {
 
         for y_offset in last_inex..=128 / CHUNK_SIZE {
             for offset in offsets.iter() {
-                let mut new_key = chunk_key.clone();
+                let mut new_key = chunk_key;
                 new_key.0.y = y_offset;
-                new_key.0 = new_key.0 + **offset;
+                new_key.0 += **offset;
                 if !self.map_data.contains_key(&new_key) {
                     return false;
                 }
@@ -66,7 +67,7 @@ impl ChunkMap {
         let last_inex = -128 / CHUNK_SIZE + 1;
 
         for y_offset in last_inex..=128 / CHUNK_SIZE {
-            let mut new_key = chunk_key.clone();
+            let mut new_key = chunk_key;
             new_key.0.y = y_offset;
             let layer_data = self.get_layer_neighbors(new_key);
             map.insert(y_offset, layer_data);
@@ -76,7 +77,7 @@ impl ChunkMap {
             let [x, y, z] = SampleShape::delinearize(i);
             let layer = y / CHUNK_SIZE_U32;
             let layer_index: i32 = (layer as i32) + last_inex;
-            let data = map.get(&(layer_index as i32));
+            let data = map.get(&{ layer_index });
             let index = DataShape::linearize([x, y % CHUNK_SIZE_U32, z]);
             result.push(Self::get_by_index(data, index));
         }
@@ -101,12 +102,9 @@ impl ChunkMap {
         let offsets = vec![px, nx, pz, nz, py, ny];
         let mut map: HashMap<IVec3, Vec<Voxel>> = HashMap::new();
         for ele in offsets {
-            let new_key = ChunkKey(chunk_key.0 + ele.clone());
-            let _ = match self.get(new_key) {
-                Some(v) => {
-                    map.insert(ele.clone(), v.clone());
-                }
-                None => (),
+            let new_key = ChunkKey(chunk_key.0 + *ele);
+            if let Some(v) = self.get(new_key) {
+                map.insert(*ele, v.clone());
             };
         }
         let mut result = Vec::new();
@@ -201,12 +199,9 @@ impl ChunkMap {
         let offsets = vec![px, nx, pz, nz];
         let mut map: HashMap<IVec3, Vec<Voxel>> = HashMap::new();
         for ele in offsets {
-            let new_key = ChunkKey(chunk_key.0 + ele.clone());
-            let _ = match self.get(new_key) {
-                Some(v) => {
-                    map.insert(ele.clone(), v.clone());
-                }
-                None => (),
+            let new_key = ChunkKey(chunk_key.0 + *ele);
+            if let Some(v) = self.get(new_key) {
+                map.insert(*ele, v.clone());
             };
         }
         let mut result = Vec::new();

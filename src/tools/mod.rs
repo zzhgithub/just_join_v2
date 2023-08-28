@@ -12,7 +12,7 @@ use crate::{
 pub mod inspector_egui;
 pub mod string;
 
-pub fn all_empty(voxels: &Vec<Voxel>) -> bool {
+pub fn all_empty(voxels: &[Voxel]) -> bool {
     for ele in voxels.iter() {
         if ele.id != 0 {
             return false;
@@ -44,5 +44,5 @@ pub fn vec3_to_chunk_key_any_xyz(pos: Vec3) -> (ChunkKey, [u32; 3]) {
     let y = (pos.y - (chunk_key.0.y * CHUNK_SIZE) as f32 + CHUNK_SIZE as f32 / 2. - 0.5) as u32;
     let z = (pos.z - (chunk_key.0.z * CHUNK_SIZE) as f32 + CHUNK_SIZE as f32 / 2. - 0.5) as u32;
 
-    return (chunk_key, [x, y, z]);
+    (chunk_key, [x, y, z])
 }

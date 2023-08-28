@@ -118,10 +118,10 @@ pub fn client_create_player(
     let billboard = commands
         .spawn(BillboardTextBundle {
             text: Text::from_sections([TextSection {
-                value: format!("[{}]", username.clone()),
+                value: format!("[{}]", username),
                 style: TextStyle {
                     font_size: 30.0,
-                    color: color,
+                    color,
                     ..Default::default()
                 },
             }])
@@ -144,8 +144,8 @@ pub fn client_create_player(
             })
             .insert(ThirdPerson {
                 is_third_person: true,
-                body: body,
-                head: head,
+                body,
+                head,
             })
             // 天空合作还没有启用
             .insert(AtmosphereCamera::default())

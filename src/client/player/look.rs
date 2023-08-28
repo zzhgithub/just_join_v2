@@ -120,7 +120,7 @@ pub fn input_to_look(
                     if settings.yaw_pitch_roll.y < -PITCH_BOUND {
                         settings.yaw_pitch_roll.y = -PITCH_BOUND;
                     }
-                    
+
                     pitch_events.send(PitchEvent::new(settings.yaw_pitch_roll.y));
                     yaw_events.send(YawEvent::new(settings.yaw_pitch_roll.x));
                 }

@@ -24,7 +24,7 @@ fn daylight_cycle(mut timer: ResMut<CycleTimer>, time: Res<Time>, mut server: Re
 
     if timer.0.finished() {
         // todo 这里的更平滑的一天？
-        let t = time.elapsed_seconds_wrapped() as f32 / 50.0;
+        let t = time.elapsed_seconds_wrapped() / 50.0;
         let message = bincode::serialize(&TimeSync::SkyBox(t)).unwrap();
         server.broadcast_message(ServerChannel::TimsSync, message);
     }

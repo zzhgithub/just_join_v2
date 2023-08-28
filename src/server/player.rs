@@ -29,12 +29,12 @@ pub fn server_create_player(
     client_id: u64,
     username: String,
 ) -> Entity {
-    let pos = player_state.position.clone();
+    let pos = player_state.position;
     let transform = Transform::from_xyz(pos[0], pos[1], pos[2]);
     commands
         .spawn(Player {
             id: client_id,
-            username: username,
+            username,
         })
         .insert(TransformBundle::from(transform))
         .insert(RigidBody::Dynamic)
@@ -42,8 +42,8 @@ pub fn server_create_player(
         .insert(ColliderMassProperties::Mass(300.0))
         .insert(LockedAxes::ROTATION_LOCKED)
         .insert(Collider::capsule(
-            (-0.5 * 1.7 * Vec3::Y).into(),
-            (0.5 * (1.7 - 0.9) * Vec3::Y).into(),
+            -0.5 * 1.7 * Vec3::Y,
+            0.5 * (1.7 - 0.9) * Vec3::Y,
             0.3,
         ))
         .insert(Ccd::enabled())

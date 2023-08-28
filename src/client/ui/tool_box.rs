@@ -42,7 +42,7 @@ pub fn tool_box(
         );
 
         if let Some(txt_id) = tool_box_border {
-            let rect_clone = rect.clone();
+            let rect_clone = rect;
             ui.painter().image(
                 txt_id,
                 rect_clone,
@@ -53,8 +53,8 @@ pub fn tool_box(
 
         // 绘制图片如果有图片的话
         if *num > 0 {
-            if let Some(text_id) = texture_id.clone() {
-                let rect_clone = rect.clone();
+            if let Some(text_id) = texture_id {
+                let rect_clone = rect;
                 ui.painter().image(
                     text_id,
                     rect_clone.expand(-10.0),
@@ -62,7 +62,7 @@ pub fn tool_box(
                     Color32::WHITE,
                 );
             }
-            let mut pos = rect.max.clone();
+            let mut pos = rect.max;
             pos.x -= 32.;
             pos.y -= 4.;
             ui.painter().text(

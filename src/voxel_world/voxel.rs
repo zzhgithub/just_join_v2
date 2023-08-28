@@ -29,7 +29,7 @@ impl MergeVoxel for Voxel {
     type MergeValue = u8;
 
     fn merge_value(&self) -> Self::MergeValue {
-        return self.id;
+        self.id
     }
 }
 

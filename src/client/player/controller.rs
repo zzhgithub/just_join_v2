@@ -141,11 +141,9 @@ fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow
 
 fn back_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
     if let Ok(mut window) = primary_window.get_single_mut() {
-        match window.cursor.grab_mode {
-            _ => {
-                window.cursor.grab_mode = CursorGrabMode::None;
-                window.cursor.visible = true;
-            }
+        {
+            window.cursor.grab_mode = CursorGrabMode::None;
+            window.cursor.visible = true;
         }
     } else {
         warn!("Primary window not found for `initial_grab_cursor`!");

@@ -43,18 +43,18 @@ pub fn gen_mesh(voxels: Vec<Voxel>, material_config: MaterailConfiguration) -> O
         .quads
         .groups
         .as_ref()
-        .into_iter()
+        .iter()
         .zip(faces.into_iter())
         .enumerate()
     {
-        for quad in group.into_iter() {
+        for quad in group.iter() {
             indices.extend_from_slice(&face.quad_mesh_indices(positions.len() as u32));
-            positions.extend_from_slice(&face.quad_mesh_positions(&quad, 1.0));
+            positions.extend_from_slice(&face.quad_mesh_positions(quad, 1.0));
             normals.extend_from_slice(&face.quad_mesh_normals());
             tex_coords.extend_from_slice(&face.tex_coords(
                 RIGHT_HANDED_Y_UP_CONFIG.u_flip_face,
                 true,
-                &quad,
+                quad,
             ));
             // 这里可以生成Data???? 但是怎么知道 是那个面的？
             let index = SampleShape::linearize(quad.minimum);
@@ -68,7 +68,7 @@ pub fn gen_mesh(voxels: Vec<Voxel>, material_config: MaterailConfiguration) -> O
                 &voxels[index as usize].id,
             );
             // todo 这里后面要知道是那个面的方便渲染
-            data.extend_from_slice(&[normol_num | (txt_index) as u32; 4]);
+            data.extend_from_slice(&[normol_num | (txt_index); 4]);
         }
     }
 
@@ -112,18 +112,18 @@ pub fn gen_mesh_water(voxels: Vec<Voxel>, material_config: MaterailConfiguration
         .quads
         .groups
         .as_ref()
-        .into_iter()
+        .iter()
         .zip(faces.into_iter())
         .enumerate()
     {
-        for quad in group.into_iter() {
+        for quad in group.iter() {
             indices.extend_from_slice(&face.quad_mesh_indices(positions.len() as u32));
-            positions.extend_from_slice(&face.quad_mesh_positions(&quad, 1.0));
+            positions.extend_from_slice(&face.quad_mesh_positions(quad, 1.0));
             normals.extend_from_slice(&face.quad_mesh_normals());
             tex_coords.extend_from_slice(&face.tex_coords(
                 RIGHT_HANDED_Y_UP_CONFIG.u_flip_face,
                 true,
-                &quad,
+                quad,
             ));
             // 法向量值
             let normol_num = (block_face_normal_index as u32) << 8u32;
@@ -133,7 +133,7 @@ pub fn gen_mesh_water(voxels: Vec<Voxel>, material_config: MaterailConfiguration
                 block_face_normal_index as u8,
                 &Water::ID,
             );
-            data.extend_from_slice(&[normol_num | (txt_index) as u32; 4]);
+            data.extend_from_slice(&[normol_num | (txt_index); 4]);
         }
     }
 

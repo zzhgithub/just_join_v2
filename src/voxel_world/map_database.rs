@@ -19,7 +19,7 @@ pub struct MapDataBase {
 impl MapDataBase {
     pub fn new(path: &str) -> Self {
         let db = sled::open(path).unwrap();
-        Self { db: db }
+        Self { db }
     }
 
     // 通过chunkKey 查找体素数据
@@ -35,14 +35,14 @@ impl MapDataBase {
             voxels.push(Voxel::EMPTY);
         }
         let key = chunk_key.as_u8_array();
-        return match self.db.get(key) {
+        match self.db.get(key) {
             Ok(rs) => match rs {
                 Some(data) => bincode::deserialize(&data).unwrap(),
                 // 这里在没有获取到的情况下使用算法的值
                 None => {
                     let new_voxels = gen_chunk_data_by_seed(1512354854, chunk_key);
                     let new_voxels_clone = new_voxels.clone();
-                    let task = pool.spawn(async move { (key.clone(), new_voxels_clone) });
+                    let task = pool.spawn(async move { (key, new_voxels_clone) });
                     db_tasks.tasks.push(task);
                     new_voxels
                 }
@@ -51,7 +51,7 @@ impl MapDataBase {
                 println!("wrong, to get Map {:?}", e);
                 voxels
             }
-        };
+        }
     }
 }
 
@@ -64,16 +64,17 @@ pub fn save_db_task_system(mut db_save_task: ResMut<DbSaveTasks>, db: ResMut<Map
     // 一次最多处理6个
     let len = db_save_task.tasks.len().min(6);
     for ele in db_save_task.tasks.drain(..len) {
-        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
-            Some((key, data)) => match db.db.insert(key, bincode::serialize(&data).unwrap()) {
+        if let Some((key, data)) =
+            futures_lite::future::block_on(futures_lite::future::poll_once(ele))
+        {
+            match db.db.insert(key, bincode::serialize(&data).unwrap()) {
                 Ok(_) => {
                     // println!("数据保存成功");
                 }
                 Err(err) => {
                     println!("数据保存问题{:?}", err);
                 }
-            },
-            None => {}
+            }
         }
     }
 }

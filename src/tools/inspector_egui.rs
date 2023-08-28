@@ -9,7 +9,7 @@ pub fn inspector_ui(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world) else { return };
     let mut egui_context = egui_context.clone();
-    egui::Window::new("UI").show(&egui_context.get_mut(), |ui| {
+    egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
             egui::CollapsingHeader::new("Materials").show(ui, |ui| {
                 bevy_inspector_egui::bevy_inspector::ui_for_assets::<StandardMaterial>(world, ui);

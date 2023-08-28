@@ -39,7 +39,5 @@ fn init_egui_resource(
     let tool_box_border: Handle<Image> = asset_server.load("ui/item_slot.png");
     contexts.add_image(tool_box_border.clone());
 
-    commands.insert_resource(UiPicResourceManager {
-        tool_box_border: tool_box_border,
-    })
+    commands.insert_resource(UiPicResourceManager { tool_box_border })
 }

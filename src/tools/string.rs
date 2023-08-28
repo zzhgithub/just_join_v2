@@ -19,8 +19,5 @@ pub fn is_valid_server_address(input: &str) -> bool {
 }
 
 pub fn is_port(input: &str) -> bool {
-    match input.parse::<usize>() {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    input.parse::<usize>().is_ok()
 }

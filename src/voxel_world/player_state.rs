@@ -43,10 +43,7 @@ impl StorgePlayerState for MapDataBase {
         let key_str = format!("U:{}", username);
         let key = key_str.as_bytes();
         match self.db.get(key) {
-            Ok(rs) => match rs {
-                Some(data) => Some(bincode::deserialize(&data).unwrap()),
-                None => None,
-            },
+            Ok(rs) => rs.map(|data| bincode::deserialize(&data).unwrap()),
             Err(_) => {
                 println!("获取玩家状态时报错");
                 None
