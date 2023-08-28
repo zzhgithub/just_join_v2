@@ -22,7 +22,7 @@ jobs:
 
       - name: Update system and development tools
         run: |
-          sudo apt install -y libasound2-dev pkg-config;
+          sudo apt install -y libasound2-dev pkg-config libudev-dev;
           rustup update
           cargo update
 
