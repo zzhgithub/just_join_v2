@@ -36,7 +36,6 @@ use crate::{
     common::ClientClipSpheresPlugin,
     sky::ClientSkyPlugins,
     staff::StaffInfoStroge,
-    CLIENT_DEBUG,
 };
 
 use super::{new_renet_client, notification::Notification, ConnectionAddr, GameState};
@@ -56,7 +55,7 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_state::<PlayState>();
         app.add_systems(OnEnter(GameState::Game), setup);
-        if CLIENT_DEBUG {}
+        
         // app.insert_resource();
         app.insert_resource(RenetClientVisualizer::<200>::new(
             RenetVisualizerStyle::default(),

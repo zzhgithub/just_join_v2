@@ -112,6 +112,7 @@ fn create_cube_wireframe(size: f32) -> Mesh {
     mesh
 }
 
+#[allow(clippy::type_complexity)]
 pub fn touth_mesh_ray_cast(
     mut raycast: Raycast,
     query: Query<&GlobalTransform, With<CameraTag>>,
@@ -124,13 +125,14 @@ pub fn touth_mesh_ray_cast(
     >,
     attack_timer: Res<AttackTimer>,
 ) {
-    let Ok((mut chue_pos,mut visibility)) = query_help_cube.get_single_mut() else{
+    let Ok((mut chue_pos, mut visibility)) = query_help_cube.get_single_mut() else {
         println!("not found Cube.");
         return;
     };
 
     let Ok(tfr) = query.get_single() else {
-        return;};
+        return;
+    };
     let ray_pos = tfr.translation();
     let ray_dir = tfr.forward();
     let ray = Ray3d::new(ray_pos, ray_dir);
