@@ -5,15 +5,12 @@ use crate::staff::{Staff, StaffType};
 
 use super::tool_box::tool_box;
 
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ToolBox {
     pub staff: Option<Staff>,
     pub num: usize,
     pub active: bool,
 }
-
-
 
 #[derive(Debug, Resource, Default, Clone)]
 pub struct ToolBar {
@@ -32,7 +29,10 @@ impl ToolBar {
     }
     // 当前激活中的物品
     pub fn staff_type(&self) -> Option<StaffType> {
-        self.tools[self.active_index].staff.as_ref().map(|staff| staff.staff_type.clone())
+        self.tools[self.active_index]
+            .staff
+            .as_ref()
+            .map(|staff| staff.staff_type.clone())
     }
     pub fn active(&mut self, index: usize) {
         self.active_index = index;

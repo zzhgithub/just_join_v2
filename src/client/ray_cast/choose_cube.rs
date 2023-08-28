@@ -1,4 +1,4 @@
-use bevy::prelude::{Resource, Vec3, Component};
+use bevy::prelude::{Component, Resource, Vec3};
 
 #[derive(Resource, Debug, Clone, Copy, Default)]
 pub struct ChooseCube {
@@ -19,7 +19,6 @@ impl ChooseCube {
         }
     }
 }
-
 
 #[derive(Component)]
 pub struct HelpCube;

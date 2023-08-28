@@ -57,7 +57,7 @@ pub fn toggle_ui(ui: &mut egui::Ui, on: &mut bool) -> egui::Response {
         // This will, for instance, give us different colors when the widget is hovered or clicked.
         // 点击后和鼠标移动上去后有不同的颜色
         let visuals = ui.style().interact_selectable(&response, *on);
-        
+
         // All coordinates are in absolute screen coordinates so we use `rect` to place the elements.
         // 这里要扩展一点分配的空间
         let rect = rect.expand(visuals.expansion);
