@@ -60,3 +60,4 @@ noise = { version = "0.8.2" }
 #  解决冲突
 lock_api = "0.4.10"
 codespan-reporting = "0.11.1"
+inotify = "0.9.6"
