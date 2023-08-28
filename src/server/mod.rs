@@ -51,12 +51,12 @@ pub fn server_connect_system(
     for event in server_events.iter() {
         match event {
             ServerEvent::ClientConnected { client_id } => {
-                let user_data = transport.user_data(client_id.clone()).unwrap();
+                let user_data = transport.user_data(*client_id).unwrap();
                 let username = Username::from_user_data(&user_data).0;
                 println!("Player {}|{} connected.", client_id, username);
                 if server_lobby.names.contains(&username) {
                     // 相同用户名重复登录
-                    server.remove_connection(client_id.clone());
+                    server.remove_connection(*client_id);
                     println!("Player {}|{} 重复登录 已经被阻止.", client_id, username);
                     continue;
                 }
@@ -103,27 +103,20 @@ pub fn server_connect_system(
                 server.broadcast_message(ServerChannel::ServerMessages, message);
             }
             ServerEvent::ClientDisconnected { client_id, reason } => {
-                match reason {
-                    // 从服务端失去连接的不进行处理
-                    bevy_renet::renet::DisconnectReason::DisconnectedByServer => {
-                        continue;
-                    }
-                    _ => {}
+                if let bevy_renet::renet::DisconnectReason::DisconnectedByServer = reason {
+                    continue;
                 }
                 visualizer.remove_client(*client_id);
                 println!("Player {} disconnected: {}", client_id, reason);
                 // 告诉所有人减少了一个用户
                 if let Some(player_entity) = server_lobby.players.remove(client_id) {
                     // 在用户断开连接是保存用户数据到数据库
-                    match players.get(player_entity) {
-                        Ok((_, player, tf, state)) => {
-                            let mut save_state = state.0.clone();
-                            save_state.position =
-                                [tf.translation.x, tf.translation.y, tf.translation.z];
-                            server_lobby.names.remove(&player.username.clone());
-                            map_database.save_player_state(player.username.clone(), save_state);
-                        }
-                        Err(_) => {}
+                    if let Ok((_, player, tf, state)) = players.get(player_entity) {
+                        let mut save_state = state.0.clone();
+                        save_state.position =
+                            [tf.translation.x, tf.translation.y, tf.translation.z];
+                        server_lobby.names.remove(&player.username.clone());
+                        map_database.save_player_state(player.username.clone(), save_state);
                     }
                     commands.entity(player_entity).despawn();
                 }

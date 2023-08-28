@@ -47,7 +47,7 @@ pub fn deal_chunk_query_system(
                     // 获取全部的值 然后返回
                     let last_inex = -128 / CHUNK_SIZE + 1;
                     for y_offset in last_inex..=128 / CHUNK_SIZE {
-                        let mut new_key = chunk_key.clone();
+                        let mut new_key = chunk_key;
                         new_key.0.y = y_offset;
                         let voxels;
                         if let Some(data) = chunk_map.map_data.get(&new_key) {
@@ -56,10 +56,10 @@ pub fn deal_chunk_query_system(
                             voxels = db.find_by_chunk_key(new_key, db_save_task.as_mut());
                         }
                         let message = if all_empty(&voxels) {
-                            bincode::serialize(&ChunkResult::ChunkEmpty(new_key.clone())).unwrap()
+                            bincode::serialize(&ChunkResult::ChunkEmpty(new_key)).unwrap()
                         } else {
                             bincode::serialize(&ChunkResult::ChunkData {
-                                key: new_key.clone(),
+                                key: new_key,
                                 data: voxels.clone(),
                             })
                             .unwrap()
@@ -91,9 +91,9 @@ pub fn deal_chunk_query_system(
                         db_save_task.tasks.push(task);
                         // 3. 通知 全体 更新数据
                         let message = bincode::serialize(&ChunkResult::ChunkUpdateOne {
-                            chunk_key: chunk_key,
-                            pos: pos,
-                            voxel_type: voxel_type,
+                            chunk_key,
+                            pos,
+                            voxel_type,
                         })
                         .unwrap();
                         server.broadcast_message(ServerChannel::ChunkResult, message);
@@ -106,7 +106,7 @@ pub fn deal_chunk_query_system(
                             &mut collider_tasks,
                         );
                         if pos[0] == 0 {
-                            let mut new_chunk_key_i3 = chunk_key.0.clone();
+                            let mut new_chunk_key_i3 = chunk_key.0;
                             new_chunk_key_i3.x -= 1;
                             send_codiller_task(
                                 ChunkKey(new_chunk_key_i3),
@@ -117,7 +117,7 @@ pub fn deal_chunk_query_system(
                             );
                         }
                         if pos[0] == CHUNK_SIZE_U32 - 1 {
-                            let mut new_chunk_key_i3 = chunk_key.0.clone();
+                            let mut new_chunk_key_i3 = chunk_key.0;
                             new_chunk_key_i3.x += 1;
                             send_codiller_task(
                                 ChunkKey(new_chunk_key_i3),
@@ -128,7 +128,7 @@ pub fn deal_chunk_query_system(
                             );
                         }
                         if pos[1] == 0 {
-                            let mut new_chunk_key_i3 = chunk_key.0.clone();
+                            let mut new_chunk_key_i3 = chunk_key.0;
                             new_chunk_key_i3.y -= 1;
                             send_codiller_task(
                                 ChunkKey(new_chunk_key_i3),
@@ -139,7 +139,7 @@ pub fn deal_chunk_query_system(
                             );
                         }
                         if pos[1] == CHUNK_SIZE_U32 - 1 {
-                            let mut new_chunk_key_i3 = chunk_key.0.clone();
+                            let mut new_chunk_key_i3 = chunk_key.0;
                             new_chunk_key_i3.y += 1;
                             send_codiller_task(
                                 ChunkKey(new_chunk_key_i3),
@@ -150,7 +150,7 @@ pub fn deal_chunk_query_system(
                             );
                         }
                         if pos[2] == 0 {
-                            let mut new_chunk_key_i3 = chunk_key.0.clone();
+                            let mut new_chunk_key_i3 = chunk_key.0;
                             new_chunk_key_i3.z -= 1;
                             send_codiller_task(
                                 ChunkKey(new_chunk_key_i3),
@@ -161,7 +161,7 @@ pub fn deal_chunk_query_system(
                             );
                         }
                         if pos[2] == CHUNK_SIZE_U32 - 1 {
-                            let mut new_chunk_key_i3 = chunk_key.0.clone();
+                            let mut new_chunk_key_i3 = chunk_key.0;
                             new_chunk_key_i3.z += 1;
                             send_codiller_task(
                                 ChunkKey(new_chunk_key_i3),
@@ -188,7 +188,7 @@ fn send_codiller_task(
     let pool = AsyncComputeTaskPool::get();
     if let Some(&entity) = collider_manager.entities.get(&chunk_key) {
         let new_voxels_clone = chunk_map.get_neighbors(chunk_key);
-        let task = pool.spawn(async move { (entity.clone(), chunk_key, new_voxels_clone) });
+        let task = pool.spawn(async move { (entity, chunk_key, new_voxels_clone) });
         collider_update_tasks_manager.tasks.push(task);
     } else if chunk_map.map_data.contains_key(&chunk_key) {
         let voxel_with_neighbor = chunk_map.get_neighbors(chunk_key);
@@ -200,11 +200,10 @@ fn send_codiller_task(
 pub fn send_message(mut tasks: ResMut<ChunkResultTasks>, mut server: ResMut<RenetServer>) {
     let l = tasks.tasks.len().min(16);
     for ele in tasks.tasks.drain(..l) {
-        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
-            Some((client_id, message)) => {
-                server.send_message(client_id, ServerChannel::ChunkResult, message);
-            }
-            None => {}
+        if let Some((client_id, message)) =
+            futures_lite::future::block_on(futures_lite::future::poll_once(ele))
+        {
+            server.send_message(client_id, ServerChannel::ChunkResult, message);
         }
     }
 }

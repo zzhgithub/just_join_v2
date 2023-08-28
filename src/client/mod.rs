@@ -63,7 +63,7 @@ pub fn client_sync_players(
 
                 let player_info = PlayerInfo {
                     server_entity: entity,
-                    client_entity: client_entity,
+                    client_entity,
                 };
                 lobby.players.insert(id, player_info);
                 // 这记录脖子和头部的对应关系

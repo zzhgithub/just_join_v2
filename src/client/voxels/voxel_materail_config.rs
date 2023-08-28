@@ -77,7 +77,7 @@ impl MaterailConfiguration {
                 let file_path = entry.path();
                 // 在这里处理文件，例如打印文件路径
 
-                let path = String::from(file_path.to_str().unwrap().replace("assets/", ""));
+                let path = file_path.to_str().unwrap().replace("assets/", "");
                 if self.files.contains(&path) {
                     self.files.push(path);
                     println!("* 文件路径: {}", file_path.display());

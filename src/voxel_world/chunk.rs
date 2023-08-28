@@ -19,16 +19,15 @@ impl ChunkKey {
         let mut hasher = DefaultHasher::new();
         self.0.hash(&mut hasher);
         let hash_value = hasher.finish();
-        let hash_bytes: [u8; 8] = unsafe { std::mem::transmute(hash_value) };
-        return hash_bytes;
+        hash_value.to_ne_bytes() // unsafe { std::mem::transmute(hash_value) };
     }
 }
 
 // 生成 y 偏移两为0的移动
 pub fn generate_offset_array_with_y_0(chunk_distance: i32) -> Vec<IVec3> {
     let mut offsets = Vec::new();
-    for x in -chunk_distance as i32..=chunk_distance as i32 {
-        for z in -chunk_distance as i32..=chunk_distance as i32 {
+    for x in -chunk_distance..=chunk_distance {
+        for z in -chunk_distance..=chunk_distance {
             offsets.push(IVec3::new(x, 0, z));
         }
     }
@@ -37,9 +36,9 @@ pub fn generate_offset_array_with_y_0(chunk_distance: i32) -> Vec<IVec3> {
 
 pub fn generate_offset_array(chunk_distance: i32) -> Vec<IVec3> {
     let mut offsets = Vec::new();
-    for x in -chunk_distance as i32..=chunk_distance as i32 {
-        for y in -chunk_distance as i32..=chunk_distance as i32 {
-            for z in -chunk_distance as i32..=chunk_distance as i32 {
+    for x in -chunk_distance..=chunk_distance {
+        for y in -chunk_distance..=chunk_distance {
+            for z in -chunk_distance..=chunk_distance {
                 offsets.push(IVec3::new(x, y, z));
             }
         }

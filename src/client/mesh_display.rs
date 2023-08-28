@@ -111,7 +111,7 @@ fn setup(
     commands.insert_resource(MaterialStorge::init_with_files(
         asset_server,
         materials,
-        config.files.clone(),
+        config.files,
     ));
 }
 
@@ -135,21 +135,19 @@ pub fn gen_mesh_system(
                     mesh_manager.fast_key.insert(key);
                     mesh_manager.data_status.insert(key, (true, Instant::now()));
                     let volexs: Vec<Voxel> = chunk_map.get_with_neighbor_full_y(key);
-                    let task = pool.spawn(async move { (volexs.clone(), key.clone()) });
+                    let task = pool.spawn(async move { (volexs.clone(), key) });
                     mesh_task.tasks.push(task);
                 }
+            } else if !chunk_map.chunk_for_mesh_ready(key) {
+                let message = bincode::serialize(&ChunkQuery::GetFullY(key)).unwrap();
+                client.send_message(ClientChannel::ChunkQuery, message);
+                mesh_manager
+                    .data_status
+                    .insert(key, (false, Instant::now()));
             } else {
-                if !chunk_map.chunk_for_mesh_ready(key) {
-                    let message = bincode::serialize(&ChunkQuery::GetFullY(key)).unwrap();
-                    client.send_message(ClientChannel::ChunkQuery, message);
-                    mesh_manager
-                        .data_status
-                        .insert(key, (false, Instant::now()));
-                } else {
-                    mesh_manager
-                        .data_status
-                        .insert(key, (false, Instant::now()));
-                }
+                mesh_manager
+                    .data_status
+                    .insert(key, (false, Instant::now()));
             }
         }
     }
@@ -186,29 +184,29 @@ pub fn async_chunk_result(
                         ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
                     let index = SampleShape::linearize(pos) as usize;
                     voxel[index] = voxel_type;
-                    let mut clone_chunk_key = chunk_key.clone();
+                    let mut clone_chunk_key = chunk_key;
                     clone_chunk_key.0.y = 0;
-                    key_set.insert((1, clone_chunk_key.clone()));
+                    key_set.insert((1, clone_chunk_key));
                     // 2. 刷新mesh的task 注意是刷新的task
                     if pos[0] == 0 {
-                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        let mut new_chunk_key_i3 = clone_chunk_key.0;
                         new_chunk_key_i3.x -= 1;
-                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3)));
                     }
                     if pos[0] == CHUNK_SIZE_U32 - 1 {
-                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        let mut new_chunk_key_i3 = clone_chunk_key.0;
                         new_chunk_key_i3.x += 1;
-                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3)));
                     }
                     if pos[2] == 0 {
-                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        let mut new_chunk_key_i3 = clone_chunk_key.0;
                         new_chunk_key_i3.z -= 1;
-                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3)));
                     }
                     if pos[2] == CHUNK_SIZE_U32 - 1 {
-                        let mut new_chunk_key_i3 = clone_chunk_key.0.clone();
+                        let mut new_chunk_key_i3 = clone_chunk_key.0;
                         new_chunk_key_i3.z += 1;
-                        key_set.insert((0, ChunkKey(new_chunk_key_i3.clone())));
+                        key_set.insert((0, ChunkKey(new_chunk_key_i3)));
                     }
                 }
             }
@@ -219,8 +217,8 @@ pub fn async_chunk_result(
     sorted_vec.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap().reverse());
 
     for (_, key) in sorted_vec.iter() {
-        let chunk_key: ChunkKey = key.clone();
-        if let Some(_) = mesh_manager.entities.get(key) {
+        let chunk_key: ChunkKey = *key;
+        if mesh_manager.entities.get(key).is_some() {
             let task = pool.spawn(async move { chunk_key });
             chunk_update_task.tasks.push(task);
         }
@@ -237,16 +235,17 @@ pub fn update_chunk_mesh(
 ) {
     let l = chunk_update_task.tasks.len().min(16);
     for ele in chunk_update_task.tasks.drain(..l) {
-        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
-            Some(chunk_key) => update_mesh(
+        if let Some(chunk_key) =
+            futures_lite::future::block_on(futures_lite::future::poll_once(ele))
+        {
+            update_mesh(
                 &mut commands,
                 chunk_map.as_ref(),
-                chunk_key.clone(),
+                chunk_key,
                 material_config.clone(),
                 mesh_manager.as_mut(),
                 mesh_assets.as_mut(),
-            ),
-            None => {}
+            )
         }
     }
 }
@@ -275,7 +274,7 @@ pub fn update_mesh(
             }
         }
     };
-    match gen_mesh_water(pick_water(volexs.clone()), material_config.clone()) {
+    match gen_mesh_water(pick_water(volexs), material_config) {
         Some(water_mesh) => {
             let mesh_handle = mesh_manager.water_mesh_storge.get(&chunk_key_y0).unwrap();
             if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
@@ -297,11 +296,10 @@ pub fn save_chunk_result(
 ) {
     let l = chunk_sync_task.tasks.len().min(16);
     for ele in chunk_sync_task.tasks.drain(..l) {
-        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
-            Some((chunk_key, data)) => {
-                chunk_map.write_chunk(chunk_key, data);
-            }
-            None => {}
+        if let Some((chunk_key, data)) =
+            futures_lite::future::block_on(futures_lite::future::poll_once(ele))
+        {
+            chunk_map.write_chunk(chunk_key, data);
         }
     }
 }
@@ -323,84 +321,79 @@ pub fn update_mesh_system(
 ) {
     let l: usize = mesh_task.tasks.len().min(3);
     for ele in mesh_task.tasks.drain(..l) {
-        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
-            Some((voxels, chunk_key)) => {
-                if mesh_manager.entities.contains_key(&chunk_key) {
-                    return;
-                } else {
-                    match gen_mesh(voxels.to_owned(), material_config.clone()) {
-                        Some(render_mesh) => {
-                            let mesh_handle = mesh_assets.add(render_mesh);
-                            mesh_manager
-                                .mesh_storge
-                                .insert(chunk_key, mesh_handle.clone());
-                            mesh_manager.entities.insert(
-                                chunk_key,
-                                commands
-                                    .spawn((
-                                        MaterialMeshBundle {
-                                            transform: Transform::from_xyz(
-                                                (chunk_key.0.x * CHUNK_SIZE) as f32
-                                                    - CHUNK_SIZE as f32 / 2.0
-                                                    - 1.0,
-                                                -128.0 + CHUNK_SIZE as f32 / 2.0,
-                                                (chunk_key.0.z * CHUNK_SIZE) as f32
-                                                    - CHUNK_SIZE as f32 / 2.0
-                                                    - 1.0,
-                                            ),
-                                            mesh: mesh_handle.clone(),
-                                            material: materials.0.clone(),
-                                            ..Default::default()
-                                        },
-                                        TerrainMesh,
-                                        RaycastMesh::<MyRaycastSet>::default(), // Make this mesh ray cast-able
-                                    ))
-                                    .id(),
-                            );
-                        }
-                        None => {}
-                    };
-                    match gen_mesh_water(pick_water(voxels.clone()), material_config.clone()) {
-                        Some(water_mesh) => {
-                            let water_mesh_handle = mesh_assets.add(water_mesh);
-                            mesh_manager
-                                .water_mesh_storge
-                                .insert(chunk_key, water_mesh_handle.clone());
-                            mesh_manager.water_entities.insert(
-                                chunk_key,
-                                commands
-                                    .spawn(MaterialMeshBundle {
-                                        transform: Transform::from_xyz(
-                                            (chunk_key.0.x * CHUNK_SIZE) as f32
-                                                - CHUNK_SIZE as f32 / 2.0
-                                                - 1.0,
-                                            -128.0 + CHUNK_SIZE as f32 / 2.0,
-                                            (chunk_key.0.z * CHUNK_SIZE) as f32
-                                                - CHUNK_SIZE as f32 / 2.0
-                                                - 1.0,
-                                        ),
-                                        mesh: water_mesh_handle,
-                                        material: materials_assets.add(StandardMaterial {
-                                            base_color: Color::rgba(
-                                                10. / 255.,
-                                                18. / 255.,
-                                                246. / 255.,
-                                                0.6,
-                                            ),
-                                            alpha_mode: AlphaMode::Blend,
-                                            ..Default::default()
-                                        }),
-                                        ..Default::default()
-                                    })
-                                    .insert(WaterMesh)
-                                    .id(),
-                            );
-                        }
-                        None => {}
-                    }
+        if let Some((voxels, chunk_key)) =
+            futures_lite::future::block_on(futures_lite::future::poll_once(ele))
+        {
+            if mesh_manager.entities.contains_key(&chunk_key) {
+                return;
+            } else {
+                if let Some(render_mesh) = gen_mesh(voxels.to_owned(), material_config.clone()) {
+                    let mesh_handle = mesh_assets.add(render_mesh);
+                    mesh_manager
+                        .mesh_storge
+                        .insert(chunk_key, mesh_handle.clone());
+                    mesh_manager.entities.insert(
+                        chunk_key,
+                        commands
+                            .spawn((
+                                MaterialMeshBundle {
+                                    transform: Transform::from_xyz(
+                                        (chunk_key.0.x * CHUNK_SIZE) as f32
+                                            - CHUNK_SIZE as f32 / 2.0
+                                            - 1.0,
+                                        -128.0 + CHUNK_SIZE as f32 / 2.0,
+                                        (chunk_key.0.z * CHUNK_SIZE) as f32
+                                            - CHUNK_SIZE as f32 / 2.0
+                                            - 1.0,
+                                    ),
+                                    mesh: mesh_handle.clone(),
+                                    material: materials.0.clone(),
+                                    ..Default::default()
+                                },
+                                TerrainMesh,
+                                RaycastMesh::<MyRaycastSet>::default(), // Make this mesh ray cast-able
+                            ))
+                            .id(),
+                    );
+                };
+                if let Some(water_mesh) =
+                    gen_mesh_water(pick_water(voxels.clone()), material_config.clone())
+                {
+                    let water_mesh_handle = mesh_assets.add(water_mesh);
+                    mesh_manager
+                        .water_mesh_storge
+                        .insert(chunk_key, water_mesh_handle.clone());
+                    mesh_manager.water_entities.insert(
+                        chunk_key,
+                        commands
+                            .spawn(MaterialMeshBundle {
+                                transform: Transform::from_xyz(
+                                    (chunk_key.0.x * CHUNK_SIZE) as f32
+                                        - CHUNK_SIZE as f32 / 2.0
+                                        - 1.0,
+                                    -128.0 + CHUNK_SIZE as f32 / 2.0,
+                                    (chunk_key.0.z * CHUNK_SIZE) as f32
+                                        - CHUNK_SIZE as f32 / 2.0
+                                        - 1.0,
+                                ),
+                                mesh: water_mesh_handle,
+                                material: materials_assets.add(StandardMaterial {
+                                    base_color: Color::rgba(
+                                        10. / 255.,
+                                        18. / 255.,
+                                        246. / 255.,
+                                        0.6,
+                                    ),
+                                    alpha_mode: AlphaMode::Blend,
+                                    ..Default::default()
+                                }),
+                                ..Default::default()
+                            })
+                            .insert(WaterMesh)
+                            .id(),
+                    );
                 }
             }
-            None => {}
         }
     }
 }
@@ -455,10 +448,10 @@ fn cycle_check_mesh(
     if timer.0.finished() {
         let need_keys: HashSet<ChunkKey> = find_chunk_keys_array_by_shpere_y_0(
             clip_spheres.new_sphere,
-            generate_offset_resoure_min_1(VIEW_RADIUS).0.clone(),
+            generate_offset_resoure_min_1(VIEW_RADIUS).0,
         )
         .iter()
-        .map(|k| k.clone())
+        .copied()
         .collect();
 
         for (key, (state, instant)) in mesh_manager.data_status.clone().iter() {
@@ -467,7 +460,7 @@ fn cycle_check_mesh(
             // 每2s检查一下五秒内没有加载好的数据
             if !state && duration.as_millis() > 5 * 1000 && need_keys.contains(key) {
                 println!("超时重新请求chunkkey{:?}", key);
-                let message = bincode::serialize(&ChunkQuery::GetFullY(key.clone())).unwrap();
+                let message = bincode::serialize(&ChunkQuery::GetFullY(*key)).unwrap();
                 // todo 对边缘数据不处理！
                 client.send_message(ClientChannel::ChunkQuery, message);
             }

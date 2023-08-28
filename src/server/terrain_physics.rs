@@ -71,34 +71,27 @@ pub fn spawn_collider(
 ) {
     let len = collider_tasks.tasks.len().min(256);
     for ele in collider_tasks.tasks.drain(..len) {
-        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
-            Some((chunk_key, voxel_data)) => {
-                if !collider_manager.entities.contains_key(&chunk_key) {
-                    if let Some(collider) = gen_collider(voxel_data) {
-                        let entity = commands
-                            .spawn((
-                                TerrainPhysics,
-                                Transform::from_xyz(
-                                    (chunk_key.0.x * CHUNK_SIZE) as f32
-                                        - CHUNK_SIZE as f32 / 2.0
-                                        - 1.0,
-                                    (chunk_key.0.y * CHUNK_SIZE) as f32
-                                        - CHUNK_SIZE as f32 / 2.0
-                                        - 1.0,
-                                    (chunk_key.0.z * CHUNK_SIZE) as f32
-                                        - CHUNK_SIZE as f32 / 2.0
-                                        - 1.0,
-                                ),
-                                GlobalTransform::default(),
-                            ))
-                            .insert(RigidBody::Fixed)
-                            .insert(collider)
-                            .id();
-                        collider_manager.entities.insert(chunk_key, entity);
-                    }
+        if let Some((chunk_key, voxel_data)) =
+            futures_lite::future::block_on(futures_lite::future::poll_once(ele))
+        {
+            if !collider_manager.entities.contains_key(&chunk_key) {
+                if let Some(collider) = gen_collider(voxel_data) {
+                    let entity = commands
+                        .spawn((
+                            TerrainPhysics,
+                            Transform::from_xyz(
+                                (chunk_key.0.x * CHUNK_SIZE) as f32 - CHUNK_SIZE as f32 / 2.0 - 1.0,
+                                (chunk_key.0.y * CHUNK_SIZE) as f32 - CHUNK_SIZE as f32 / 2.0 - 1.0,
+                                (chunk_key.0.z * CHUNK_SIZE) as f32 - CHUNK_SIZE as f32 / 2.0 - 1.0,
+                            ),
+                            GlobalTransform::default(),
+                        ))
+                        .insert(RigidBody::Fixed)
+                        .insert(collider)
+                        .id();
+                    collider_manager.entities.insert(chunk_key, entity);
                 }
             }
-            None => {}
         }
     }
 }
@@ -200,17 +193,17 @@ pub fn gen_collider(voxels: Vec<Voxel>) -> Option<Collider> {
         .quads
         .groups
         .as_ref()
-        .into_iter()
+        .iter()
         .zip(faces.into_iter())
         .enumerate()
     {
-        for quad in group.into_iter() {
+        for quad in group.iter() {
             indices.extend_from_slice(&face.quad_mesh_indices(positions.len() as u32));
-            positions.extend_from_slice(&face.quad_mesh_positions(&quad, 1.0));
+            positions.extend_from_slice(&face.quad_mesh_positions(quad, 1.0));
             normals.extend_from_slice(&face.quad_mesh_normals());
         }
     }
-    let collider_vertices: Vec<Vec3> = positions.iter().cloned().map(|p| Vec3::from(p)).collect();
+    let collider_vertices: Vec<Vec3> = positions.iter().cloned().map(Vec3::from).collect();
     let collider_indices: Vec<[u32; 3]> = indices.chunks(3).map(|i| [i[0], i[1], i[2]]).collect();
     let collider = Collider::trimesh(collider_vertices, collider_indices);
     Some(collider)
@@ -229,19 +222,16 @@ fn update_codiller(
 ) {
     let len = collider_update_tasks_manager.tasks.len().min(256);
     for ele in collider_update_tasks_manager.tasks.drain(..len) {
-        match futures_lite::future::block_on(futures_lite::future::poll_once(ele)) {
-            Some((entity, chunk_key, voxels)) => {
-                if let Ok((_, mut collider, _)) = query.get_mut(entity) {
-                    if let Some(c) = gen_collider(voxels) {
-                        *collider = c;
-                    } else {
-                        if let Some(entity) = collider_manager.entities.remove(&chunk_key) {
-                            commands.entity(entity).despawn();
-                        }
-                    }
+        if let Some((entity, chunk_key, voxels)) =
+            futures_lite::future::block_on(futures_lite::future::poll_once(ele))
+        {
+            if let Ok((_, mut collider, _)) = query.get_mut(entity) {
+                if let Some(c) = gen_collider(voxels) {
+                    *collider = c;
+                } else if let Some(entity) = collider_manager.entities.remove(&chunk_key) {
+                    commands.entity(entity).despawn();
                 }
             }
-            None => {}
         }
     }
 }

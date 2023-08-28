@@ -127,10 +127,8 @@ fn setup(
     play_state.set(PlayState::Main);
 
     // FIXME: 测试代码临时加载 staff到物品栏
-    let mut i = 0;
-    for (_id, staff) in staff_infos.data.iter() {
-        tool_bar_data.load_staff(i.clone(), staff.clone(), 999);
-        i += 1;
+    for (i, (_id, staff)) in staff_infos.data.iter().enumerate() {
+        tool_bar_data.load_staff(i, staff.clone(), 999);
     }
 }
 
@@ -165,14 +163,10 @@ fn client_do_disconnected(
     mut notification: ResMut<Notification>,
 ) {
     let mut message = "连接异常";
-    match client.disconnect_reason() {
-        Some(reason) => match reason {
-            bevy_renet::renet::DisconnectReason::DisconnectedByServer => {
-                message = "用户名已经存在";
-            }
-            _ => {}
-        },
-        None => {}
+    if let Some(bevy_renet::renet::DisconnectReason::DisconnectedByServer) =
+        client.disconnect_reason()
+    {
+        message = "用户名已经存在";
     }
     notification
         .toasts
@@ -268,7 +262,7 @@ fn mian_ui(
                             ui,
                             &mut tool_bar_data,
                             |image| user_textures.image_id(image),
-                            bod_id.clone(),
+                            bod_id,
                         );
                     });
                 });
@@ -345,7 +339,7 @@ fn frame_transparent() -> egui::containers::Frame {
         },
         fill: Color32::TRANSPARENT,
         stroke: egui::Stroke::new(2.0, Color32::TRANSPARENT),
-        ..Default::default()
+        // ..Default::default()
     }
 }
 

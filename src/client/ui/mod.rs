@@ -40,6 +40,6 @@ fn init_egui_resource(
     contexts.add_image(tool_box_border.clone());
 
     commands.insert_resource(UiPicResourceManager {
-        tool_box_border: tool_box_border,
+        tool_box_border,
     })
 }

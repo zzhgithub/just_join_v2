@@ -109,7 +109,7 @@ fn create_cube_wireframe(size: f32) -> Mesh {
     let mut mesh = Mesh::new(PrimitiveTopology::LineList);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
     mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices)));
-    return mesh.into();
+    mesh
 }
 
 pub fn touth_mesh_ray_cast(
@@ -139,13 +139,7 @@ pub fn touth_mesh_ray_cast(
         ray,
         &RaycastSettings {
             // 遇到第一个就退出
-            filter: &|entity| {
-                if let Ok(_) = query_mesh.get(entity) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
+            filter: &|entity| query_mesh.get(entity).is_ok(),
             early_exit_test: &|_| true,
             ..Default::default()
         },

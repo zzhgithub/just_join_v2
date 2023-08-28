@@ -1,6 +1,6 @@
 use bevy::prelude::{Resource, Vec3, Component};
 
-#[derive(Resource, Debug, Clone, Copy)]
+#[derive(Resource, Debug, Clone, Copy, Default)]
 pub struct ChooseCube {
     // 选中的点
     pub choose_on: Option<Vec3>,

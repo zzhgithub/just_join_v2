@@ -94,19 +94,19 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
     }
 
     //  侵蚀 洞穴
-    let noise_3d = noise3d_2(chunk_key, seed);
-    for i in 0..SampleShape::SIZE {
-        // let [x, y, z] = SampleShape::delinearize(i);
-        // let index = SampleShape::linearize([x, z, y]);
-        let flag: f32 = noise_3d[i as usize];
-        if flag < 0.05
-            && flag > -0.05
-            && voxels[i as usize].id != Water::ID
-            && voxels[i as usize].id != BasicStone::ID
-        {
-            voxels[i as usize] = Voxel::EMPTY;
-        }
-    }
+    // let noise_3d = noise3d_2(chunk_key, seed);
+    // for i in 0..SampleShape::SIZE {
+    //     // let [x, y, z] = SampleShape::delinearize(i);
+    //     // let index = SampleShape::linearize([x, z, y]);
+    //     let flag: f32 = noise_3d[i as usize];
+    //     if flag < 0.05
+    //         && flag > -0.05
+    //         && voxels[i as usize].id != Water::ID
+    //         && voxels[i as usize].id != BasicStone::ID
+    //     {
+    //         voxels[i as usize] = Voxel::EMPTY;
+    //     }
+    // }
 
     voxels
 }
@@ -118,7 +118,7 @@ pub fn check_water(voxels: Vec<Voxel>, point: [u32; 3]) -> bool {
         return false;
     }
 
-    return voxels[index as usize].id == Water::ID;
+    voxels[index as usize].id == Water::ID
 }
 
 #[cfg(target_arch = "aarch64")]
@@ -134,7 +134,7 @@ pub fn noise2d(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
         .set_x_bounds(low_x, low_x + 16.)
         .set_y_bounds(low_y, low_y + 16.)
         .build();
-    let noise: Vec<f32> = build.iter().map(|x| x.clone() as f32).collect();
+    let noise: Vec<f32> = build.iter().map(|x| *x as f32).collect();
     noise
 }
 
@@ -167,7 +167,7 @@ pub fn noise2d_ridge(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
         .set_x_bounds(low_x, low_x + 16.)
         .set_y_bounds(low_y, low_y + 16.)
         .build();
-    let noise: Vec<f32> = build.iter().map(|x| x.clone() as f32).collect();
+    let noise: Vec<f32> = build.iter().map(|x| *x as f32).collect();
     noise
 }
 
@@ -202,7 +202,7 @@ pub fn noise3d_2(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
         .set_x_bounds(low_x, low_x + 16.)
         .set_y_bounds(low_y, low_y + 16.)
         .build();
-    let noise: Vec<f32> = build.iter().map(|x| x.clone() as f32).collect();
+    let noise: Vec<f32> = build.iter().map(|x| *x as f32).collect();
     noise
 }
 
@@ -232,18 +232,18 @@ pub fn fn_height(x: f32) -> f32 {
         // print!("a{}", x);
         return 60.;
     }
-    if x >= -0.6 && x < -0.5 {
+    if (-0.6..-0.5).contains(&x) {
         // print!("b{}", x);
         return 60. + 150. * (x - 0.6);
     }
-    if x >= -0.5 && x < 0.0 {
+    if (-0.5..0.0).contains(&x) {
         // print!("c{}", x);
         return 75.;
     }
-    if x >= 0.0 && x < 0.1 {
+    if (0.0..0.1).contains(&x) {
         return 75. + 100. * x;
     }
-    if x >= 0.1 && x < 0.2 {
+    if (0.1..0.2).contains(&x) {
         return 85. + 150. * (x - 0.1);
     }
     if x >= 0.2 {

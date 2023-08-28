@@ -135,10 +135,8 @@ fn menu_main(
             game_state.set(GameState::Splash);
         }
 
-        if CLIENT_DEBUG {
-            if ui.button("测试").clicked() {
-                menu_state.set(MenuState::Test);
-            }
+        if CLIENT_DEBUG && ui.button("测试").clicked() {
+            menu_state.set(MenuState::Test);
         }
     });
 }
@@ -183,7 +181,7 @@ fn test(
                     ui,
                     &mut tool_bar_data,
                     |image| user_textures.image_id(image),
-                    bod_id.clone(),
+                    bod_id,
                 );
                 // test end
                 if ui.button("Back").clicked() {
