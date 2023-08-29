@@ -28,6 +28,7 @@ pub struct ChunkResultTasks {
     pub tasks: Vec<Task<(u64, Vec<u8>)>>,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn deal_chunk_query_system(
     mut server: ResMut<RenetServer>,
     mut chunk_map: ResMut<ChunkMap>,

@@ -37,11 +37,7 @@ impl ToolBar {
     pub fn active(&mut self, index: usize) {
         self.active_index = index;
         for i in 0..=9 {
-            if i == index {
-                self.tools[i].active = true;
-            } else {
-                self.tools[i].active = false;
-            }
+            self.tools[i].active = i == index;
         }
     }
     pub fn active_next(&mut self) {
