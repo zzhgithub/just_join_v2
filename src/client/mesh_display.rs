@@ -263,6 +263,12 @@ pub fn update_mesh(
         Some(render_mesh) => {
             let mesh_handle = mesh_manager.mesh_storge.get(&chunk_key_y0).unwrap();
             if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                // 更新AABB
+                if let Some(entity) = mesh_manager.entities.get(&chunk_key_y0) {
+                    if let Some(aabb) = render_mesh.compute_aabb() {
+                        commands.entity(*entity).insert(aabb);
+                    }
+                }
                 *mesh = render_mesh;
             }
             // 没有生成mesh就不管反正后面要生成
@@ -278,6 +284,11 @@ pub fn update_mesh(
         Some(water_mesh) => {
             let mesh_handle = mesh_manager.water_mesh_storge.get(&chunk_key_y0).unwrap();
             if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                if let Some(entity) = mesh_manager.water_entities.get(&chunk_key_y0) {
+                    if let Some(aabb) = water_mesh.compute_aabb() {
+                        commands.entity(*entity).insert(aabb);
+                    }
+                }
                 *mesh = water_mesh;
             }
         }
