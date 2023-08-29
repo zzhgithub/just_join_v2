@@ -28,6 +28,7 @@ pub mod async_chunk;
 pub mod chunk;
 pub mod chunk_result;
 pub mod networked_entities;
+pub mod object_filing;
 pub mod player;
 pub mod server_channel;
 pub mod server_messages;

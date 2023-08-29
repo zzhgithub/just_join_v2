@@ -1,4 +1,4 @@
-use bevy::prelude::Component;
+use bevy::prelude::{Component, Vec3};
 use serde::{Deserialize, Serialize};
 
 use crate::voxel_world::{chunk::ChunkKey, voxel::Voxel};
@@ -12,5 +12,6 @@ pub enum ChunkQuery {
         chunk_key: ChunkKey,
         pos: [u32; 3],
         voxel_type: Voxel,
+        center: Vec3,
     },
 }

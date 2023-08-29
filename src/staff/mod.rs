@@ -35,6 +35,7 @@ pub enum StaffType {
 #[derive(Debug, Resource)]
 pub struct StaffInfoStroge {
     pub data: HashMap<usize, Staff>,
+    pub voxel_staff: HashMap<u8, Staff>,
 }
 
 impl StaffInfoStroge {
@@ -42,7 +43,14 @@ impl StaffInfoStroge {
         if self.data.contains_key(&staff.id) {
             warn!("{} is already registered", staff.id);
         }
+        if let StaffType::Voxel(voxel) = staff.staff_type {
+            self.voxel_staff.insert(voxel.id, staff.clone());
+        }
         self.data.insert(staff.id, staff);
+    }
+    // 通过体素获取物品
+    pub fn voxel_to_staff(&self, voxel: Voxel) -> Option<&Staff> {
+        self.voxel_staff.get(&voxel.id)
     }
 }
 
@@ -57,6 +65,7 @@ impl Plugin for StaffInfoPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(StaffInfoStroge {
             data: HashMap::default(),
+            voxel_staff: HashMap::default(),
         });
         app.add_systems(Startup, setup.in_set(StaffSet::Init));
     }

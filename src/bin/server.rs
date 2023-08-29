@@ -25,10 +25,11 @@ use just_join::{
     connection_config,
     server::{
         async_chunk::ChunkDataPlugin, chunk::ServerChunkPlugin, deal_message_system,
-        player::ServerLobby, server_connect_system, sync_body_and_head,
-        terrain_physics::TerrainPhysicsPlugin,
+        object_filing::ObjectFilingPlugin, player::ServerLobby, server_connect_system,
+        sync_body_and_head, terrain_physics::TerrainPhysicsPlugin,
     },
     sky::ServerSkyPlugins,
+    staff::StaffInfoPlugin,
     PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
@@ -81,21 +82,27 @@ fn setup(mut commands: Commands) {
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins);
-    app.add_plugins(RenetServerPlugin);
-    app.add_plugins(NetcodeServerPlugin);
-    app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-    app.add_plugins(RapierDebugRenderPlugin::default());
-    app.add_plugins(EguiPlugin);
-    app.add_plugins(LookTransformPlugin);
-    app.add_plugins(FpsCameraPlugin::default());
+    app.add_plugins((
+        DefaultPlugins,
+        RenetServerPlugin,
+        NetcodeServerPlugin,
+        RapierPhysicsPlugin::<NoUserData>::default(),
+        RapierDebugRenderPlugin::default(),
+        EguiPlugin,
+        LookTransformPlugin,
+        FpsCameraPlugin::default(),
+    ));
 
     // 这里添加必要的系统
-    app.add_plugins(ServerClipSpheresPlugin);
-    app.add_plugins(ServerChunkPlugin);
-    app.add_plugins(TerrainPhysicsPlugin);
-    app.add_plugins(ChunkDataPlugin);
-    app.add_plugins(ServerSkyPlugins);
+    app.add_plugins((
+        StaffInfoPlugin,
+        ServerClipSpheresPlugin,
+        ServerChunkPlugin,
+        TerrainPhysicsPlugin,
+        ChunkDataPlugin,
+        ServerSkyPlugins,
+        ObjectFilingPlugin,
+    ));
 
     let (server, transport) = new_renet_server();
     app.insert_resource(server);

@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{warn, Plugin, Res, ResMut, Resource, Update},
+    prelude::{warn, EventWriter, Plugin, Res, ResMut, Resource, Update},
     tasks::{AsyncComputeTaskPool, Task},
 };
 use bevy_renet::renet::RenetServer;
@@ -7,18 +7,20 @@ use ndshape::{ConstShape, ConstShape3u32};
 
 use crate::{
     client::{chunk_query::ChunkQuery, client_channel::ClientChannel},
+    staff::StaffInfoStroge,
     tools::all_empty,
     voxel_world::{
         chunk::ChunkKey,
         chunk_map::ChunkMap,
         map_database::{DbSaveTasks, MapDataBase},
-        voxel::{BasicStone, VoxelMaterial},
+        voxel::{BasicStone, Voxel, VoxelMaterial},
     },
     CHUNK_SIZE, CHUNK_SIZE_U32,
 };
 
 use super::{
     chunk_result::ChunkResult,
+    object_filing::ObjectFillEvent,
     server_channel::ServerChannel,
     terrain_physics::{ColliderManager, ColliderTasksManager, ColliderUpdateTasksManager},
 };
@@ -38,6 +40,8 @@ pub fn deal_chunk_query_system(
     collider_manager: Res<ColliderManager>,
     mut collider_update_tasks_manager: ResMut<ColliderUpdateTasksManager>,
     mut collider_tasks: ResMut<ColliderTasksManager>,
+    mut fill_event: EventWriter<ObjectFillEvent>,
+    staff_info_stroge: Res<StaffInfoStroge>,
 ) {
     let pool = AsyncComputeTaskPool::get();
     for client_id in server.clients_id() {
@@ -74,12 +78,15 @@ pub fn deal_chunk_query_system(
                     chunk_key,
                     pos,
                     voxel_type,
+                    center,
                 } => {
                     if let Some(voxel) = chunk_map.map_data.get_mut(&chunk_key) {
                         // 1. 更新 chunk_map 数据
                         type SampleShape =
                             ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
                         let index = SampleShape::linearize(pos) as usize;
+                        // 老的体素位置
+                        let old_voxel = voxel[index].clone();
                         if voxel[index].id == BasicStone::ID {
                             warn!("基岩无法破坏");
                             continue;
@@ -98,6 +105,19 @@ pub fn deal_chunk_query_system(
                         })
                         .unwrap();
                         server.broadcast_message(ServerChannel::ChunkResult, message);
+                        // FIXME: 这里要考虑把代码格式简化 一下
+                        // 发送物体被打下来的消息 old_voxel  chunk_key, pos, 还原物体的位置!
+                        if old_voxel.id != Voxel::EMPTY.id && voxel_type.id == Voxel::EMPTY.id {
+                            // 物体时被打下来了
+                            if let Some(staff) = staff_info_stroge.voxel_to_staff(old_voxel) {
+                                fill_event.send(ObjectFillEvent {
+                                    chunk_key,
+                                    xyz: pos,
+                                    center,
+                                    staff: staff.clone(),
+                                });
+                            }
+                        }
                         // 4. 判断 并更新codiller 存在的情况下才更新
                         send_codiller_task(
                             chunk_key,

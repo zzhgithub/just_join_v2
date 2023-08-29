@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         in_state, Event, EventReader, EventWriter, IVec3, Input, IntoSystemConfigs, MouseButton,
-        Plugin, Res, ResMut, Resource, Update,
+        Plugin, Res, ResMut, Resource, Update, Vec3,
     },
     time::{Time, Timer, TimerMode},
 };
@@ -26,12 +26,14 @@ pub struct AttackTimer {
     pub timer: Option<Timer>,
     pub chunk_key: ChunkKey,
     pub xyz: [u32; 3],
+    pub center: Vec3,
 }
 
 #[derive(Debug, Event)]
 pub struct BrokeCubeEvent {
     pub chunk_key: ChunkKey,
     pub xyz: [u32; 3],
+    pub center: Vec3,
 }
 
 // 处理时间相关
@@ -47,6 +49,7 @@ pub fn deal_attack_time(
             broke_cube_event.send(BrokeCubeEvent {
                 chunk_key: attack_timer.chunk_key,
                 xyz: attack_timer.xyz,
+                center: attack_timer.center,
             });
             attack_timer.timer = None;
         }
@@ -62,6 +65,7 @@ pub fn deal_broken_cube_event(
             chunk_key: event.chunk_key,
             pos: event.xyz,
             voxel_type: Voxel::EMPTY,
+            center: event.center,
         })
         .unwrap();
         client.send_message(ClientChannel::ChunkQuery, message);
@@ -97,18 +101,20 @@ pub fn mouse_button_system(
                 } else {
                     // FIXME: 后续根据体素块 和 当前物体来判断 新的 timer
                     attack_timer.timer = Some(Timer::new(
-                        bevy::utils::Duration::from_millis(1000 * 5),
+                        bevy::utils::Duration::from_millis(1000 * 2),
                         TimerMode::Once,
                     ));
                     attack_timer.chunk_key = chunk_key;
                     attack_timer.xyz = xyz;
+                    attack_timer.center = pos;
                 }
             } else {
                 attack_timer.chunk_key = chunk_key;
                 attack_timer.xyz = xyz;
+                attack_timer.center = pos;
                 // FIXME: 后续根据体素块 和 当前物体来判断
                 attack_timer.timer = Some(Timer::new(
-                    bevy::utils::Duration::from_millis(1000 * 5),
+                    bevy::utils::Duration::from_millis(1000 * 2),
                     TimerMode::Once,
                 ));
             }
@@ -131,6 +137,7 @@ pub fn mouse_button_system(
                     chunk_key,
                     pos: xyz,
                     voxel_type,
+                    center: pos,
                 })
                 .unwrap();
                 client.send_message(ClientChannel::ChunkQuery, message);
@@ -151,6 +158,7 @@ impl Plugin for MouseControlPlugin {
             timer: None,
             chunk_key: ChunkKey(IVec3::ONE),
             xyz: [0, 0, 0],
+            center: Vec3::ZERO,
         });
         app.add_systems(
             Update,
