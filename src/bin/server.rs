@@ -1,17 +1,9 @@
 use std::{net::UdpSocket, time::SystemTime};
 
-use bevy::{
-    prelude::{
-        App, Camera3dBundle, Commands, PointLightBundle, Res, ResMut, Startup, Transform, Update,
-        Vec3,
-    },
-    DefaultPlugins,
+use bevy::prelude::{
+    App, Camera3dBundle, Commands, PointLightBundle, Res, ResMut, Startup, Transform, Update, Vec3,
 };
-use bevy_egui::{EguiContexts, EguiPlugin};
-use bevy_rapier3d::{
-    prelude::{NoUserData, RapierPhysicsPlugin},
-    render::RapierDebugRenderPlugin,
-};
+use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
 use bevy_renet::{
     renet::{
         transport::{NetcodeServerTransport, ServerAuthentication, ServerConfig},
@@ -33,9 +25,20 @@ use just_join::{
 };
 use renet_visualizer::RenetServerVisualizer;
 use smooth_bevy_cameras::{
-    controllers::fps::{FpsCameraBundle, FpsCameraController, FpsCameraPlugin},
+    controllers::fps::{FpsCameraBundle, FpsCameraController},
     LookTransformPlugin,
 };
+
+#[cfg(feature = "server_ui")]
+use {
+    bevy::DefaultPlugins,
+    bevy_egui::{EguiContexts, EguiPlugin},
+    bevy_rapier3d::render::RapierDebugRenderPlugin,
+    smooth_bevy_cameras::controllers::fps::FpsCameraPlugin,
+};
+
+#[cfg(feature = "headless")]
+use bevy::MinimalPlugins;
 
 fn new_renet_server() -> (RenetServer, NetcodeServerTransport) {
     let server = RenetServer::new(connection_config());
@@ -81,14 +84,26 @@ fn setup(mut commands: Commands) {
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins);
+
+    #[cfg(feature = "server_ui")]
+    {
+        app.add_plugins(DefaultPlugins);
+        app.add_plugins(RapierDebugRenderPlugin::default());
+        app.add_plugins(EguiPlugin);
+        app.add_plugins(FpsCameraPlugin::default());
+    }
+
+    #[cfg(feature = "headless")]
+    {
+        app.add_plugins(MinimalPlugins);
+    }
+
     app.add_plugins(RenetServerPlugin);
     app.add_plugins(NetcodeServerPlugin);
+
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-    app.add_plugins(RapierDebugRenderPlugin::default());
-    app.add_plugins(EguiPlugin);
+
     app.add_plugins(LookTransformPlugin);
-    app.add_plugins(FpsCameraPlugin::default());
 
     // 这里添加必要的系统
     app.add_plugins(ServerClipSpheresPlugin);
@@ -118,6 +133,7 @@ fn main() {
     app.run();
 }
 
+#[cfg(feature = "server_ui")]
 fn update_visulizer_system(
     mut egui_contexts: EguiContexts,
     mut visualizer: ResMut<RenetServerVisualizer<200>>,
@@ -125,4 +141,12 @@ fn update_visulizer_system(
 ) {
     visualizer.update(&server);
     visualizer.show_window(egui_contexts.ctx_mut());
+}
+
+#[cfg(feature = "headless")]
+fn update_visulizer_system(
+    mut visualizer: ResMut<RenetServerVisualizer<200>>,
+    server: Res<RenetServer>,
+) {
+    visualizer.update(&server);
 }
