@@ -1,5 +1,5 @@
 use bevy_renet::renet::{transport::NETCODE_KEY_BYTES, ConnectionConfig};
-use client::client_channel::ClientChannel;
+use client::message_def::ClientChannel;
 use server::message_def::ServerChannel;
 
 pub mod client;

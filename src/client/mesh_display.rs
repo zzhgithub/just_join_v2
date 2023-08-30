@@ -19,6 +19,7 @@ use ndshape::{ConstShape, ConstShape3u32};
 
 use crate::{
     common::ClipSpheres,
+    server::message_def::{chunk_result::ChunkResult, ServerChannel},
     tools::get_empty_chunk,
     voxel_world::{
         chunk::{
@@ -28,12 +29,11 @@ use crate::{
         chunk_map::ChunkMap,
         voxel::Voxel,
     },
-    CHUNK_SIZE, CHUNK_SIZE_U32, MATERIAL_RON, VIEW_RADIUS, server::message_def::{ServerChannel, chunk_result::ChunkResult},
+    CHUNK_SIZE, CHUNK_SIZE_U32, MATERIAL_RON, VIEW_RADIUS,
 };
 
 use super::{
-    chunk_query::ChunkQuery,
-    client_channel::ClientChannel,
+    message_def::{chunk_query::ChunkQuery, ClientChannel},
     ray_cast::MyRaycastSet,
     voxels::{
         mesh::{gen_mesh, gen_mesh_water, pick_water},

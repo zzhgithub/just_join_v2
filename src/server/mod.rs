@@ -7,9 +7,10 @@ use bevy_renet::renet::{transport::NetcodeServerTransport, RenetServer, ServerEv
 use renet_visualizer::RenetServerVisualizer;
 
 use crate::{
-    client::{client_channel::ClientChannel, player_input::PlayerInput},
+    client::message_def::{player_input::PlayerInput, ClientChannel},
     server::{
-        player::server_create_player, message_def::{server_messages::ServerMessages, ServerChannel},
+        message_def::{server_messages::ServerMessages, ServerChannel},
+        player::server_create_player,
     },
     users::Username,
     voxel_world::{
@@ -19,15 +20,16 @@ use crate::{
 };
 
 use self::{
-    player::{PitchValue, Player, ServerLobby, YawValue}, message_def::networked_entities::NetworkedEntities,
+    message_def::networked_entities::NetworkedEntities,
+    player::{PitchValue, Player, ServerLobby, YawValue},
 };
 
 pub mod async_chunk;
 pub mod chunk;
+pub mod message_def;
 pub mod object_filing;
 pub mod player;
 pub mod terrain_physics;
-pub mod message_def;
 
 /**
  * 处理client连接获取断开时的操作

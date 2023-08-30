@@ -1,8 +1,8 @@
 // 物体掉落相关
 use bevy::{
     prelude::{
-        Commands, Component, Entity, Event, EventReader, Plugin, Query, Res, ResMut, Resource,
-        Transform, Update, Vec3,
+        Commands, Component, Entity, Event, EventReader, IntoSystemConfigs, Plugin, Quat, Query,
+        Res, ResMut, Resource, Transform, Update, Vec3,
     },
     transform::TransformBundle,
     utils::HashMap,
@@ -17,6 +17,8 @@ use crate::{
     voxel_world::chunk::{find_chunk_keys_array_by_shpere, generate_offset_array, ChunkKey},
     PY_DISTANCE,
 };
+
+use super::message_def::{filled_object_message::FilledObjectMessage, ServerChannel};
 
 #[derive(Debug, Event)]
 pub struct ObjectFillEvent {
@@ -47,7 +49,15 @@ impl Plugin for ObjectFilingPlugin {
         app.insert_resource(ObjectFilingManager {
             entities: Vec::new(),
         });
-        app.add_systems(Update, (deal_object_filing, update_filled_object_chunk_key));
+        app.add_systems(
+            Update,
+            (
+                deal_object_filing,
+                update_filled_object_chunk_key,
+                sync_filled_object_to_client,
+            )
+                .chain(),
+        );
     }
 }
 
@@ -108,7 +118,7 @@ fn sync_filled_object_to_client(
             .push((entity.clone(), filled_object.clone(), trf.clone()));
     }
     for (client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
-        let mut staff_list: Vec<(Entity, usize, Transform)> = Vec::new();
+        let mut staff_list: Vec<(Entity, usize, [f32; 3], Quat)> = Vec::new();
         // 对每个球体展开一阶
         for chunk_key in find_chunk_keys_array_by_shpere(
             clip_spheres.new_sphere,
@@ -118,9 +128,23 @@ fn sync_filled_object_to_client(
         {
             if let Some(ele) = hashed_object.get(&chunk_key) {
                 for (entity, filled_object, trf) in ele.iter() {
-                    staff_list.push((entity.clone(), filled_object.staff.id.clone(), trf.clone()));
+                    staff_list.push((
+                        entity.clone(),
+                        filled_object.staff.id.clone(),
+                        [trf.translation.x, trf.translation.y, trf.translation.z],
+                        trf.rotation,
+                    ));
                 }
             }
         }
+        if !staff_list.is_empty() {
+            // FIXME: 处理掉落物过多的问题？
+            let message =
+                bincode::serialize(&FilledObjectMessage::SyncFilledObject(staff_list)).unwrap();
+            server.send_message(*client_id, ServerChannel::FilledObjectMessage, message);
+        }
     }
 }
+
+// 掉落物 进存储？
+// 掉落物 从存储中获取？

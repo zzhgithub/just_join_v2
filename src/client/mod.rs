@@ -20,12 +20,10 @@ use self::player::{
     ClientLobby,
 };
 
-pub mod chunk_query;
-pub mod client_channel;
+pub mod message_def;
 pub mod console_commands;
 pub mod mesh_display;
 pub mod player;
-pub mod player_input;
 pub mod ray_cast;
 pub mod state_manager;
 pub mod ui;

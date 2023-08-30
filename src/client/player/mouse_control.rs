@@ -9,8 +9,10 @@ use bevy_renet::renet::RenetClient;
 
 use crate::{
     client::{
-        chunk_query::ChunkQuery, client_channel::ClientChannel, ray_cast::choose_cube::ChooseCube,
-        state_manager::GameState, ui::tool_bar::ToolBar,
+        message_def::{chunk_query::ChunkQuery, ClientChannel},
+        ray_cast::choose_cube::ChooseCube,
+        state_manager::GameState,
+        ui::tool_bar::ToolBar,
     },
     tools::vec3_to_chunk_key_any_xyz,
     voxel_world::{chunk::ChunkKey, voxel::Voxel},
