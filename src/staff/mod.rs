@@ -52,6 +52,10 @@ impl StaffInfoStroge {
     pub fn voxel_to_staff(&self, voxel: Voxel) -> Option<&Staff> {
         self.voxel_staff.get(&voxel.id)
     }
+    // 通过 物品点 获取物品id
+    pub fn get(&self, staff_id: usize) -> Option<Staff> {
+        self.data.get(&staff_id).map(|a| a.clone())
+    }
 }
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]

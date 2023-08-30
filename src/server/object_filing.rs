@@ -1,13 +1,15 @@
 // 物体掉落相关
 use bevy::{
     prelude::{
-        Commands, Component, Entity, Event, EventReader, IntoSystemConfigs, Plugin, Quat, Query,
-        Res, ResMut, Resource, Transform, Update, Vec3,
+        Commands, Component, Entity, Event, EventReader, IntoSystemConfigs, Plugin, Query, Res,
+        ResMut, Resource, Transform, Update, Vec3,
     },
     transform::TransformBundle,
     utils::HashMap,
 };
-use bevy_rapier3d::prelude::{Collider, ColliderMassProperties, LockedAxes, RigidBody, Sleeping};
+use bevy_rapier3d::prelude::{
+    Ccd, Collider, ColliderMassProperties, LockedAxes, RigidBody, Sleeping,
+};
 use bevy_renet::renet::RenetServer;
 
 use crate::{
@@ -77,11 +79,12 @@ fn deal_object_filing(
                         chunk_key: event.chunk_key,
                         staff: event.staff.clone(),
                     })
-                    .insert(Collider::cuboid(0.1, 0.1, 0.1))
+                    .insert(Collider::cuboid(0.05, 0.05, 0.05))
                     .insert(RigidBody::Dynamic)
                     .insert(Sleeping::default())
                     .insert(ColliderMassProperties::Mass(300.0))
                     .insert(LockedAxes::ROTATION_LOCKED)
+                    .insert(Ccd::enabled())
                     .insert(TransformBundle {
                         local: Transform::from_xyz(event.center.x, event.center.y, event.center.z),
                         ..Default::default()
@@ -118,7 +121,7 @@ fn sync_filled_object_to_client(
             .push((entity.clone(), filled_object.clone(), trf.clone()));
     }
     for (client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
-        let mut staff_list: Vec<(Entity, usize, [f32; 3], Quat)> = Vec::new();
+        let mut staff_list: Vec<(Entity, usize, [f32; 3])> = Vec::new();
         // 对每个球体展开一阶
         for chunk_key in find_chunk_keys_array_by_shpere(
             clip_spheres.new_sphere,
@@ -132,19 +135,22 @@ fn sync_filled_object_to_client(
                         entity.clone(),
                         filled_object.staff.id.clone(),
                         [trf.translation.x, trf.translation.y, trf.translation.z],
-                        trf.rotation,
                     ));
                 }
             }
         }
+        let message;
         if !staff_list.is_empty() {
             // FIXME: 处理掉落物过多的问题？
-            let message =
+            message =
                 bincode::serialize(&FilledObjectMessage::SyncFilledObject(staff_list)).unwrap();
-            server.send_message(*client_id, ServerChannel::FilledObjectMessage, message);
+        } else {
+            message =
+                bincode::serialize(&FilledObjectMessage::SyncFilledObject(Vec::new())).unwrap();
         }
+        server.send_message(*client_id, ServerChannel::FilledObjectMessage, message);
     }
 }
 
-// 掉落物 进存储？
+//TODO 掉落物 进存储？
 // 掉落物 从存储中获取？
