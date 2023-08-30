@@ -1,14 +1,22 @@
 // 物体掉落相关
 use bevy::{
     prelude::{
-        Commands, Component, Entity, Event, EventReader, Plugin, ResMut, Resource, Transform,
-        Update, Vec3,
+        Commands, Component, Entity, Event, EventReader, Plugin, Query, Res, ResMut, Resource,
+        Transform, Update, Vec3,
     },
     transform::TransformBundle,
+    utils::HashMap,
 };
 use bevy_rapier3d::prelude::{Collider, ColliderMassProperties, LockedAxes, RigidBody, Sleeping};
+use bevy_renet::renet::RenetServer;
 
-use crate::{staff::Staff, voxel_world::chunk::ChunkKey};
+use crate::{
+    common::ServerClipSpheres,
+    staff::Staff,
+    tools::vec3_to_chunk_key_any_xyz,
+    voxel_world::chunk::{find_chunk_keys_array_by_shpere, generate_offset_array, ChunkKey},
+    PY_DISTANCE,
+};
 
 #[derive(Debug, Event)]
 pub struct ObjectFillEvent {
@@ -19,8 +27,11 @@ pub struct ObjectFillEvent {
 }
 
 // 掉落物
-#[derive(Debug, Component)]
-pub struct FilledObject;
+#[derive(Debug, Component, Clone)]
+pub struct FilledObject {
+    pub chunk_key: ChunkKey,
+    pub staff: Staff,
+}
 
 // 掉落物池
 #[derive(Debug, Resource, Clone)]
@@ -36,7 +47,7 @@ impl Plugin for ObjectFilingPlugin {
         app.insert_resource(ObjectFilingManager {
             entities: Vec::new(),
         });
-        app.add_systems(Update, deal_object_filing);
+        app.add_systems(Update, (deal_object_filing, update_filled_object_chunk_key));
     }
 }
 
@@ -52,7 +63,10 @@ fn deal_object_filing(
             crate::staff::StaffType::Voxel(_) => {
                 // 渲染一个正方形的 并且添加物理引擎
                 let object = commands
-                    .spawn(FilledObject)
+                    .spawn(FilledObject {
+                        chunk_key: event.chunk_key,
+                        staff: event.staff.clone(),
+                    })
                     .insert(Collider::cuboid(0.1, 0.1, 0.1))
                     .insert(RigidBody::Dynamic)
                     .insert(Sleeping::default())
@@ -66,6 +80,47 @@ fn deal_object_filing(
                 object_filing_manager.entities.push(object);
             }
             _ => {}
+        }
+    }
+}
+
+// 同步数据每个时刻的 位移信息
+fn update_filled_object_chunk_key(mut query: Query<(&mut FilledObject, &Transform)>) {
+    for (mut obj, trf) in query.iter_mut() {
+        let (chunk_key, _) = vec3_to_chunk_key_any_xyz(trf.translation);
+        obj.chunk_key = chunk_key;
+    }
+}
+
+// 物体的位置和信息同步到客户端
+fn sync_filled_object_to_client(
+    server_clip_spheres: Res<ServerClipSpheres>,
+    query: Query<(Entity, &FilledObject, &Transform)>,
+    mut server: ResMut<RenetServer>,
+) {
+    // 掉落物体和区块的相关配置
+    let mut hashed_object: HashMap<ChunkKey, Vec<(Entity, FilledObject, Transform)>> =
+        HashMap::new();
+    for (entity, filled_object, trf) in query.iter() {
+        hashed_object
+            .entry(filled_object.chunk_key)
+            .or_insert(Vec::new())
+            .push((entity.clone(), filled_object.clone(), trf.clone()));
+    }
+    for (client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
+        let mut staff_list: Vec<(Entity, usize, Transform)> = Vec::new();
+        // 对每个球体展开一阶
+        for chunk_key in find_chunk_keys_array_by_shpere(
+            clip_spheres.new_sphere,
+            generate_offset_array(PY_DISTANCE),
+        )
+        .drain(..)
+        {
+            if let Some(ele) = hashed_object.get(&chunk_key) {
+                for (entity, filled_object, trf) in ele.iter() {
+                    staff_list.push((entity.clone(), filled_object.staff.id.clone(), trf.clone()));
+                }
+            }
         }
     }
 }

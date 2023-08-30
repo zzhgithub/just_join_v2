@@ -9,8 +9,7 @@ use renet_visualizer::RenetServerVisualizer;
 use crate::{
     client::{client_channel::ClientChannel, player_input::PlayerInput},
     server::{
-        player::server_create_player, server_channel::ServerChannel,
-        server_messages::ServerMessages,
+        player::server_create_player, message_def::{server_messages::ServerMessages, ServerChannel},
     },
     users::Username,
     voxel_world::{
@@ -20,20 +19,15 @@ use crate::{
 };
 
 use self::{
-    networked_entities::NetworkedEntities,
-    player::{PitchValue, Player, ServerLobby, YawValue},
+    player::{PitchValue, Player, ServerLobby, YawValue}, message_def::networked_entities::NetworkedEntities,
 };
 
 pub mod async_chunk;
 pub mod chunk;
-pub mod chunk_result;
-pub mod networked_entities;
 pub mod object_filing;
 pub mod player;
-pub mod server_channel;
-pub mod server_messages;
 pub mod terrain_physics;
-pub mod time_sync;
+pub mod message_def;
 
 /**
  * 处理client连接获取断开时的操作

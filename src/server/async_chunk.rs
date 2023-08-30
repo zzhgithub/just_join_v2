@@ -15,14 +15,12 @@ use crate::{
         map_database::{DbSaveTasks, MapDataBase},
         voxel::{BasicStone, Voxel, VoxelMaterial},
     },
-    CHUNK_SIZE, CHUNK_SIZE_U32,
+    CHUNK_SIZE, CHUNK_SIZE_U32, server::message_def::ServerChannel,
 };
 
 use super::{
-    chunk_result::ChunkResult,
     object_filing::ObjectFillEvent,
-    server_channel::ServerChannel,
-    terrain_physics::{ColliderManager, ColliderTasksManager, ColliderUpdateTasksManager},
+    terrain_physics::{ColliderManager, ColliderTasksManager, ColliderUpdateTasksManager}, message_def::chunk_result::ChunkResult,
 };
 
 #[derive(Debug, Resource)]

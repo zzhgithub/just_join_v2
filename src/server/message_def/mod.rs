@@ -1,3 +1,9 @@
+// 服务端消息定义
+pub mod chunk_result;
+pub mod networked_entities;
+pub mod server_messages;
+pub mod time_sync;
+
 use std::time::Duration;
 
 use bevy_renet::renet::{ChannelConfig, SendType};

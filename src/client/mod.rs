@@ -7,8 +7,10 @@ use bevy_renet::renet::{transport::NetcodeClientTransport, RenetClient};
 use crate::{
     client::player::PlayerInfo,
     server::{
-        networked_entities::NetworkedEntities, player::Player, server_channel::ServerChannel,
-        server_messages::ServerMessages,
+        message_def::{
+            networked_entities::NetworkedEntities, server_messages::ServerMessages, ServerChannel,
+        },
+        player::Player,
     },
 };
 
@@ -106,7 +108,7 @@ pub fn client_sync_players_state(
             translations,
             yaws,
             pitch,
-        } = server_message;
+        }: NetworkedEntities = server_message;
         // 对网络中的物体进行位移
         for i in 0..client_ids.len() {
             let client_id = client_ids[i];
