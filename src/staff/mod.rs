@@ -107,3 +107,48 @@ fn setup(mut storge: ResMut<StaffInfoStroge>, asset_server: Res<AssetServer>) {
         staff_type: StaffType::Voxel(Sown::into_voxel()),
     });
 }
+
+pub struct ServerStaffInfoPlugin;
+
+impl Plugin for ServerStaffInfoPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(StaffInfoStroge {
+            data: HashMap::default(),
+            voxel_staff: HashMap::default(),
+        });
+        app.add_systems(Startup, server_setup.in_set(StaffSet::Init));
+    }
+}
+
+fn server_setup(mut storge: ResMut<StaffInfoStroge>) {
+    storge.register(Staff {
+        id: 0,
+        name: String::from("Stone"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Stone::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 1,
+        name: String::from("Grass"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Grass::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 2,
+        name: String::from("Soli"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Soli::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 3,
+        name: String::from("Sand"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Sand::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 4,
+        name: String::from("Sown"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Sown::into_voxel()),
+    });
+}

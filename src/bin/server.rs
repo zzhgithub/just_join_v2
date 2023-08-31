@@ -21,7 +21,7 @@ use just_join::{
         sync_body_and_head, terrain_physics::TerrainPhysicsPlugin,
     },
     sky::ServerSkyPlugins,
-    staff::StaffInfoPlugin,
+    staff::ServerStaffInfoPlugin,
     PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
@@ -106,7 +106,7 @@ fn main() {
 
     // 这里添加必要的系统
     app.add_plugins((
-        StaffInfoPlugin,
+        ServerStaffInfoPlugin,
         ServerClipSpheresPlugin,
         ServerChunkPlugin,
         TerrainPhysicsPlugin,

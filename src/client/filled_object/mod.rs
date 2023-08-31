@@ -4,7 +4,7 @@ use ahash::HashSet;
 use bevy::{
     prelude::{
         in_state, Assets, Color, Commands, Component, Entity, Gizmos, IntoSystemConfigs,
-        MaterialMeshBundle, Mesh, Plugin, Quat, Query, Res, ResMut, Resource, Transform, Update,
+        MaterialMeshBundle, Mesh, Plugin, Query, Res, ResMut, Resource, Transform, Update,
         Vec3,
     },
     time::Time,
