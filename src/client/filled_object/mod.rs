@@ -15,6 +15,7 @@ use bevy_renet::renet::RenetClient;
 use crate::{
     server::message_def::{filled_object_message::FilledObjectMessage, ServerChannel},
     staff::StaffInfoStroge,
+    CLIENT_DEBUG,
 };
 
 use super::{
@@ -41,32 +42,25 @@ impl Plugin for ClientFilledObjectnPlugin {
         app.insert_resource(FilledObjectPool::default());
         app.add_systems(
             Update,
-            (
-                // rotate_filled_objects,
-                sync_filled_objects
-            )
+            (rotate_filled_objects, sync_filled_objects)
                 .run_if(in_state(GameState::Game))
                 .run_if(bevy_renet::transport::client_connected()),
         );
     }
 }
 
-// 旋转物体的mesh
+//FIXME: 存在问题 旋转物体的mesh
 fn rotate_filled_objects(
     mut query: Query<(&FilledObjectCommpent, &mut Transform)>,
     timer: Res<Time>,
     mut gizmos: Gizmos,
 ) {
     for (_, mut transform) in &mut query {
-        let pos = transform.translation.clone();
-        transform.rotate_around(
-            pos + Vec3::splat(0.15),
-            Quat::from_rotation_y(0.3 * TAU * timer.delta_seconds()),
-        );
-        gizmos.circle(transform.translation, Vec3::Y, 0.1, Color::YELLOW);
-        gizmos.circle(pos + Vec3::splat(0.15), Vec3::Y, 0.1, Color::RED);
-        gizmos.ray(pos + Vec3::splat(0.15), Vec3::Y, Color::RED);
-        gizmos.ray(transform.translation, Vec3::Y, Color::YELLOW);
+        transform.rotate_y(0.3 * TAU * timer.delta_seconds());
+        if CLIENT_DEBUG {
+            gizmos.circle(transform.translation, Vec3::Y, 0.1, Color::YELLOW);
+            gizmos.ray(transform.translation, Vec3::Y, Color::YELLOW);
+        }
     }
 }
 
@@ -95,8 +89,7 @@ fn sync_filled_objects(
                         {
                             // 已经存在 修改位置
                             if let Ok((_, _, mut trf)) = query.get_mut(client_entity.clone()) {
-                                trf.translation =
-                                    Vec3::new(pos[0], pos[1], pos[2]) - Vec3::splat(0.15);
+                                trf.translation = Vec3::new(pos[0], pos[1], pos[2]);
                             }
                         } else {
                             // 不存在 创建 实体
@@ -113,7 +106,7 @@ fn sync_filled_objects(
                                                     transform: Transform {
                                                         translation: Vec3::new(
                                                             pos[0], pos[1], pos[2],
-                                                        ) - Vec3::ONE,
+                                                        ),
                                                         scale: Vec3::splat(0.1),
                                                         ..Default::default()
                                                     },

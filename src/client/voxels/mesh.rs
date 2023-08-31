@@ -21,6 +21,7 @@ pub fn gen_mesh_volex<S>(
     material_config: MaterailConfiguration,
     voxels_shape: &S,
     max: [u32; 3],
+    mut deal_vec: impl FnMut(Vec<[f32; 3]>) -> Vec<[f32; 3]>,
 ) -> Option<Mesh>
 where
     S: Shape<3, Coord = u32> + ConstShape<3, Coord = u32>,
@@ -74,8 +75,8 @@ where
 
     let mut render_mesh = Mesh::new(PrimitiveTopology::TriangleList);
 
-    render_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions.clone());
-    render_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+    render_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, deal_vec(positions.clone()));
+    render_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, deal_vec(normals));
     render_mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, tex_coords);
     render_mesh.insert_attribute(ATTRIBUTE_DATA, VertexAttributeValues::Uint32(data));
     render_mesh.set_indices(Some(Indices::U32(indices.clone())));
@@ -97,7 +98,11 @@ pub fn gen_one_volex_mesh(voxel: Voxel, material_config: MaterailConfiguration) 
             }
         }
     }
-    return gen_mesh_volex::<Tmp>(voxels, material_config, &Tmp {}, [2, 2, 2]);
+    return gen_mesh_volex::<Tmp>(voxels, material_config, &Tmp {}, [2, 2, 2], |list| {
+        list.iter()
+            .map(|a| [a[0] - 1.5, a[1] - 1.5, a[2] - 1.5])
+            .collect()
+    });
 }
 
 pub fn gen_mesh(voxels: Vec<Voxel>, material_config: MaterailConfiguration) -> Option<Mesh> {
@@ -107,6 +112,7 @@ pub fn gen_mesh(voxels: Vec<Voxel>, material_config: MaterailConfiguration) -> O
         material_config,
         &Tmp {},
         [(CHUNK_SIZE + 1) as u32, 255, (CHUNK_SIZE + 1) as u32],
+        |a| a,
     );
 }
 

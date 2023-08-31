@@ -8,9 +8,10 @@ use bevy::{
     utils::HashMap,
 };
 use bevy_rapier3d::prelude::{
-    Ccd, Collider, ColliderMassProperties, LockedAxes, RigidBody, Sleeping,
+    Ccd, Collider, ColliderMassProperties, CollisionGroups, Group, LockedAxes, RigidBody, Sleeping,
 };
 use bevy_renet::renet::RenetServer;
+use rand::Rng;
 
 use crate::{
     common::ServerClipSpheres,
@@ -69,6 +70,7 @@ fn deal_object_filing(
     mut fill_event: EventReader<ObjectFillEvent>,
     mut object_filing_manager: ResMut<ObjectFilingManager>,
 ) {
+    let mut rng = rand::thread_rng();
     for event in fill_event.iter() {
         // 通过staff 生成不同物体的加载模式
         match event.staff.staff_type {
@@ -85,8 +87,14 @@ fn deal_object_filing(
                     .insert(ColliderMassProperties::Mass(300.0))
                     .insert(LockedAxes::ROTATION_LOCKED)
                     .insert(Ccd::enabled())
+                    .insert(CollisionGroups::new(Group::GROUP_2, Group::GROUP_1))
                     .insert(TransformBundle {
-                        local: Transform::from_xyz(event.center.x, event.center.y, event.center.z),
+                        // 添加随机偏移
+                        local: Transform::from_xyz(
+                            event.center.x + rng.gen_range(-0.05..=0.05),
+                            event.center.y + rng.gen_range(-0.05..=0.05),
+                            event.center.z + rng.gen_range(-0.05..=0.05),
+                        ),
                         ..Default::default()
                     })
                     .id();
