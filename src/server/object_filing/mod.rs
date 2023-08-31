@@ -21,7 +21,11 @@ use crate::{
     PY_DISTANCE,
 };
 
+use self::follow::ObjectFilingFollowPlugin;
+
 use super::message_def::{filled_object_message::FilledObjectMessage, ServerChannel};
+
+pub mod follow;
 
 #[derive(Debug, Event)]
 pub struct ObjectFillEvent {
@@ -49,6 +53,7 @@ pub struct ObjectFilingPlugin;
 impl Plugin for ObjectFilingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<ObjectFillEvent>();
+        app.add_plugins(ObjectFilingFollowPlugin);
         app.insert_resource(ObjectFilingManager {
             entities: Vec::new(),
         });
