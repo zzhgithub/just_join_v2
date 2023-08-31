@@ -1,6 +1,12 @@
-use std::time::Duration;
+// 服务端消息定义
+pub mod chunk_result;
+pub mod filled_object_message;
+pub mod networked_entities;
+pub mod server_messages;
+pub mod time_sync;
 
 use bevy_renet::renet::{ChannelConfig, SendType};
+use std::time::Duration;
 
 /**
  * 服务端 频道
@@ -11,6 +17,7 @@ pub enum ServerChannel {
     NetworkedEntities,
     ChunkResult,
     TimsSync,
+    FilledObjectMessage,
 }
 
 impl From<ServerChannel> for u8 {
@@ -20,6 +27,7 @@ impl From<ServerChannel> for u8 {
             ServerChannel::ServerMessages => 1,
             ServerChannel::ChunkResult => 2,
             ServerChannel::TimsSync => 3,
+            ServerChannel::FilledObjectMessage => 4,
         }
     }
 }
@@ -49,6 +57,11 @@ impl ServerChannel {
             },
             ChannelConfig {
                 channel_id: Self::TimsSync.into(),
+                max_memory_usage_bytes: 10 * 1024 * 1024,
+                send_type: SendType::Unreliable,
+            },
+            ChannelConfig {
+                channel_id: Self::FilledObjectMessage.into(),
                 max_memory_usage_bytes: 10 * 1024 * 1024,
                 send_type: SendType::Unreliable,
             },

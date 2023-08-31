@@ -11,7 +11,8 @@ use bevy_atmosphere::{
 };
 use bevy_renet::renet::{RenetClient, RenetServer};
 
-use crate::server::{server_channel::ServerChannel, time_sync::TimeSync};
+use crate::server::message_def::{time_sync::TimeSync, ServerChannel};
+
 
 #[derive(Component)]
 pub struct Sun;

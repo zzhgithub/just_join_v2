@@ -21,6 +21,7 @@ use crate::{
     client::{
         client_sync_players, client_sync_players_state,
         console_commands::ConsoleCommandPlugins,
+        filled_object::ClientFilledObjectnPlugin,
         mesh_display::ClientMeshPlugin,
         player::{
             controller::{CharacterController, CharacterControllerPlugin},
@@ -55,7 +56,7 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_state::<PlayState>();
         app.add_systems(OnEnter(GameState::Game), setup);
-        
+
         // app.insert_resource();
         app.insert_resource(RenetClientVisualizer::<200>::new(
             RenetVisualizerStyle::default(),
@@ -79,6 +80,7 @@ impl Plugin for GamePlugin {
             MeshRayCastPlugin,
             ConsoleCommandPlugins,
             MouseControlPlugin,
+            ClientFilledObjectnPlugin,
         ));
 
         app.add_systems(
