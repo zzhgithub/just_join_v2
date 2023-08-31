@@ -8,6 +8,8 @@ this rep is rebuild from https://github.com/zzhgithub/just_join. The goal is to 
 For Server
 ```shell
 cargo run --release --bin server
+# or
+cargo run --release --no-default-features --features headless --bin server
 ```
 
 
