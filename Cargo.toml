@@ -14,7 +14,7 @@ name = "client"
 path = "src/bin/client.rs"
 
 [dependencies]
-bevy = "0.11.0"
+bevy = "0.11.2"
 block-mesh = "0.2.0"
 ndshape = "0.3.0"
 ahash = { version = "0.8.3", features = ["serde"] }
@@ -47,7 +47,6 @@ fxhash = "^0.2.1"
 simba = "^0.8"
 bevy_mod_billboard = "0.4.0"
 notify = "6.1.1"
-core-graphics="0.22.3"
 
 
 [profile.dev.package.bevy_rapier3d]

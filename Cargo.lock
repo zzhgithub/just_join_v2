@@ -2686,7 +2686,6 @@ dependencies = [
  "block-mesh",
  "clap 4.1.10",
  "codespan-reporting",
- "core-graphics",
  "egui-notify",
  "futures-lite",
  "fxhash",
