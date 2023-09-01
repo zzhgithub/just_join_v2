@@ -31,6 +31,14 @@ pub const MAX_TEXTURE_COUNT: usize = 9;
 // 物体选择半径
 pub const TOUCH_RADIUS: f32 = 5.;
 pub const CLIENT_DEBUG: bool = false;
+pub const CLIENT_FPS: bool = true;
+
+// 最大物品堆放
+pub const MAX_STAFF_FIXED: usize = 999;
+
+pub const NEAR_RANGE: f32 = 1.6;
+pub const CLOSE_RANGE: f32 = 0.2;
+pub const PICK_SPEED: f32 = 1.0;
 
 pub fn connection_config() -> ConnectionConfig {
     ConnectionConfig {

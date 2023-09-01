@@ -9,6 +9,8 @@
 For Server
 ```shell
 cargo run --release --bin server
+# or
+cargo run --release --no-default-features --features headless --bin server
 ```
 
 

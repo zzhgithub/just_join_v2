@@ -29,6 +29,7 @@ use crate::{
             ClientLobby,
         },
         ray_cast::MeshRayCastPlugin,
+        tool_bar_manager::ToolBarSyncPlugin,
         ui::{
             tool_bar::{tool_bar, ToolBar},
             UiPicResourceManager,
@@ -36,7 +37,6 @@ use crate::{
     },
     common::ClientClipSpheresPlugin,
     sky::ClientSkyPlugins,
-    staff::StaffInfoStroge,
 };
 
 use super::{new_renet_client, notification::Notification, ConnectionAddr, GameState};
@@ -81,6 +81,7 @@ impl Plugin for GamePlugin {
             ConsoleCommandPlugins,
             MouseControlPlugin,
             ClientFilledObjectnPlugin,
+            ToolBarSyncPlugin,
         ));
 
         app.add_systems(
@@ -113,9 +114,6 @@ fn setup(
     mut commands: Commands,
     connection_addr: Res<ConnectionAddr>,
     mut play_state: ResMut<NextState<PlayState>>,
-    // 下面两个量临时测试使用
-    mut tool_bar_data: ResMut<ToolBar>,
-    staff_infos: Res<StaffInfoStroge>,
 ) {
     let (client, transport) = new_renet_client(connection_addr.clone());
     commands.insert_resource(client);
@@ -126,11 +124,6 @@ fn setup(
     });
     commands.insert_resource(ClientLobby::default());
     play_state.set(PlayState::Main);
-
-    // FIXME: 测试代码临时加载 staff到物品栏
-    for (i, (_id, staff)) in staff_infos.data.iter().enumerate() {
-        tool_bar_data.load_staff(i, staff.clone(), 999);
-    }
 }
 
 fn update_visulizer_system(

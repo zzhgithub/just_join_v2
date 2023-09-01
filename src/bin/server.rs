@@ -25,6 +25,7 @@ use just_join::{
     PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
+use seldom_state::StateMachinePlugin;
 use smooth_bevy_cameras::{
     controllers::fps::{FpsCameraBundle, FpsCameraController},
     LookTransformPlugin,
@@ -106,6 +107,7 @@ fn main() {
 
     // 这里添加必要的系统
     app.add_plugins((
+        StateMachinePlugin,
         ServerStaffInfoPlugin,
         ServerClipSpheresPlugin,
         ServerChunkPlugin,

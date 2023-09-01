@@ -27,6 +27,7 @@ pub mod message_def;
 pub mod player;
 pub mod ray_cast;
 pub mod state_manager;
+pub mod tool_bar_manager;
 pub mod ui;
 pub mod voxels;
 

@@ -14,7 +14,7 @@ name = "client"
 path = "src/bin/client.rs"
 
 [dependencies]
-bevy = "0.11.0"
+bevy = "0.11.2"
 block-mesh = "0.2.0"
 ndshape = "0.3.0"
 ahash = { version = "0.8.3", features = ["serde"] }
@@ -40,6 +40,7 @@ bevy_mod_raycast = "0.13.0"
 clap = { version = "=4.1.10", features = ["derive"] }
 egui-notify = "0.8.0"
 rand = "0.8.5"
+seldom_state = "0.7.0"
 # 解决依赖冲突
 num-rational = "^0.4.1"
 fxhash = "^0.2.1"

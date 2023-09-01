@@ -4,6 +4,7 @@ pub mod filled_object_message;
 pub mod networked_entities;
 pub mod server_messages;
 pub mod time_sync;
+pub mod tool_bar_message;
 
 use bevy_renet::renet::{ChannelConfig, SendType};
 use std::time::Duration;
@@ -18,6 +19,7 @@ pub enum ServerChannel {
     ChunkResult,
     TimsSync,
     FilledObjectMessage,
+    ToolBarMessage,
 }
 
 impl From<ServerChannel> for u8 {
@@ -28,6 +30,7 @@ impl From<ServerChannel> for u8 {
             ServerChannel::ChunkResult => 2,
             ServerChannel::TimsSync => 3,
             ServerChannel::FilledObjectMessage => 4,
+            ServerChannel::ToolBarMessage => 5,
         }
     }
 }
@@ -64,6 +67,13 @@ impl ServerChannel {
                 channel_id: Self::FilledObjectMessage.into(),
                 max_memory_usage_bytes: 10 * 1024 * 1024,
                 send_type: SendType::Unreliable,
+            },
+            ChannelConfig {
+                channel_id: Self::ToolBarMessage.into(),
+                max_memory_usage_bytes: 10 * 1024 * 1024,
+                send_type: SendType::ReliableOrdered {
+                    resend_time: Duration::from_millis(200),
+                },
             },
         ]
     }
