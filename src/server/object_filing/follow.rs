@@ -13,12 +13,20 @@ use bevy_rapier3d::{
     prelude::{RapierContext, RapierRigidBodyHandle},
     rapier::prelude::RigidBodyType,
 };
+use bevy_renet::renet::RenetServer;
 use seldom_state::{
     prelude::StateMachine,
     trigger::{BoolTrigger, OptionTrigger, Trigger},
 };
 
-use crate::server::player::Player;
+use crate::{
+    server::{
+        message_def::{tool_bar_message::ToolBarMessage, ServerChannel},
+        player::Player,
+    },
+    voxel_world::player_state::PlayerOntimeState,
+    CLOSE_RANGE, NEAR_RANGE, PICK_SPEED,
+};
 
 use super::FilledObject;
 
@@ -118,7 +126,7 @@ impl Plugin for ObjectFilingFollowPlugin {
                 not_follow_change_type,
             ),
         );
-        app.add_systems(Update, follow_entity);
+        app.add_systems(Update, (follow_entity, pick_up_entity));
     }
 }
 
@@ -129,14 +137,14 @@ fn load_up_state_machine(
     for (entity, _) in query.iter() {
         commands.entity(entity).insert(Idle).insert(
             StateMachine::default()
-                .trans_builder(Near { range: 1.5 }, |_: &Idle, entity: Entity| {
+                .trans_builder(Near { range: NEAR_RANGE }, |_: &Idle, entity: Entity| {
                     Some(Follow {
                         target: entity,
-                        speed: 0.2,
+                        speed: PICK_SPEED,
                     })
                 })
-                .trans::<Follow>(Near { range: 1.5 }.not(), Idle)
-                .trans_builder(CloseTo { range: 0.01 }, |follow: &Follow, _| {
+                .trans::<Follow>(Near { range: NEAR_RANGE }.not(), Idle)
+                .trans_builder(CloseTo { range: CLOSE_RANGE }, |follow: &Follow, _| {
                     Some(Picked {
                         target: follow.target,
                     })
@@ -195,6 +203,33 @@ fn not_follow_change_type(
     }
 }
 
-// fn pick_up_entity(mut commands: Commands, mut query: Query<(Entity, &FilledObject, &Picked)>) {
-//     // 这里找到了 就发送Pick事件。然后交给 pickup处理？
-// }
+fn pick_up_entity(
+    mut commands: Commands,
+    // 有状态的角色
+    mut palyer_states: Query<(Entity, &Player, &mut PlayerOntimeState)>,
+    // 被捡起的数据
+    pick_query: Query<(Entity, &FilledObject, &Picked)>,
+    mut server: ResMut<RenetServer>,
+) {
+    for (pick_entity, filled_object, picked) in pick_query.iter() {
+        // 1. 获取到pick的目标受体
+        if let Ok((_, player, mut player_state)) = palyer_states.get_mut(picked.target) {
+            // 2. 检查可以使用的空位 并修改数据
+            if let Some((index, _, num)) = player_state.0.put_statff(filled_object.staff.id) {
+                // 找到位置并摆放
+                // 发送消息销毁对象
+                let message = bincode::serialize(&ToolBarMessage::SyncToolbar {
+                    index: index,
+                    staff_id: Some(filled_object.staff.id),
+                    num: num,
+                })
+                .unwrap();
+                server.send_message(player.id, ServerChannel::ToolBarMessage, message);
+                commands.entity(pick_entity).despawn();
+            } else {
+                // 没有找到位置 重新回到idle状态
+                commands.entity(pick_entity).remove::<Picked>().insert(Idle);
+            }
+        }
+    }
+}

@@ -2,3 +2,4 @@
 Lz4压缩解压 https://crates.io/crates/lz4
 其他人的地形实现 https://github.com/jameshiew/infinigen
 粒子系统 https://crates.io/crates/bevy_hanabi
+非欧几何 https://github.com/finegeometer/non-euclidean-bevy-experiment

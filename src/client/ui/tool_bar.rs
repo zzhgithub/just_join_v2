@@ -27,6 +27,13 @@ impl ToolBar {
             ..Default::default()
         };
     }
+    // 情况物品
+    pub fn empty_staff(&mut self, index: usize) {
+        self.tools[index % 10] = ToolBox {
+            staff: None,
+            ..Default::default()
+        };
+    }
     // 当前激活中的物品
     pub fn staff_type(&self) -> Option<StaffType> {
         self.tools[self.active_index]
