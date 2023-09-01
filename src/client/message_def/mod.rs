@@ -1,3 +1,6 @@
+pub mod chunk_query;
+pub mod player_input;
+
 use std::time::Duration;
 
 use bevy_renet::renet::{ChannelConfig, SendType};

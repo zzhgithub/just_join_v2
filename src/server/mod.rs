@@ -7,10 +7,11 @@ use bevy_renet::renet::{transport::NetcodeServerTransport, RenetServer, ServerEv
 use renet_visualizer::RenetServerVisualizer;
 
 use crate::{
-    client::{client_channel::ClientChannel, player_input::PlayerInput},
+    client::message_def::{player_input::PlayerInput, ClientChannel},
     server::{
-        player::server_create_player, server_channel::ServerChannel,
-        server_messages::ServerMessages,
+        message_def::{server_messages::ServerMessages, ServerChannel},
+        player::server_create_player,
+        tool_bar_sync::send_all_tool_bar,
     },
     users::Username,
     voxel_world::{
@@ -20,19 +21,17 @@ use crate::{
 };
 
 use self::{
-    networked_entities::NetworkedEntities,
+    message_def::networked_entities::NetworkedEntities,
     player::{PitchValue, Player, ServerLobby, YawValue},
 };
 
 pub mod async_chunk;
 pub mod chunk;
-pub mod chunk_result;
-pub mod networked_entities;
+pub mod message_def;
+pub mod object_filing;
 pub mod player;
-pub mod server_channel;
-pub mod server_messages;
 pub mod terrain_physics;
-pub mod time_sync;
+pub mod tool_bar_sync;
 
 /**
  * 处理client连接获取断开时的操作
@@ -87,8 +86,12 @@ pub fn server_connect_system(
                     player_state.position = [0., 60., 0.];
                 }
 
-                let player_entity =
-                    server_create_player(&mut commands, player_state, *client_id, username.clone());
+                let player_entity = server_create_player(
+                    &mut commands,
+                    player_state.clone(),
+                    *client_id,
+                    username.clone(),
+                );
                 // 角色进入游戏大厅缓存中
                 server_lobby.players.insert(*client_id, player_entity);
                 // 3. 通知全部客户端知道
@@ -100,6 +103,8 @@ pub fn server_connect_system(
                     username: username.clone(),
                 })
                 .unwrap();
+                // 发送物品栏 相关的同步信息
+                send_all_tool_bar(*client_id, &mut server, player_state);
                 server.broadcast_message(ServerChannel::ServerMessages, message);
             }
             ServerEvent::ClientDisconnected { client_id, reason } => {

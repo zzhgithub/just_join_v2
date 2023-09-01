@@ -35,6 +35,7 @@ pub enum StaffType {
 #[derive(Debug, Resource)]
 pub struct StaffInfoStroge {
     pub data: HashMap<usize, Staff>,
+    pub voxel_staff: HashMap<u8, Staff>,
 }
 
 impl StaffInfoStroge {
@@ -42,7 +43,18 @@ impl StaffInfoStroge {
         if self.data.contains_key(&staff.id) {
             warn!("{} is already registered", staff.id);
         }
+        if let StaffType::Voxel(voxel) = staff.staff_type {
+            self.voxel_staff.insert(voxel.id, staff.clone());
+        }
         self.data.insert(staff.id, staff);
+    }
+    // 通过体素获取物品
+    pub fn voxel_to_staff(&self, voxel: Voxel) -> Option<&Staff> {
+        self.voxel_staff.get(&voxel.id)
+    }
+    // 通过 物品点 获取物品id
+    pub fn get(&self, staff_id: usize) -> Option<Staff> {
+        self.data.get(&staff_id).map(|a| a.clone())
     }
 }
 
@@ -57,6 +69,7 @@ impl Plugin for StaffInfoPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(StaffInfoStroge {
             data: HashMap::default(),
+            voxel_staff: HashMap::default(),
         });
         app.add_systems(Startup, setup.in_set(StaffSet::Init));
     }
@@ -91,6 +104,51 @@ fn setup(mut storge: ResMut<StaffInfoStroge>, asset_server: Res<AssetServer>) {
         id: 4,
         name: String::from("Sown"),
         icon: asset_server.load("textures/雪.png"),
+        staff_type: StaffType::Voxel(Sown::into_voxel()),
+    });
+}
+
+pub struct ServerStaffInfoPlugin;
+
+impl Plugin for ServerStaffInfoPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(StaffInfoStroge {
+            data: HashMap::default(),
+            voxel_staff: HashMap::default(),
+        });
+        app.add_systems(Startup, server_setup.in_set(StaffSet::Init));
+    }
+}
+
+fn server_setup(mut storge: ResMut<StaffInfoStroge>) {
+    storge.register(Staff {
+        id: 0,
+        name: String::from("Stone"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Stone::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 1,
+        name: String::from("Grass"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Grass::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 2,
+        name: String::from("Soli"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Soli::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 3,
+        name: String::from("Sand"),
+        icon: Handle::default(),
+        staff_type: StaffType::Voxel(Sand::into_voxel()),
+    });
+    storge.register(Staff {
+        id: 4,
+        name: String::from("Sown"),
+        icon: Handle::default(),
         staff_type: StaffType::Voxel(Sown::into_voxel()),
     });
 }

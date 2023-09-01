@@ -17,7 +17,7 @@ use just_join::{
     },
     staff::StaffInfoPlugin,
     tools::inspector_egui::inspector_ui,
-    CLIENT_DEBUG,
+    CLIENT_DEBUG, CLIENT_FPS,
 };
 
 fn main() {
@@ -41,13 +41,15 @@ fn main() {
     app.add_plugins((SplashPlugin, MenuPlugin, NotificationPlugin, GamePlugin));
     // 调试工具
     if CLIENT_DEBUG {
+        app.add_systems(Update, inspector_ui);
+    }
+    if CLIENT_FPS {
         app.add_plugins((
             // Adds frame time diagnostics
             FrameTimeDiagnosticsPlugin,
             // Adds a system that prints diagnostics to the console
             LogDiagnosticsPlugin::default(),
         ));
-        app.add_systems(Update, inspector_ui);
     }
     app.run();
 }

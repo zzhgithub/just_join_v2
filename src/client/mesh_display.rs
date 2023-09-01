@@ -19,7 +19,7 @@ use ndshape::{ConstShape, ConstShape3u32};
 
 use crate::{
     common::ClipSpheres,
-    server::{chunk_result::ChunkResult, server_channel::ServerChannel},
+    server::message_def::{chunk_result::ChunkResult, ServerChannel},
     tools::get_empty_chunk,
     voxel_world::{
         chunk::{
@@ -33,8 +33,7 @@ use crate::{
 };
 
 use super::{
-    chunk_query::ChunkQuery,
-    client_channel::ClientChannel,
+    message_def::{chunk_query::ChunkQuery, ClientChannel},
     ray_cast::MyRaycastSet,
     voxels::{
         mesh::{gen_mesh, gen_mesh_water, pick_water},

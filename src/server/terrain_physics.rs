@@ -8,7 +8,7 @@ use bevy::{
     tasks::{AsyncComputeTaskPool, Task},
     utils::HashMap,
 };
-use bevy_rapier3d::prelude::{Collider, RigidBody};
+use bevy_rapier3d::prelude::{Collider, CollisionGroups, Group, RigidBody};
 use block_mesh::{greedy_quads, GreedyQuadsBuffer, RIGHT_HANDED_Y_UP_CONFIG};
 use ndshape::{ConstShape, ConstShape3u32};
 
@@ -88,6 +88,10 @@ pub fn spawn_collider(
                         ))
                         .insert(RigidBody::Fixed)
                         .insert(collider)
+                        .insert(CollisionGroups::new(
+                            Group::GROUP_1,
+                            Group::GROUP_2 | Group::GROUP_3,
+                        ))
                         .id();
                     collider_manager.entities.insert(chunk_key, entity);
                 }

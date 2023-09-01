@@ -9,8 +9,7 @@ use bevy::{
 use bevy_egui::EguiSet;
 use bevy_renet::renet::RenetClient;
 
-use crate::client::{
-    client_channel::ClientChannel, player_input::PlayerInput, state_manager::GameState,
+use crate::client::{ state_manager::GameState, message_def::{player_input::PlayerInput, ClientChannel},
 };
 
 use super::{

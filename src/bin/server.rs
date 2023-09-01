@@ -17,13 +17,15 @@ use just_join::{
     connection_config,
     server::{
         async_chunk::ChunkDataPlugin, chunk::ServerChunkPlugin, deal_message_system,
-        player::ServerLobby, server_connect_system, sync_body_and_head,
-        terrain_physics::TerrainPhysicsPlugin,
+        object_filing::ObjectFilingPlugin, player::ServerLobby, server_connect_system,
+        sync_body_and_head, terrain_physics::TerrainPhysicsPlugin,
     },
     sky::ServerSkyPlugins,
+    staff::ServerStaffInfoPlugin,
     PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
+use seldom_state::StateMachinePlugin;
 use smooth_bevy_cameras::{
     controllers::fps::{FpsCameraBundle, FpsCameraController},
     LookTransformPlugin,
@@ -100,17 +102,20 @@ fn main() {
 
     app.add_plugins(RenetServerPlugin);
     app.add_plugins(NetcodeServerPlugin);
-
     app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-
     app.add_plugins(LookTransformPlugin);
 
     // 这里添加必要的系统
-    app.add_plugins(ServerClipSpheresPlugin);
-    app.add_plugins(ServerChunkPlugin);
-    app.add_plugins(TerrainPhysicsPlugin);
-    app.add_plugins(ChunkDataPlugin);
-    app.add_plugins(ServerSkyPlugins);
+    app.add_plugins((
+        StateMachinePlugin,
+        ServerStaffInfoPlugin,
+        ServerClipSpheresPlugin,
+        ServerChunkPlugin,
+        TerrainPhysicsPlugin,
+        ChunkDataPlugin,
+        ServerSkyPlugins,
+        ObjectFilingPlugin,
+    ));
 
     let (server, transport) = new_renet_server();
     app.insert_resource(server);
