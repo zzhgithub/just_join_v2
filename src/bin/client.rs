@@ -9,6 +9,7 @@ use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
 use just_join::{
     client::{
+        debug::ClientDebugPlugin,
         state_manager::{
             game::GamePlugin, menu::MenuPlugin, notification::NotificationPlugin,
             splash::SplashPlugin, ConnectionAddr, GameState,
@@ -42,6 +43,7 @@ fn main() {
     // 调试工具
     if CLIENT_DEBUG {
         app.add_systems(Update, inspector_ui);
+        app.add_plugins(ClientDebugPlugin);
     }
     if CLIENT_FPS {
         app.add_plugins((

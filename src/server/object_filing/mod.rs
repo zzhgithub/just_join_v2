@@ -32,6 +32,7 @@ use super::{
 };
 
 pub mod follow;
+pub mod put_object;
 
 #[derive(Debug, Event)]
 pub struct ObjectFillEvent {

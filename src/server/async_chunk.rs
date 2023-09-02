@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{warn, EventWriter, Plugin, Res, ResMut, Resource, Update},
+    prelude::{warn, EventWriter, Plugin, Query, Res, ResMut, Resource, Update},
     tasks::{AsyncComputeTaskPool, Task},
 };
 use bevy_renet::renet::RenetServer;
@@ -7,13 +7,14 @@ use ndshape::{ConstShape, ConstShape3u32};
 
 use crate::{
     client::message_def::{chunk_query::ChunkQuery, ClientChannel},
-    server::message_def::ServerChannel,
+    server::{message_def::ServerChannel, object_filing::put_object::put_object},
     staff::StaffInfoStroge,
     tools::all_empty,
     voxel_world::{
         chunk::ChunkKey,
         chunk_map::ChunkMap,
         map_database::{DbSaveTasks, MapDataBase},
+        player_state::PlayerOntimeState,
         voxel::{BasicStone, Voxel, VoxelMaterial},
     },
     CHUNK_SIZE, CHUNK_SIZE_U32,
@@ -22,6 +23,7 @@ use crate::{
 use super::{
     message_def::chunk_result::ChunkResult,
     object_filing::ObjectFillEvent,
+    player::ServerLobby,
     terrain_physics::{ColliderManager, ColliderTasksManager, ColliderUpdateTasksManager},
 };
 
@@ -42,6 +44,9 @@ pub fn deal_chunk_query_system(
     mut collider_tasks: ResMut<ColliderTasksManager>,
     mut fill_event: EventWriter<ObjectFillEvent>,
     staff_info_stroge: Res<StaffInfoStroge>,
+    // 获取玩家当前状态 和处理
+    mut query_state: Query<&mut PlayerOntimeState>,
+    server_lobby: Res<ServerLobby>,
 ) {
     let pool = AsyncComputeTaskPool::get();
     for client_id in server.clients_id() {
@@ -79,6 +84,7 @@ pub fn deal_chunk_query_system(
                     pos,
                     voxel_type,
                     center,
+                    active_index,
                 } => {
                     if let Some(voxel) = chunk_map.map_data.get_mut(&chunk_key) {
                         // 1. 更新 chunk_map 数据
@@ -90,6 +96,38 @@ pub fn deal_chunk_query_system(
                         if voxel[index].id == BasicStone::ID {
                             warn!("基岩无法破坏");
                             continue;
+                        }
+                        if old_voxel.id != Voxel::EMPTY.id && voxel_type.id != Voxel::EMPTY.id {
+                            warn!("放置错误");
+                            continue;
+                        }
+                        // 判断是否可以影响到数据 只有放置时才处理！
+                        if voxel_type.id != Voxel::EMPTY.id {
+                            if let Some(staff) =
+                                staff_info_stroge.voxel_to_staff(voxel_type.clone())
+                            {
+                                if let Some(index) = active_index {
+                                    if put_object(
+                                        client_id,
+                                        &server_lobby,
+                                        &mut query_state,
+                                        index,
+                                        staff.id,
+                                        &mut server,
+                                    ) {
+                                        // 发送成功
+                                    } else {
+                                        warn!("{}|无法从toolbar获取", client_id);
+                                        continue;
+                                    }
+                                } else {
+                                    warn!("{}|角色没有当前生成的index", client_id);
+                                    continue;
+                                }
+                            } else {
+                                warn!("{}|{}没有找到资源对应关系", client_id, voxel_type.id);
+                                continue;
+                            }
                         }
                         voxel[index] = voxel_type;
                         // 2. 更新 db 数据

@@ -12,6 +12,20 @@ pub struct PlayerState {
 }
 
 impl PlayerState {
+    pub fn use_staff(&mut self, index: usize, id: usize) -> Option<(usize, Option<usize>, usize)> {
+        if let (Some(old_id), num) = self.toolbar[index] {
+            if old_id == id && num > 0 {
+                if num - 1 == 0 {
+                    self.toolbar[index] = (None, 0);
+                } else {
+                    self.toolbar[index] = (Some(id), num - 1);
+                }
+                return Some((index, self.toolbar[index].0, self.toolbar[index].1));
+            }
+        }
+        None
+    }
+
     // 尝试放置 如果成功返回 新的放置后的 toolbar的数据 失败返回None
     pub fn put_statff(&mut self, id: usize) -> Option<(usize, Option<usize>, usize)> {
         for i in 0..10 {

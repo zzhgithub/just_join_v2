@@ -21,6 +21,7 @@ use self::player::{
 };
 
 pub mod console_commands;
+pub mod debug;
 pub mod filled_object;
 pub mod mesh_display;
 pub mod message_def;
