@@ -69,6 +69,7 @@ pub fn deal_broken_cube_event(
             pos: event.xyz,
             voxel_type: Voxel::EMPTY,
             center: event.center,
+            active_index: None,
         })
         .unwrap();
         client.send_message(ClientChannel::ChunkQuery, message);
@@ -145,6 +146,7 @@ pub fn mouse_button_system(
                         pos: xyz,
                         voxel_type,
                         center: pos,
+                        active_index: Some(tool_bar_data.active_index),
                     })
                     .unwrap();
                     client.send_message(ClientChannel::ChunkQuery, message);
