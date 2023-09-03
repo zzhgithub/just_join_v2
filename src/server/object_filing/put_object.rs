@@ -20,7 +20,7 @@ pub fn put_object(
 ) -> bool {
     if let Some(entity) = server_lobby.players.get(&client_id) {
         if let Ok(mut player_state) = query.get_mut(*entity) {
-            if let Some((index, data, num)) = player_state.0.use_staff(active_index, staff_id) {
+            if let Some((index, data, num)) = player_state.0.use_staff(active_index, staff_id, 1) {
                 // 找到位置并摆放
                 // 发送消息销毁对象
                 let message = bincode::serialize(&ToolBarMessage::SyncToolbar {

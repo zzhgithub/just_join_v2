@@ -8,11 +8,18 @@ use bevy_egui::{
     egui::{self, Align2, Vec2},
     EguiContext, EguiUserTextures,
 };
+use bevy_renet::renet::RenetClient;
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 
-use crate::staff::{rule::StaffRules, StaffInfoStroge};
+use crate::{
+    client::message_def::{staff_rule_message::StaffRuleMessage, ClientChannel},
+    staff::{
+        rule::{StaffRule, StaffRules},
+        StaffInfoStroge,
+    },
+};
 
-use super::{tool_bar::ToolBar, UiPicResourceManager};
+use super::tool_bar::ToolBar;
 
 pub fn staff_rules_ui(
     mut q: Query<
@@ -24,10 +31,11 @@ pub fn staff_rules_ui(
         With<Window>,
     >,
     user_textures: Res<EguiUserTextures>,
-    ui_pic_resource_manager: Res<UiPicResourceManager>,
-    mut tool_bar_data: ResMut<ToolBar>,
+    // ui_pic_resource_manager: Res<UiPicResourceManager>,
+    tool_bar_data: Res<ToolBar>,
     staff_rules: Res<StaffRules>,
     staff_info_stroge: Res<StaffInfoStroge>,
+    mut client: ResMut<RenetClient>,
 ) {
     // 这里显示合成列表
     if let Ok((_, ctx, _)) = q.get_single_mut() {
@@ -74,17 +82,18 @@ pub fn staff_rules_ui(
                                         });
                                     })
                                     .body(|mut body| {
-                                        for ele in staff_rules.rules.clone() {
+                                        for (_, ele) in staff_rules.rules.clone() {
+                                            let staff_rule = ele.clone();
                                             body.row(100., |mut row| {
                                                 row.col(|ui| {
-                                                    if let Some(e) = ele.base_on {
+                                                    if let Some(e) = staff_rule.base_on {
                                                         ui.label(format!("{}", e));
                                                     } else {
                                                         ui.label("无");
                                                     }
                                                 });
                                                 row.col(|ui| {
-                                                    for pair in ele.input {
+                                                    for pair in staff_rule.input {
                                                         if let Some(staff) =
                                                             staff_info_stroge.get(pair.staff_id)
                                                         {
@@ -105,7 +114,7 @@ pub fn staff_rules_ui(
                                                 });
                                                 row.col(|ui| {
                                                     if let Some(staff) =
-                                                        staff_info_stroge.get(ele.output_id)
+                                                        staff_info_stroge.get(staff_rule.output_id)
                                                     {
                                                         if let Some(txt_id) =
                                                             user_textures.image_id(&staff.icon)
@@ -115,9 +124,25 @@ pub fn staff_rules_ui(
                                                     }
                                                 });
                                                 row.col(|ui| {
-                                                    if ui.button("合成").clicked() {
-                                                        // TODO 判断使用按钮
-                                                        println!("点击了合成按钮")
+                                                    if let Some(needed) = can_make_by_staff(
+                                                        ele.clone(),
+                                                        &tool_bar_data,
+                                                    ) {
+                                                        if ui.button("合成").clicked() {
+                                                            // 判断使用按钮
+                                                            println!("点击了合成按钮");
+                                                            let message = bincode::serialize(
+                                                                &StaffRuleMessage {
+                                                                    staff_rule_id: ele.id.clone(),
+                                                                    need: needed,
+                                                                },
+                                                            )
+                                                            .unwrap();
+                                                            client.send_message(
+                                                                ClientChannel::StaffRule,
+                                                                message,
+                                                            );
+                                                        }
                                                     }
                                                 });
                                             });
@@ -129,4 +154,20 @@ pub fn staff_rules_ui(
             });
         });
     }
+}
+
+fn can_make_by_staff(
+    staff_rule: StaffRule<u32>,
+    toolbar: &ToolBar,
+) -> Option<Vec<(usize, usize, usize)>> {
+    // 需要的
+    let mut needed: Vec<(usize, usize, usize)> = Vec::new();
+    for pair in staff_rule.input {
+        if let Some(rs) = toolbar.need_staff(pair.staff_id, pair.num_needed) {
+            needed.append(&mut rs.clone());
+        } else {
+            return None;
+        }
+    }
+    return Some(needed);
 }

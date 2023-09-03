@@ -15,6 +15,14 @@ pub fn send_all_tool_bar(client_id: u64, server: &mut RenetServer, player_state:
             })
             .unwrap();
             server.send_message(client_id, ServerChannel::ToolBarMessage, message);
+        } else {
+            let message = bincode::serialize(&ToolBarMessage::SyncToolbar {
+                index: i,
+                staff_id: None,
+                num: 0,
+            })
+            .unwrap();
+            server.send_message(client_id, ServerChannel::ToolBarMessage, message);
         }
     }
 }
