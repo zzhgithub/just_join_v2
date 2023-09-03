@@ -52,12 +52,12 @@ cargo run --release --bin client
   - [ ] knapsack system
   - [ ] multiplayer show
   - [ ] on time map
-- [ ] composite system
-- [ ] task system
-- [x] manor system
+- [x] composite system
   - [ ] opmtimize UI（Show current toolbar and knapsack）
   - [ ] support search
   - [ ] add more formula
+- [ ] task system
+- [ ] manor system
 - [ ] wind zone
 - [ ] support load mod and interface doc
   - [ ] furniture mod
