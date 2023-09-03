@@ -1,5 +1,6 @@
 pub mod chunk_query;
 pub mod player_input;
+pub mod staff_rule_message;
 
 use std::time::Duration;
 
@@ -16,6 +17,8 @@ pub enum ClientChannel {
     Command,
     // 区块数据请求
     ChunkQuery,
+    // 合成命令
+    StaffRule,
 }
 
 impl From<ClientChannel> for u8 {
@@ -24,6 +27,7 @@ impl From<ClientChannel> for u8 {
             ClientChannel::Command => 0,
             ClientChannel::Input => 1,
             ClientChannel::ChunkQuery => 2,
+            ClientChannel::StaffRule => 3,
         }
     }
 }
@@ -47,6 +51,13 @@ impl ClientChannel {
             },
             ChannelConfig {
                 channel_id: Self::ChunkQuery.into(),
+                max_memory_usage_bytes: 5 * 1024 * 1024,
+                send_type: SendType::ReliableOrdered {
+                    resend_time: Duration::ZERO,
+                },
+            },
+            ChannelConfig {
+                channel_id: Self::StaffRule.into(),
                 max_memory_usage_bytes: 5 * 1024 * 1024,
                 send_type: SendType::ReliableOrdered {
                     resend_time: Duration::ZERO,

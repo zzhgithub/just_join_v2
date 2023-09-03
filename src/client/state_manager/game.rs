@@ -5,10 +5,10 @@ use bevy::{
     input::mouse::MouseWheel,
     prelude::{
         in_state, AmbientLight, Commands, Entity, EventReader, EventWriter, Input,
-        IntoSystemConfigs, KeyCode, Local, NextState, OnEnter, Plugin, Query, Res, ResMut, States,
-        Update, Vec2, With,
+        IntoSystemConfigs, KeyCode, Local, NextState, OnEnter, Plugin, Query, Res, ResMut, State,
+        States, Update, Vec2, With,
     },
-    window::{PrimaryWindow, Window, WindowCloseRequested},
+    window::{CursorGrabMode, PrimaryWindow, Window, WindowCloseRequested},
 };
 use bevy_egui::{
     egui::{self, epaint::Shadow, Color32},
@@ -24,13 +24,14 @@ use crate::{
         filled_object::ClientFilledObjectnPlugin,
         mesh_display::ClientMeshPlugin,
         player::{
-            controller::{CharacterController, CharacterControllerPlugin},
+            controller::{CharacterController, CharacterControllerPlugin, ControllerFlag},
             mouse_control::MouseControlPlugin,
             ClientLobby,
         },
         ray_cast::MeshRayCastPlugin,
         tool_bar_manager::ToolBarSyncPlugin,
         ui::{
+            staff_rules::staff_rules_ui,
             tool_bar::{tool_bar, ToolBar},
             UiPicResourceManager,
         },
@@ -44,7 +45,8 @@ use super::{new_renet_client, notification::Notification, ConnectionAddr, GameSt
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum PlayState {
     Main,
-    // 状态栏
+    StaffRules,
+    //todo 状态栏
     State,
     #[default]
     Disabled,
@@ -63,7 +65,11 @@ impl Plugin for GamePlugin {
         ));
         app.add_systems(
             Update,
-            update_visulizer_system.run_if(in_state(GameState::Game)),
+            (toggle_play_staff_rules, update_visulizer_system).run_if(in_state(GameState::Game)),
+        );
+        app.add_systems(
+            Update,
+            staff_rules_ui.run_if(in_state(PlayState::StaffRules)),
         );
         app.add_systems(
             Update,
@@ -124,6 +130,44 @@ fn setup(
     });
     commands.insert_resource(ClientLobby::default());
     play_state.set(PlayState::Main);
+}
+
+// 切换合成公式
+fn toggle_play_staff_rules(
+    state: Res<State<PlayState>>,
+    mut play_state: ResMut<NextState<PlayState>>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut primary_window: Query<&mut Window, With<PrimaryWindow>>,
+    mut flags: ResMut<ControllerFlag>,
+) {
+    if let Ok(mut window) = primary_window.get_single_mut() {
+        if keyboard_input.just_pressed(KeyCode::E) {
+            match state.get() {
+                PlayState::StaffRules => {
+                    flags.flag = true;
+                    play_state.set(PlayState::Main);
+                    match window.cursor.grab_mode {
+                        CursorGrabMode::None => {
+                            window.cursor.grab_mode = CursorGrabMode::Confined;
+                            window.cursor.visible = false;
+                        }
+                        _ => {}
+                    }
+                }
+                _ => {
+                    flags.flag = false;
+                    play_state.set(PlayState::StaffRules);
+                    match window.cursor.grab_mode {
+                        CursorGrabMode::None => {}
+                        _ => {
+                            window.cursor.grab_mode = CursorGrabMode::None;
+                            window.cursor.visible = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn update_visulizer_system(

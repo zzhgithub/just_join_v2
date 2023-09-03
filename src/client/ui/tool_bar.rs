@@ -19,6 +19,33 @@ pub struct ToolBar {
 }
 
 impl ToolBar {
+    pub fn need_staff(
+        &self,
+        staff_id: usize,
+        need_num: usize,
+    ) -> Option<Vec<(usize, usize, usize)>> {
+        let mut res: Vec<(usize, usize, usize)> = Vec::new();
+        let mut need = need_num.clone();
+        for i in 0..10 {
+            let toolbax = self.tools[i].clone();
+            if let Some(staff) = toolbax.staff {
+                if staff.id == staff_id {
+                    if toolbax.num >= need {
+                        res.push((i, staff_id, need));
+                        need = 0;
+                    } else {
+                        res.push((i, staff_id, toolbax.num));
+                        need = need - toolbax.num;
+                    }
+                    if need == 0 {
+                        return Some(res);
+                    }
+                }
+            }
+        }
+        None
+    }
+
     // 加载物品
     pub fn load_staff(&mut self, index: usize, staff: Staff, num: usize) {
         self.tools[index % 10] = ToolBox {
