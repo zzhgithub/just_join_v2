@@ -260,15 +260,16 @@ pub fn update_mesh(
     let volexs: Vec<Voxel> = chunk_map.get_with_neighbor_full_y(chunk_key_y0);
     match gen_mesh(volexs.to_owned(), material_config.clone()) {
         Some(render_mesh) => {
-            let mesh_handle = mesh_manager.mesh_storge.get(&chunk_key_y0).unwrap();
-            if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
-                // 更新AABB
-                if let Some(entity) = mesh_manager.entities.get(&chunk_key_y0) {
-                    if let Some(aabb) = render_mesh.compute_aabb() {
-                        commands.entity(*entity).insert(aabb);
+            if let Some(mesh_handle) = mesh_manager.mesh_storge.get(&chunk_key_y0) {
+                if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                    // 更新AABB
+                    if let Some(entity) = mesh_manager.entities.get(&chunk_key_y0) {
+                        if let Some(aabb) = render_mesh.compute_aabb() {
+                            commands.entity(*entity).insert(aabb);
+                        }
                     }
+                    *mesh = render_mesh;
                 }
-                *mesh = render_mesh;
             }
             // 没有生成mesh就不管反正后面要生成
         }
@@ -281,14 +282,15 @@ pub fn update_mesh(
     };
     match gen_mesh_water(pick_water(volexs), material_config) {
         Some(water_mesh) => {
-            let mesh_handle = mesh_manager.water_mesh_storge.get(&chunk_key_y0).unwrap();
-            if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
-                if let Some(entity) = mesh_manager.water_entities.get(&chunk_key_y0) {
-                    if let Some(aabb) = water_mesh.compute_aabb() {
-                        commands.entity(*entity).insert(aabb);
+            if let Some(mesh_handle) = mesh_manager.water_mesh_storge.get(&chunk_key_y0) {
+                if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                    if let Some(entity) = mesh_manager.water_entities.get(&chunk_key_y0) {
+                        if let Some(aabb) = water_mesh.compute_aabb() {
+                            commands.entity(*entity).insert(aabb);
+                        }
                     }
+                    *mesh = water_mesh;
                 }
-                *mesh = water_mesh;
             }
         }
         None => {
