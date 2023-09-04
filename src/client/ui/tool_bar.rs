@@ -61,6 +61,16 @@ impl ToolBar {
             ..Default::default()
         };
     }
+
+    // 获取当前生效的物品
+    pub fn active_staff(&self) -> Option<(usize, Staff)> {
+        if let Some(staff) = self.tools[self.active_index].staff.clone() {
+            return Some((self.active_index, staff));
+        } else {
+            return None;
+        }
+    }
+
     // 当前激活中的物品
     pub fn staff_type(&self) -> Option<StaffType> {
         self.tools[self.active_index]

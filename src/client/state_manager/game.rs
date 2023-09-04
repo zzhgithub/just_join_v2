@@ -26,6 +26,7 @@ use crate::{
         player::{
             controller::{CharacterController, CharacterControllerPlugin, ControllerFlag},
             mouse_control::MouseControlPlugin,
+            throw_system::deal_with_throw,
             ClientLobby,
         },
         ray_cast::MeshRayCastPlugin,
@@ -96,6 +97,7 @@ impl Plugin for GamePlugin {
                 client_sync_players,
                 client_sync_players_state,
                 panic_on_error_system,
+                deal_with_throw,
             )
                 .chain()
                 .run_if(bevy_renet::transport::client_connected())

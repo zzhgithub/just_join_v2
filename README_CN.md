@@ -27,6 +27,9 @@ cargo run --release --bin client
 - Space 跳
 - ESC 光标
 - T 切换视角
+- E 打开合成表
+- Q 丢弃toolbar上激活中的物品
+
 
 # 功能列表
 

@@ -27,6 +27,7 @@ fn sync_toolbar_message(
     mut tool_bar_data: ResMut<ToolBar>,
     staff_infos: Res<StaffInfoStroge>,
 ) {
+    let active = tool_bar_data.active_index.clone();
     while let Some(message) = client.receive_message(ServerChannel::ToolBarMessage) {
         let tool_bar_message: ToolBarMessage = bincode::deserialize(&message).unwrap();
         match tool_bar_message {
@@ -45,5 +46,7 @@ fn sync_toolbar_message(
                 }
             }
         }
+        //重新激活方块
+        tool_bar_data.active(active);
     }
 }

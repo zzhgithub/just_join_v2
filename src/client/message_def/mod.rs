@@ -1,6 +1,7 @@
 pub mod chunk_query;
 pub mod player_input;
 pub mod staff_rule_message;
+pub mod user_command;
 
 use std::time::Duration;
 

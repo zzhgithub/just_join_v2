@@ -24,7 +24,7 @@ use crate::{
     PY_DISTANCE,
 };
 
-use self::follow::ObjectFilingFollowPlugin;
+use self::{follow::ObjectFilingFollowPlugin, throw_object::ThrowObjectPlugin};
 
 use super::{
     message_def::{filled_object_message::FilledObjectMessage, ServerChannel},
@@ -33,6 +33,7 @@ use super::{
 
 pub mod follow;
 pub mod put_object;
+pub mod throw_object;
 
 #[derive(Debug, Event)]
 pub struct ObjectFillEvent {
@@ -56,25 +57,6 @@ pub trait GetChunkKey {
 impl GetChunkKey for FilledObject {
     fn get_chunk_key(&self) -> ChunkKey {
         self.chunk_key.clone()
-    }
-}
-pub struct ObjectFilingPlugin;
-
-impl Plugin for ObjectFilingPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_event::<ObjectFillEvent>();
-        app.add_plugins(ObjectFilingFollowPlugin);
-        app.add_systems(
-            Update,
-            (
-                deal_object_filing,
-                update_filled_object_chunk_key,
-                sync_filled_object_to_client,
-                load_filled.after(ColliderSystem::ColliderSpawn),
-                save_filled.before(ColliderSystem::ColliderDespawn),
-            )
-                .chain(),
-        );
     }
 }
 
@@ -162,9 +144,8 @@ fn sync_filled_object_to_client(
     }
 }
 
-// 掉落物进入存储和加载到存储
-
-fn gen_filled_object(
+// 生成掉落物实体
+pub fn gen_filled_object(
     commands: &mut Commands,
     chunk_key: ChunkKey,
     center: Vec3,
@@ -209,6 +190,7 @@ impl GetChunkKey for NeedSave {
     }
 }
 
+// 掉落物进入存储和加载到存储
 // 加载地图中的数据
 fn load_filled(
     mut commands: Commands,
@@ -274,5 +256,25 @@ fn save_filled(
                 commands.entity(entity).despawn();
             }
         }
+    }
+}
+
+pub struct ObjectFilingPlugin;
+
+impl Plugin for ObjectFilingPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_event::<ObjectFillEvent>();
+        app.add_plugins((ObjectFilingFollowPlugin, ThrowObjectPlugin));
+        app.add_systems(
+            Update,
+            (
+                deal_object_filing,
+                update_filled_object_chunk_key,
+                sync_filled_object_to_client,
+                load_filled.after(ColliderSystem::ColliderSpawn),
+                save_filled.before(ColliderSystem::ColliderDespawn),
+            )
+                .chain(),
+        );
     }
 }
