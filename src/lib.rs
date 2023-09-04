@@ -31,7 +31,7 @@ pub const MAX_TEXTURE_COUNT: usize = 9;
 // 物体选择半径
 pub const TOUCH_RADIUS: f32 = 5.;
 pub const CLIENT_DEBUG: bool = false;
-pub const CLIENT_FPS: bool = true;
+pub const CLIENT_FPS: bool = false;
 
 // 最大物品堆放
 pub const MAX_STAFF_FIXED: usize = 999;

@@ -26,6 +26,8 @@ cargo run --release --bin client
 - Space - Jump
 - ESC - toggle grab cursor
 - T - toggle One/Thrid Person
+- E Open composite rules list
+- Q throw active toolbar object
 
 # Feature List
 - [x] Load unlimited maps
@@ -52,7 +54,10 @@ cargo run --release --bin client
   - [ ] knapsack system
   - [ ] multiplayer show
   - [ ] on time map
-- [ ] composite system
+- [x] composite system
+  - [ ] opmtimize UI（Show current toolbar and knapsack）
+  - [ ] support search
+  - [ ] add more formula
 - [ ] task system
 - [ ] manor system
 - [ ] wind zone

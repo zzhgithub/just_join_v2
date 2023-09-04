@@ -7,8 +7,10 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
+use bevy_sprite3d::Sprite3dPlugin;
 use just_join::{
     client::{
+        debug::ClientDebugPlugin,
         state_manager::{
             game::GamePlugin, menu::MenuPlugin, notification::NotificationPlugin,
             splash::SplashPlugin, ConnectionAddr, GameState,
@@ -37,11 +39,13 @@ fn main() {
     app.add_plugins(EguiPlugin);
     app.add_plugins(StaffInfoPlugin);
     app.add_plugins(UiResourcePlugin);
+    app.add_plugins(Sprite3dPlugin);
 
     app.add_plugins((SplashPlugin, MenuPlugin, NotificationPlugin, GamePlugin));
     // 调试工具
     if CLIENT_DEBUG {
         app.add_systems(Update, inspector_ui);
+        app.add_plugins(ClientDebugPlugin);
     }
     if CLIENT_FPS {
         app.add_plugins((

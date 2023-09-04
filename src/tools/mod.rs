@@ -11,6 +11,7 @@ use crate::{
 
 pub mod inspector_egui;
 pub mod string;
+pub mod zone;
 
 pub fn all_empty(voxels: &[Voxel]) -> bool {
     for ele in voxels.iter() {

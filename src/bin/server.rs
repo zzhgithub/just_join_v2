@@ -18,7 +18,8 @@ use just_join::{
     server::{
         async_chunk::ChunkDataPlugin, chunk::ServerChunkPlugin, deal_message_system,
         object_filing::ObjectFilingPlugin, player::ServerLobby, server_connect_system,
-        sync_body_and_head, terrain_physics::TerrainPhysicsPlugin,
+        staff_rule_sync::ServerStaffRulePlugin, sync_body_and_head,
+        terrain_physics::TerrainPhysicsPlugin,
     },
     sky::ServerSkyPlugins,
     staff::ServerStaffInfoPlugin,
@@ -115,6 +116,7 @@ fn main() {
         ChunkDataPlugin,
         ServerSkyPlugins,
         ObjectFilingPlugin,
+        ServerStaffRulePlugin,
     ));
 
     let (server, transport) = new_renet_server();

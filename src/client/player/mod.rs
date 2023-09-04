@@ -22,6 +22,7 @@ pub mod controller;
 pub mod look;
 pub mod mouse_control;
 pub mod player_input;
+pub mod throw_system;
 
 #[derive(Debug)]
 pub struct PlayerInfo {

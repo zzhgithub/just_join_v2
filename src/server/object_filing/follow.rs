@@ -28,7 +28,7 @@ use crate::{
     CLOSE_RANGE, NEAR_RANGE, PICK_SPEED,
 };
 
-use super::FilledObject;
+use super::{throw_object::ThrowObject, FilledObject};
 
 #[derive(Clone, Component, Reflect)]
 #[component(storage = "SparseSet")]
@@ -132,7 +132,7 @@ impl Plugin for ObjectFilingFollowPlugin {
 
 fn load_up_state_machine(
     mut commands: Commands,
-    query: Query<(Entity, &FilledObject), Without<StateMachine>>,
+    query: Query<(Entity, &FilledObject), (Without<StateMachine>, Without<ThrowObject>)>,
 ) {
     for (entity, _) in query.iter() {
         commands.entity(entity).insert(Idle).insert(

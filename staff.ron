@@ -1,0 +1,10 @@
+(
+    configs:[
+        (id:0,name:"Stone",icon_string:"textures/002.png",staff_type:Voxel((id:1))),
+        (id:1,name:"Grass",icon_string:"textures/草坪.png",staff_type:Voxel((id:3))),
+        (id:2,name:"Soli",icon_string:"textures/003.png",staff_type:Voxel((id:2))),
+        (id:3,name:"Sand",icon_string:"textures/沙子.png",staff_type:Voxel((id:6))),
+        (id:4,name:"Sown",icon_string:"textures/雪.png",staff_type:Voxel((id:4))),
+        (id:5,name:"FireWork",icon_string:"staff/烟花.png",staff_type:Consumable(0)),
+    ]
+)

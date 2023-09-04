@@ -6,6 +6,7 @@ use bevy_egui::EguiContexts;
 use crate::staff::{StaffInfoStroge, StaffSet};
 
 // 这里是尝试管理自定义UI的
+pub mod staff_rules;
 pub mod test;
 pub mod tool_bar;
 pub mod tool_box;
