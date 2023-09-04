@@ -20,13 +20,14 @@ use ndshape::{ConstShape, ConstShape3u32};
 use crate::{
     common::ClipSpheres,
     server::message_def::{chunk_result::ChunkResult, ServerChannel},
-    tools::get_empty_chunk,
+    tools::get_all_v_chunk,
     voxel_world::{
         chunk::{
             find_chunk_keys_array_by_shpere_y_0, generate_offset_resoure,
             generate_offset_resoure_min_1, ChunkKey, NeighbourOffest,
         },
         chunk_map::ChunkMap,
+        compress::uncompress,
         voxel::Voxel,
     },
     CHUNK_SIZE, CHUNK_SIZE_U32, MATERIAL_RON, VIEW_RADIUS,
@@ -165,11 +166,11 @@ pub fn async_chunk_result(
         let chunk_result: ChunkResult = bincode::deserialize(&message).unwrap();
         match chunk_result {
             ChunkResult::ChunkData { key, data } => {
-                let task = pool.spawn(async move { (key, data) });
+                let task = pool.spawn(async move { (key, uncompress(&data.0, data.1)) });
                 chunk_sync_task.tasks.push(task);
             }
-            ChunkResult::ChunkEmpty(key) => {
-                let task = pool.spawn(async move { (key, get_empty_chunk()) });
+            ChunkResult::ChunkSame((key, voxel)) => {
+                let task = pool.spawn(async move { (key, get_all_v_chunk(voxel)) });
                 chunk_sync_task.tasks.push(task);
             }
             ChunkResult::ChunkUpdateOne {
@@ -260,15 +261,16 @@ pub fn update_mesh(
     let volexs: Vec<Voxel> = chunk_map.get_with_neighbor_full_y(chunk_key_y0);
     match gen_mesh(volexs.to_owned(), material_config.clone()) {
         Some(render_mesh) => {
-            let mesh_handle = mesh_manager.mesh_storge.get(&chunk_key_y0).unwrap();
-            if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
-                // 更新AABB
-                if let Some(entity) = mesh_manager.entities.get(&chunk_key_y0) {
-                    if let Some(aabb) = render_mesh.compute_aabb() {
-                        commands.entity(*entity).insert(aabb);
+            if let Some(mesh_handle) = mesh_manager.mesh_storge.get(&chunk_key_y0) {
+                if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                    // 更新AABB
+                    if let Some(entity) = mesh_manager.entities.get(&chunk_key_y0) {
+                        if let Some(aabb) = render_mesh.compute_aabb() {
+                            commands.entity(*entity).insert(aabb);
+                        }
                     }
+                    *mesh = render_mesh;
                 }
-                *mesh = render_mesh;
             }
             // 没有生成mesh就不管反正后面要生成
         }
@@ -281,14 +283,15 @@ pub fn update_mesh(
     };
     match gen_mesh_water(pick_water(volexs), material_config) {
         Some(water_mesh) => {
-            let mesh_handle = mesh_manager.water_mesh_storge.get(&chunk_key_y0).unwrap();
-            if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
-                if let Some(entity) = mesh_manager.water_entities.get(&chunk_key_y0) {
-                    if let Some(aabb) = water_mesh.compute_aabb() {
-                        commands.entity(*entity).insert(aabb);
+            if let Some(mesh_handle) = mesh_manager.water_mesh_storge.get(&chunk_key_y0) {
+                if let Some(mesh) = mesh_assets.get_mut(mesh_handle) {
+                    if let Some(entity) = mesh_manager.water_entities.get(&chunk_key_y0) {
+                        if let Some(aabb) = water_mesh.compute_aabb() {
+                            commands.entity(*entity).insert(aabb);
+                        }
                     }
+                    *mesh = water_mesh;
                 }
-                *mesh = water_mesh;
             }
         }
         None => {
@@ -468,10 +471,11 @@ fn cycle_check_mesh(
             let now: Instant = Instant::now();
             let duration: Duration = now - *instant;
             // 每2s检查一下五秒内没有加载好的数据
-            if !state && duration.as_millis() > 5 * 1000 && need_keys.contains(key) {
+            if !state && duration.as_millis() > 10 * 1000 && need_keys.contains(key) {
                 println!("超时重新请求chunkkey{:?}", key);
+                // TODO: 这可以检查具体少什么数据？
                 let message = bincode::serialize(&ChunkQuery::GetFullY(*key)).unwrap();
-                // todo 对边缘数据不处理！
+                // 对边缘数据不处理！
                 client.send_message(ClientChannel::ChunkQuery, message);
             }
             if duration.as_millis() > 5 * 1000

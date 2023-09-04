@@ -42,6 +42,7 @@ egui-notify = "0.8.0"
 rand = "0.8.5"
 seldom_state = "0.7.0"
 bevy_sprite3d = "2.5.0"
+bit-vec = { version = "0.6", features = ["serde"] }
 # 解决依赖冲突
 num-rational = "^0.4.1"
 fxhash = "^0.2.1"
@@ -49,6 +50,9 @@ simba = "^0.8"
 bevy_mod_billboard = "0.4.0"
 notify = "6.1.1"
 egui_extras = "0.22.0"
+huffman-compress = { git = "https://github.com/zzhgithub/rust-huffman-compress", branch = "features-serde", features = [
+    "serde",
+] }
 
 
 [profile.dev.package.bevy_rapier3d]

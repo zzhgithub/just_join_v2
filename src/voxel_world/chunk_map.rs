@@ -25,8 +25,9 @@ impl ChunkMap {
         let nx = &IVec3::new(-1, 0, 0);
         let pz = &IVec3::new(0, 0, 1);
         let nz = &IVec3::new(0, 0, -1);
+        let n_self = &IVec3::new(0, 0, 0);
 
-        let offsets = [px, nx, pz, nz];
+        let offsets = [px, nx, pz, nz, n_self];
         let last_inex = -128 / CHUNK_SIZE + 1;
 
         for y_offset in last_inex..=128 / CHUNK_SIZE {

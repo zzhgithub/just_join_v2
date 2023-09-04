@@ -9,10 +9,10 @@ use crate::{
     client::message_def::{chunk_query::ChunkQuery, ClientChannel},
     server::{message_def::ServerChannel, object_filing::put_object::put_object},
     staff::StaffInfoStroge,
-    tools::all_empty,
     voxel_world::{
         chunk::ChunkKey,
         chunk_map::ChunkMap,
+        compress::compress,
         map_database::{DbSaveTasks, MapDataBase},
         player_state::PlayerOntimeState,
         voxel::{BasicStone, Voxel, VoxelMaterial},
@@ -65,12 +65,14 @@ pub fn deal_chunk_query_system(
                         } else {
                             voxels = db.find_by_chunk_key(new_key, db_save_task.as_mut());
                         }
-                        let message = if all_empty(&voxels) {
-                            bincode::serialize(&ChunkResult::ChunkEmpty(new_key)).unwrap()
+                        let (buffer, tree) = compress(voxels.clone());
+                        let message = if buffer.len() == 0 {
+                            bincode::serialize(&ChunkResult::ChunkSame((new_key, voxels[0])))
+                                .unwrap()
                         } else {
                             bincode::serialize(&ChunkResult::ChunkData {
                                 key: new_key,
-                                data: voxels.clone(),
+                                data: (buffer, tree),
                             })
                             .unwrap()
                         };
