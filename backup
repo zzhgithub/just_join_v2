@@ -2,4 +2,8 @@
 Lz4压缩解压 https://crates.io/crates/lz4
 其他人的地形实现 https://github.com/jameshiew/infinigen
 粒子系统 https://crates.io/crates/bevy_hanabi
-非欧几何 https://github.com/finegeometer/non-euclidean-bevy-experiment
+非欧几何 https://github.com/finegeometer/non-euclidean-bevy-experiment (暂时不可用)
+mesh周围添加外边框 https://github.com/komadori/bevy_mod_outline
+视觉特效包 https://github.com/torsteingrindvik/bevy-vfx-bag (暂时没有更新到0.11.0)
+草的mesh 生成https://github.com/EmiOnGit/warbler_grass
+3d的2D精灵 https://github.com/FraserLee/bevy_sprite3d

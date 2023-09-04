@@ -13,5 +13,6 @@ pub enum ChunkQuery {
         pos: [u32; 3],
         voxel_type: Voxel,
         center: Vec3,
+        active_index: Option<usize>,
     },
 }

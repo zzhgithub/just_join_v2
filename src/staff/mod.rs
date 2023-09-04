@@ -1,12 +1,17 @@
 use bevy::{
     prelude::{
-        warn, App, AssetServer, Handle, Image, IntoSystemConfigs, Plugin, Res, ResMut, Resource,
-        Startup, SystemSet,
+        error, warn, App, AssetServer, Handle, Image, IntoSystemConfigs, Plugin, Res, ResMut,
+        Resource, Startup, SystemSet,
     },
     utils::HashMap,
 };
+use serde::{Deserialize, Serialize};
 
-use crate::voxel_world::voxel::{Grass, Sand, Soli, Sown, Stone, Voxel, VoxelMaterial};
+use crate::voxel_world::voxel::Voxel;
+
+use self::rule::StaffRulePlugin;
+
+pub mod rule;
 
 #[derive(Debug, Clone)]
 pub struct Staff {
@@ -20,7 +25,7 @@ pub struct Staff {
     pub staff_type: StaffType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StaffType {
     // 体素方块
     Voxel(Voxel),
@@ -67,6 +72,7 @@ pub struct StaffInfoPlugin;
 
 impl Plugin for StaffInfoPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(StaffRulePlugin);
         app.insert_resource(StaffInfoStroge {
             data: HashMap::default(),
             voxel_staff: HashMap::default(),
@@ -76,42 +82,14 @@ impl Plugin for StaffInfoPlugin {
 }
 
 fn setup(mut storge: ResMut<StaffInfoStroge>, asset_server: Res<AssetServer>) {
-    storge.register(Staff {
-        id: 0,
-        name: String::from("Stone"),
-        icon: asset_server.load("textures/002.png"),
-        staff_type: StaffType::Voxel(Stone::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 1,
-        name: String::from("Grass"),
-        icon: asset_server.load("textures/草坪.png"),
-        staff_type: StaffType::Voxel(Grass::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 2,
-        name: String::from("Soli"),
-        icon: asset_server.load("textures/003.png"),
-        staff_type: StaffType::Voxel(Soli::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 3,
-        name: String::from("Sand"),
-        icon: asset_server.load("textures/沙子.png"),
-        staff_type: StaffType::Voxel(Sand::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 4,
-        name: String::from("Sown"),
-        icon: asset_server.load("textures/雪.png"),
-        staff_type: StaffType::Voxel(Sown::into_voxel()),
-    });
+    load_staff_configs(String::from("staff.ron"), &mut storge, Some(&asset_server));
 }
 
 pub struct ServerStaffInfoPlugin;
 
 impl Plugin for ServerStaffInfoPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(StaffRulePlugin);
         app.insert_resource(StaffInfoStroge {
             data: HashMap::default(),
             voxel_staff: HashMap::default(),
@@ -121,34 +99,51 @@ impl Plugin for ServerStaffInfoPlugin {
 }
 
 fn server_setup(mut storge: ResMut<StaffInfoStroge>) {
-    storge.register(Staff {
-        id: 0,
-        name: String::from("Stone"),
-        icon: Handle::default(),
-        staff_type: StaffType::Voxel(Stone::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 1,
-        name: String::from("Grass"),
-        icon: Handle::default(),
-        staff_type: StaffType::Voxel(Grass::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 2,
-        name: String::from("Soli"),
-        icon: Handle::default(),
-        staff_type: StaffType::Voxel(Soli::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 3,
-        name: String::from("Sand"),
-        icon: Handle::default(),
-        staff_type: StaffType::Voxel(Sand::into_voxel()),
-    });
-    storge.register(Staff {
-        id: 4,
-        name: String::from("Sown"),
-        icon: Handle::default(),
-        staff_type: StaffType::Voxel(Sown::into_voxel()),
-    });
+    load_staff_configs(String::from("staff.ron"), &mut storge, None);
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StaffMeta {
+    id: usize,
+    name: String,
+    icon_string: String,
+    staff_type: StaffType,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StaffConfigs {
+    pub configs: Vec<StaffMeta>,
+}
+
+fn load_staff_configs(
+    path: String,
+    staff_info_stroge: &mut StaffInfoStroge,
+    asset_server: Option<&AssetServer>,
+) {
+    // 加载文件到数据
+    match std::fs::File::open(path) {
+        Ok(file) => {
+            let res: StaffConfigs = ron::de::from_reader(file).unwrap();
+            for mate in res.configs {
+                if let Some(asset_server) = asset_server {
+                    staff_info_stroge.register(Staff {
+                        id: mate.id,
+                        name: mate.name,
+                        icon: asset_server.load(mate.icon_string),
+                        staff_type: mate.staff_type,
+                    });
+                } else {
+                    staff_info_stroge.register(Staff {
+                        id: mate.id,
+                        name: mate.name,
+                        icon: Handle::default(),
+                        staff_type: mate.staff_type,
+                    });
+                }
+            }
+        }
+        Err(_) => {
+            error!("读取Staff配置数据失败");
+        }
+    }
 }

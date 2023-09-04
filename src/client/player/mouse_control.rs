@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        in_state, Event, EventReader, EventWriter, IVec3, Input, IntoSystemConfigs, MouseButton,
-        Plugin, Res, ResMut, Resource, Update, Vec3,
+        in_state, warn, Event, EventReader, EventWriter, IVec3, Input, IntoSystemConfigs,
+        MouseButton, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3,
     },
     time::{Time, Timer, TimerMode},
 };
@@ -14,7 +14,8 @@ use crate::{
         state_manager::GameState,
         ui::tool_bar::ToolBar,
     },
-    tools::vec3_to_chunk_key_any_xyz,
+    server::player::Player,
+    tools::{vec3_to_chunk_key_any_xyz, zone::check_player_put_object_available},
     voxel_world::{chunk::ChunkKey, voxel::Voxel},
 };
 
@@ -68,6 +69,7 @@ pub fn deal_broken_cube_event(
             pos: event.xyz,
             voxel_type: Voxel::EMPTY,
             center: event.center,
+            active_index: None,
         })
         .unwrap();
         client.send_message(ClientChannel::ChunkQuery, message);
@@ -82,6 +84,7 @@ pub fn mouse_button_system(
     mut client: ResMut<RenetClient>,
     tool_bar_data: Res<ToolBar>,
     mut attack_timer: ResMut<AttackTimer>,
+    player_query: Query<(&Player, &Transform)>,
 ) {
     if !controller_flag.flag {
         // println!("3:{}", controller_flag.flag);
@@ -134,15 +137,22 @@ pub fn mouse_button_system(
     if mouse_button_input.just_pressed(MouseButton::Right) {
         if let Some(crate::staff::StaffType::Voxel(voxel_type)) = tool_bar_data.staff_type() {
             if let Some(pos) = choose_cube.out_center {
-                let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(pos);
-                let message = bincode::serialize(&ChunkQuery::Change {
-                    chunk_key,
-                    pos: xyz,
-                    voxel_type,
-                    center: pos,
-                })
-                .unwrap();
-                client.send_message(ClientChannel::ChunkQuery, message);
+                // 判断当前这里是否和 其他的player的位置冲突
+                if check_player_put_object_available(pos.clone(), &player_query) {
+                    // 还要发送当前生效的 tool_bar的 index
+                    let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(pos);
+                    let message = bincode::serialize(&ChunkQuery::Change {
+                        chunk_key,
+                        pos: xyz,
+                        voxel_type,
+                        center: pos,
+                        active_index: Some(tool_bar_data.active_index),
+                    })
+                    .unwrap();
+                    client.send_message(ClientChannel::ChunkQuery, message);
+                } else {
+                    warn!("放置物体时有其他的玩家");
+                }
             }
         }
 

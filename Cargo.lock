@@ -1095,6 +1095,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_sprite3d"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11776a0721936f8b88e1d3ddacbbb1fa4da0c4c2412164bee03f1b0c49586536"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_tasks"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1876,6 +1885,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22f619cda4ecc25316c0885b53fbf6801e157b00ba343a9ad1dc112fa2ee0ec9"
 dependencies = [
  "egui",
+]
+
+[[package]]
+name = "egui_extras"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9278f4337b526f0d57e5375e5a7340a311fa6ee8f9fcc75721ac50af13face02"
+dependencies = [
+ "egui",
+ "serde",
 ]
 
 [[package]]
@@ -2682,11 +2701,13 @@ dependencies = [
  "bevy_mod_raycast",
  "bevy_rapier3d",
  "bevy_renet",
+ "bevy_sprite3d",
  "bincode",
  "block-mesh",
  "clap 4.1.10",
  "codespan-reporting",
  "egui-notify",
+ "egui_extras",
  "futures-lite",
  "fxhash",
  "inotify",
