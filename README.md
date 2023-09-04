@@ -26,6 +26,8 @@ cargo run --release --bin client
 - Space - Jump
 - ESC - toggle grab cursor
 - T - toggle One/Thrid Person
+- E Open composite rules list
+- Q throw active toolbar object
 
 # Feature List
 - [x] Load unlimited maps
