@@ -20,13 +20,14 @@ use ndshape::{ConstShape, ConstShape3u32};
 use crate::{
     common::ClipSpheres,
     server::message_def::{chunk_result::ChunkResult, ServerChannel},
-    tools::get_empty_chunk,
+    tools::get_all_v_chunk,
     voxel_world::{
         chunk::{
             find_chunk_keys_array_by_shpere_y_0, generate_offset_resoure,
             generate_offset_resoure_min_1, ChunkKey, NeighbourOffest,
         },
         chunk_map::ChunkMap,
+        compress::uncompress,
         voxel::Voxel,
     },
     CHUNK_SIZE, CHUNK_SIZE_U32, MATERIAL_RON, VIEW_RADIUS,
@@ -165,11 +166,11 @@ pub fn async_chunk_result(
         let chunk_result: ChunkResult = bincode::deserialize(&message).unwrap();
         match chunk_result {
             ChunkResult::ChunkData { key, data } => {
-                let task = pool.spawn(async move { (key, data) });
+                let task = pool.spawn(async move { (key, uncompress(&data.0, data.1)) });
                 chunk_sync_task.tasks.push(task);
             }
-            ChunkResult::ChunkEmpty(key) => {
-                let task = pool.spawn(async move { (key, get_empty_chunk()) });
+            ChunkResult::ChunkSame((key, voxel)) => {
+                let task = pool.spawn(async move { (key, get_all_v_chunk(voxel)) });
                 chunk_sync_task.tasks.push(task);
             }
             ChunkResult::ChunkUpdateOne {

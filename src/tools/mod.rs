@@ -36,6 +36,19 @@ pub fn get_empty_chunk() -> Vec<Voxel> {
 }
 
 /**
+ * 获取完全空的区块数据
+ * Get all empty chunk data
+ */
+pub fn get_all_v_chunk(voxel: Voxel) -> Vec<Voxel> {
+    let mut voxels = Vec::new();
+    type SampleShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
+    for _ in 0..SampleShape::SIZE {
+        voxels.push(voxel.clone());
+    }
+    voxels
+}
+
+/**
  * 获取cube中心点 属于的 chunkKey和x y z坐标
  */
 pub fn vec3_to_chunk_key_any_xyz(pos: Vec3) -> (ChunkKey, [u32; 3]) {
