@@ -41,6 +41,7 @@ clap = { version = "=4.1.10", features = ["derive"] }
 egui-notify = "0.8.0"
 rand = "0.8.5"
 seldom_state = "0.7.0"
+bevy_sprite3d = "2.5.0"
 # 解决依赖冲突
 num-rational = "^0.4.1"
 fxhash = "^0.2.1"

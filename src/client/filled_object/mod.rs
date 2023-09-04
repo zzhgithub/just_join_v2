@@ -3,14 +3,14 @@ use std::f32::consts::TAU;
 use ahash::HashSet;
 use bevy::{
     prelude::{
-        in_state, Assets, Color, Commands, Component, Entity, Gizmos, IntoSystemConfigs,
-        MaterialMeshBundle, Mesh, Plugin, Query, Res, ResMut, Resource, Transform, Update,
-        Vec3,
+        in_state, Color, Commands, Component, Entity, Gizmos, IntoSystemConfigs,
+        MaterialMeshBundle, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3,
     },
     time::Time,
     utils::HashMap,
 };
 use bevy_renet::renet::RenetClient;
+use bevy_sprite3d::{Sprite3d, Sprite3dParams};
 
 use crate::{
     server::message_def::{filled_object_message::FilledObjectMessage, ServerChannel},
@@ -71,8 +71,9 @@ fn sync_filled_objects(
     staff_info_stroge: Res<StaffInfoStroge>,
     materials: Res<MaterialStorge>,
     material_config: Res<MaterailConfiguration>,
-    mut mesh_assets: ResMut<Assets<Mesh>>,
+    // mut mesh_assets: ResMut<Assets<Mesh>>,
     mut query: Query<(Entity, &FilledObjectCommpent, &mut Transform)>,
+    mut sprite_params: Sprite3dParams,
 ) {
     while let Some(message) = client.receive_message(ServerChannel::FilledObjectMessage) {
         let message: FilledObjectMessage = bincode::deserialize(&message).unwrap();
@@ -100,7 +101,7 @@ fn sync_filled_objects(
                                         if let Some(render_mesh) =
                                             gen_one_volex_mesh(voxel, material_config.clone())
                                         {
-                                            let mesh_handle = mesh_assets.add(render_mesh);
+                                            let mesh_handle = sprite_params.meshes.add(render_mesh);
                                             let client_entity = commands
                                                 .spawn(MaterialMeshBundle {
                                                     transform: Transform {
@@ -121,7 +122,30 @@ fn sync_filled_objects(
                                                 .insert(server_entity.clone(), client_entity);
                                         }
                                     }
-                                    _ => {}
+                                    _ => {
+                                        // 生成贴图数据
+                                        let client_entity = commands
+                                            .spawn(
+                                                Sprite3d {
+                                                    image: staff.icon,
+                                                    pixels_per_metre: 400.,
+                                                    partial_alpha: true,
+                                                    unlit: true,
+                                                    transform: Transform::from_xyz(
+                                                        pos[0], pos[1], pos[2],
+                                                    ),
+                                                    double_sided: true,
+                                                    // pivot: Some(Vec2::new(0.5, 0.5)),
+                                                    ..Default::default()
+                                                }
+                                                .bundle(&mut sprite_params),
+                                            )
+                                            .insert(FilledObjectCommpent)
+                                            .id();
+                                        filled_object_pool
+                                            .entities_map
+                                            .insert(server_entity.clone(), client_entity);
+                                    }
                                 }
                             }
                         }

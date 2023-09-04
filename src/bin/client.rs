@@ -7,6 +7,7 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
+use bevy_sprite3d::Sprite3dPlugin;
 use just_join::{
     client::{
         debug::ClientDebugPlugin,
@@ -38,6 +39,7 @@ fn main() {
     app.add_plugins(EguiPlugin);
     app.add_plugins(StaffInfoPlugin);
     app.add_plugins(UiResourcePlugin);
+    app.add_plugins(Sprite3dPlugin);
 
     app.add_plugins((SplashPlugin, MenuPlugin, NotificationPlugin, GamePlugin));
     // 调试工具
