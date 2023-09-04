@@ -471,10 +471,11 @@ fn cycle_check_mesh(
             let now: Instant = Instant::now();
             let duration: Duration = now - *instant;
             // 每2s检查一下五秒内没有加载好的数据
-            if !state && duration.as_millis() > 5 * 1000 && need_keys.contains(key) {
+            if !state && duration.as_millis() > 10 * 1000 && need_keys.contains(key) {
                 println!("超时重新请求chunkkey{:?}", key);
+                // TODO: 这可以检查具体少什么数据？
                 let message = bincode::serialize(&ChunkQuery::GetFullY(*key)).unwrap();
-                // todo 对边缘数据不处理！
+                // 对边缘数据不处理！
                 client.send_message(ClientChannel::ChunkQuery, message);
             }
             if duration.as_millis() > 5 * 1000
