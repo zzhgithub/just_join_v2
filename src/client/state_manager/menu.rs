@@ -1,15 +1,17 @@
-use std::time::Duration;
-use bevy_easy_localize::Localize;
 use bevy::{
     app::AppExit,
     prelude::{
         in_state, Entity, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, Query, Res,
-        ResMut, Resource, States,Startup, Update, With,
+        ResMut, Resource, States, Update, With,
     },
     window::{PrimaryWindow, Window},
 };
+use bevy_easy_localize::Localize;
 use bevy_egui::{egui, EguiContext, EguiContexts, EguiUserTextures};
+use std::time::Duration;
 
+use super::ENGLISH;
+use super::{notification::Notification, ConnectionAddr, GameState};
 use crate::{
     client::ui::{
         test::toggle_ui,
@@ -21,8 +23,6 @@ use crate::{
     tools::string::{is_port, is_valid_server_address},
     CLIENT_DEBUG,
 };
-use super::{CHINESE,ENGLISH};
-use super::{notification::Notification, ConnectionAddr, GameState};
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum MenuState {
@@ -41,7 +41,6 @@ impl Plugin for MenuPlugin {
         app.insert_resource(TestResource::default());
         app.insert_resource(ToolBar::default());
         app.add_systems(OnEnter(GameState::Menu), setup);
-        app.add_systems(Startup,setting_language);
         app.add_systems(Update, menu_main.run_if(in_state(MenuState::Main)));
         app.add_systems(Update, test.run_if(in_state(MenuState::Test)));
         app.add_systems(
@@ -70,8 +69,8 @@ fn menu_multiplayer(
 
         ui.label("Nickname:");
         ui.text_edit_singleline(&mut connection_addr.nickname);
-        if ui.button("切换语言测试").clicked(){
-           localize.set_language(ENGLISH);
+        if ui.button("切换语言测试").clicked() {
+            localize.set_language(ENGLISH);
         }
         if ui.button(localize.get("开始")).clicked() {
             // 这开始游戏相关数据
@@ -114,7 +113,6 @@ fn menu_multiplayer(
 
 // 游戏主界面
 fn menu_main(
-    
     mut contexts: EguiContexts,
     mut app_exit_events: EventWriter<AppExit>,
     mut menu_state: ResMut<NextState<MenuState>>,
@@ -196,8 +194,4 @@ fn test(
             });
         }
     }
-}
-//setting of switch the lanuguage
-fn setting_language(mut localize: ResMut<Localize>) {
-    localize.set_language(CHINESE)
 }

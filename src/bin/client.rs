@@ -1,11 +1,13 @@
+use std::time::Duration;
+
 use bevy::{
+    asset::ChangeWatcher,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{App, PluginGroup, Update},
+    prelude::{App, AssetPlugin, PluginGroup, ResMut, Startup, Update},
     window::{ExitCondition, WindowPlugin},
     DefaultPlugins,
 };
-use std::fs::read_to_string;
-use bevy_easy_localize::Localize;
+use bevy_easy_localize::{Localize, LocalizePlugin};
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
@@ -15,7 +17,7 @@ use just_join::{
         debug::ClientDebugPlugin,
         state_manager::{
             game::GamePlugin, menu::MenuPlugin, notification::NotificationPlugin,
-            splash::SplashPlugin, ConnectionAddr, GameState,
+            splash::SplashPlugin, ConnectionAddr, GameState, CHINESE,
         },
         ui::UiResourcePlugin,
     },
@@ -23,7 +25,6 @@ use just_join::{
     tools::inspector_egui::inspector_ui,
     CLIENT_DEBUG, CLIENT_FPS,
 };
-
 fn main() {
     let mut app = App::new();
     app.add_plugins(WindowPlugin {
@@ -31,12 +32,19 @@ fn main() {
         close_when_requested: false,
         ..Default::default()
     });
-    app.add_plugins(DefaultPlugins.build().disable::<WindowPlugin>());
+    app.add_plugins(
+        DefaultPlugins
+            .set(AssetPlugin {
+                watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
+                ..Default::default()
+            })
+            .build()
+            .disable::<WindowPlugin>(),
+    );
     app.add_state::<GameState>();
     app.insert_resource(ConnectionAddr::default());
-    app.insert_resource(Localize::from_data(
-        &read_to_string("assets/translation.csv").unwrap(),
-    ));
+    app.add_plugins(LocalizePlugin);
+    app.insert_resource(Localize::from_asset_path("translation.csv"));
     app.add_plugins(BillboardPlugin);
     app.add_plugins(RenetClientPlugin);
     app.add_plugins(NetcodeClientPlugin);
@@ -59,5 +67,12 @@ fn main() {
             LogDiagnosticsPlugin::default(),
         ));
     }
+    app.add_systems(Startup, setting_language);
     app.run();
+}
+
+//setting of switch the lanuguage
+fn setting_language(mut localize: ResMut<Localize>) {
+    localize.set_language(CHINESE);
+    println!("开始是:{}", localize.get("开始"));
 }
