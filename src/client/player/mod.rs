@@ -24,7 +24,7 @@ pub mod mouse_control;
 pub mod player_input;
 pub mod throw_system;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PlayerInfo {
     // 客户端 实体
     pub client_entity: Entity,
