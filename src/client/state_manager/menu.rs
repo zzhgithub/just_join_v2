@@ -3,10 +3,10 @@ use std::time::Duration;
 use bevy::{
     app::AppExit,
     prelude::{
-        in_state, Entity, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, Query, Res,
-        ResMut, Resource, States, Update, With,
+        in_state, not, Entity, EventReader, EventWriter, IntoSystemConfigs, NextState, OnEnter,
+        Plugin, Query, Res, ResMut, Resource, States, Update, With,
     },
-    window::{PrimaryWindow, Window},
+    window::{PrimaryWindow, Window, WindowCloseRequested},
 };
 use bevy_egui::{egui, EguiContext, EguiContexts, EguiUserTextures};
 
@@ -46,6 +46,11 @@ impl Plugin for MenuPlugin {
         app.add_systems(
             Update,
             menu_multiplayer.run_if(in_state(MenuState::Multiplayer)),
+        );
+
+        app.add_systems(
+            Update,
+            disconnect_on_close_without_connected.run_if(not(in_state(GameState::Game))),
         );
     }
 }
@@ -190,5 +195,14 @@ fn test(
                 }
             });
         }
+    }
+}
+
+fn disconnect_on_close_without_connected(
+    mut exit: EventWriter<AppExit>,
+    mut closed: EventReader<WindowCloseRequested>,
+) {
+    for _ in closed.iter() {
+        exit.send(AppExit);
     }
 }
