@@ -11,11 +11,14 @@ use bevy::{
 use bevy_egui::{egui, EguiContext, EguiContexts, EguiUserTextures};
 
 use crate::{
-    client::ui::{
-        test::toggle_ui,
-        tool_bar::{tool_bar, ToolBar},
-        tool_box::tool_box,
-        UiPicResourceManager,
+    client::{
+        player::controller::back_grab_cursor,
+        ui::{
+            test::toggle_ui,
+            tool_bar::{tool_bar, ToolBar},
+            tool_box::tool_box,
+            UiPicResourceManager,
+        },
     },
     staff::StaffInfoStroge,
     tools::string::{is_port, is_valid_server_address},
@@ -40,7 +43,7 @@ impl Plugin for MenuPlugin {
         app.add_state::<MenuState>();
         app.insert_resource(TestResource::default());
         app.insert_resource(ToolBar::default());
-        app.add_systems(OnEnter(GameState::Menu), setup);
+        app.add_systems(OnEnter(GameState::Menu), (setup, back_grab_cursor));
         app.add_systems(Update, menu_main.run_if(in_state(MenuState::Main)));
         app.add_systems(Update, test.run_if(in_state(MenuState::Test)));
         app.add_systems(

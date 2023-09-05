@@ -27,6 +27,7 @@ use self::{
 
 pub mod async_chunk;
 pub mod chunk;
+pub mod cross_through_check;
 pub mod message_def;
 pub mod object_filing;
 pub mod player;
