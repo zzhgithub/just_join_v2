@@ -1,10 +1,10 @@
 use std::time::Duration;
-
+use bevy_easy_localize::Localize;
 use bevy::{
     app::AppExit,
     prelude::{
         in_state, Entity, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, Query, Res,
-        ResMut, Resource, States, Update, With,
+        ResMut, Resource, States,Startup, Update, With,
     },
     window::{PrimaryWindow, Window},
 };
@@ -21,7 +21,7 @@ use crate::{
     tools::string::{is_port, is_valid_server_address},
     CLIENT_DEBUG,
 };
-
+use super::{CHINESE,ENGLISH};
 use super::{notification::Notification, ConnectionAddr, GameState};
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
@@ -41,6 +41,7 @@ impl Plugin for MenuPlugin {
         app.insert_resource(TestResource::default());
         app.insert_resource(ToolBar::default());
         app.add_systems(OnEnter(GameState::Menu), setup);
+        app.add_systems(Startup,setting_language);
         app.add_systems(Update, menu_main.run_if(in_state(MenuState::Main)));
         app.add_systems(Update, test.run_if(in_state(MenuState::Test)));
         app.add_systems(
@@ -51,6 +52,7 @@ impl Plugin for MenuPlugin {
 }
 
 fn menu_multiplayer(
+    mut localize: ResMut<Localize>,
     mut contexts: EguiContexts,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut connection_addr: ResMut<ConnectionAddr>,
@@ -59,7 +61,7 @@ fn menu_multiplayer(
 ) {
     let ctx = contexts.ctx_mut();
     egui::CentralPanel::default().show(ctx, |ui| {
-        ui.heading("Multiplayer");
+        ui.heading("多人游戏");
         ui.label("Server:");
         ui.text_edit_singleline(&mut connection_addr.server);
 
@@ -68,8 +70,10 @@ fn menu_multiplayer(
 
         ui.label("Nickname:");
         ui.text_edit_singleline(&mut connection_addr.nickname);
-
-        if ui.button("开始").clicked() {
+        if ui.button("切换语言测试").clicked(){
+           localize.set_language(ENGLISH);
+        }
+        if ui.button(localize.get("开始")).clicked() {
             // 这开始游戏相关数据
             if connection_addr.server.is_empty() {
                 notification
@@ -95,7 +99,7 @@ fn menu_multiplayer(
             } else {
                 notification
                     .toasts
-                    .info("进入服务器")
+                    .info(localize.get("进入服务器"))
                     .set_duration(Some(Duration::from_secs(5)));
                 menu_state.set(MenuState::Disabled);
                 game_state.set(GameState::Game);
@@ -110,6 +114,7 @@ fn menu_multiplayer(
 
 // 游戏主界面
 fn menu_main(
+    
     mut contexts: EguiContexts,
     mut app_exit_events: EventWriter<AppExit>,
     mut menu_state: ResMut<NextState<MenuState>>,
@@ -191,4 +196,8 @@ fn test(
             });
         }
     }
+}
+//setting of switch the lanuguage
+fn setting_language(mut localize: ResMut<Localize>) {
+    localize.set_language(CHINESE)
 }

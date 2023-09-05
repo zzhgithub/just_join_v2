@@ -4,6 +4,8 @@ use bevy::{
     window::{ExitCondition, WindowPlugin},
     DefaultPlugins,
 };
+use std::fs::read_to_string;
+use bevy_easy_localize::Localize;
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
@@ -32,7 +34,9 @@ fn main() {
     app.add_plugins(DefaultPlugins.build().disable::<WindowPlugin>());
     app.add_state::<GameState>();
     app.insert_resource(ConnectionAddr::default());
-
+    app.insert_resource(Localize::from_data(
+        &read_to_string("assets/translation.csv").unwrap(),
+    ));
     app.add_plugins(BillboardPlugin);
     app.add_plugins(RenetClientPlugin);
     app.add_plugins(NetcodeClientPlugin);

@@ -85,3 +85,6 @@ pub fn new_renet_client(connection_addr: ConnectionAddr) -> (RenetClient, Netcod
 
     (client, transport)
 }
+
+pub const CHINESE:&str="Chinese";
+pub const ENGLISH:&str="English";
