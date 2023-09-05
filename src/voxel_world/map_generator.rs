@@ -5,7 +5,10 @@ use noise::utils::NoiseMapBuilder;
 use simdnoise::NoiseBuilder;
 
 use crate::{
-    voxel_world::voxel::{BasicStone, Grass, Sand, Soli, Sown, Stone, VoxelMaterial, Water},
+    voxel_world::{
+        biomes::biomes_generate,
+        voxel::{BasicStone, Grass, Sand, Soli, Sown, Stone, VoxelMaterial, Water},
+    },
     CHUNK_SIZE, CHUNK_SIZE_U32,
 };
 
@@ -22,17 +25,21 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
     let noise = noise2d(chunk_key, seed);
     let noise2 = noise2d_ridge(chunk_key, seed);
 
+    // 表面 索引
+    let mut suface_index: Vec<u32> = Vec::new();
+
     for i in 0..SampleShape::SIZE {
         let [x, y, z] = SampleShape::delinearize(i);
-        // let p_x = base_x + x as f32;
         let p_y = base_y + y as f32;
-        // let p_z = base_z + z as f32;
-
         let h = -60.;
-        // println!("({},{})", h, p_y);
         let index = PanleShap::linearize([x, z]);
         let top = h + fn_height(noise[index as usize]) + noise2[index as usize] * 5.0;
         if p_y <= top {
+            if p_y + 1.0 > top && p_y - 1.0 < top 
+            // 必须大于海平面之上
+            && p_y > -60. + 76. {
+                suface_index.push(i);
+            }
             if p_y >= -60. + 110. {
                 voxels.push(Sown::into_voxel());
                 continue;
@@ -70,6 +77,9 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
             voxels[i as usize] = Water::into_voxel();
         }
     }
+
+    // 处理不同群落
+    biomes_generate(chunk_key, seed, suface_index, &mut voxels);
 
     //生成 沙子
     if water_flag {
