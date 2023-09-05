@@ -21,6 +21,7 @@ use seldom_state::{
 
 use crate::{
     server::{
+        cross_through_check::CossTroughCheck,
         message_def::{tool_bar_message::ToolBarMessage, ServerChannel},
         player::Player,
     },
@@ -135,21 +136,25 @@ fn load_up_state_machine(
     query: Query<(Entity, &FilledObject), (Without<StateMachine>, Without<ThrowObject>)>,
 ) {
     for (entity, _) in query.iter() {
-        commands.entity(entity).insert(Idle).insert(
-            StateMachine::default()
-                .trans_builder(Near { range: NEAR_RANGE }, |_: &Idle, entity: Entity| {
-                    Some(Follow {
-                        target: entity,
-                        speed: PICK_SPEED,
+        commands
+            .entity(entity)
+            .insert(CossTroughCheck)
+            .insert(Idle)
+            .insert(
+                StateMachine::default()
+                    .trans_builder(Near { range: NEAR_RANGE }, |_: &Idle, entity: Entity| {
+                        Some(Follow {
+                            target: entity,
+                            speed: PICK_SPEED,
+                        })
                     })
-                })
-                .trans::<Follow>(Near { range: NEAR_RANGE }.not(), Idle)
-                .trans_builder(CloseTo { range: CLOSE_RANGE }, |follow: &Follow, _| {
-                    Some(Picked {
-                        target: follow.target,
-                    })
-                }),
-        );
+                    .trans::<Follow>(Near { range: NEAR_RANGE }.not(), Idle)
+                    .trans_builder(CloseTo { range: CLOSE_RANGE }, |follow: &Follow, _| {
+                        Some(Picked {
+                            target: follow.target,
+                        })
+                    }),
+            );
     }
 }
 

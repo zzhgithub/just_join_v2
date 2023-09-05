@@ -4,9 +4,9 @@ use bevy::{
     app::AppExit,
     input::mouse::MouseWheel,
     prelude::{
-        in_state, AmbientLight, Commands, Entity, EventReader, EventWriter, Input,
-        IntoSystemConfigs, KeyCode, Local, NextState, OnEnter, Plugin, Query, Res, ResMut, State,
-        States, Update, Vec2, With,
+        in_state, AmbientLight, Commands, DespawnRecursiveExt, Entity, EventReader, EventWriter,
+        Input, IntoSystemConfigs, KeyCode, Local, NextState, OnEnter, OnExit, Plugin, Query, Res,
+        ResMut, State, States, Update, Vec2, With,
     },
     window::{CursorGrabMode, PrimaryWindow, Window, WindowCloseRequested},
 };
@@ -21,8 +21,8 @@ use crate::{
     client::{
         client_sync_players, client_sync_players_state,
         console_commands::ConsoleCommandPlugins,
-        filled_object::ClientFilledObjectnPlugin,
-        mesh_display::ClientMeshPlugin,
+        filled_object::{setdown_filled_object, ClientFilledObjectnPlugin},
+        mesh_display::{mesh_chunk_map_setdown, ClientMeshPlugin},
         player::{
             controller::{CharacterController, CharacterControllerPlugin, ControllerFlag},
             mouse_control::MouseControlPlugin,
@@ -115,13 +115,26 @@ impl Plugin for GamePlugin {
                 .run_if(in_state(GameState::Game))
                 .run_if(bevy_renet::transport::client_just_diconnected()),
         );
+        app.add_systems(
+            OnExit(GameState::Game),
+            (setdown, mesh_chunk_map_setdown, setdown_filled_object),
+        );
     }
+}
+
+fn setdown(mut commands: Commands, mut client_lobby: ResMut<ClientLobby>) {
+    for (_, info) in client_lobby.players.clone() {
+        commands.entity(info.client_entity).despawn_recursive();
+    }
+    // 清空数据
+    *client_lobby.as_mut() = ClientLobby::default();
 }
 
 fn setup(
     mut commands: Commands,
     connection_addr: Res<ConnectionAddr>,
     mut play_state: ResMut<NextState<PlayState>>,
+    mut flags: ResMut<ControllerFlag>,
 ) {
     let (client, transport) = new_renet_client(connection_addr.clone());
     commands.insert_resource(client);
@@ -132,6 +145,8 @@ fn setup(
     });
     commands.insert_resource(ClientLobby::default());
     play_state.set(PlayState::Main);
+    // 重新进入游戏后可以控制
+    flags.flag = true;
 }
 
 // 切换合成公式

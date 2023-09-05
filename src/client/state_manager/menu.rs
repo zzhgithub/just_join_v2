@@ -3,19 +3,22 @@ use std::time::Duration;
 use bevy::{
     app::AppExit,
     prelude::{
-        in_state, Entity, EventWriter, IntoSystemConfigs, NextState, OnEnter, Plugin, Query, Res,
-        ResMut, Resource, States, Update, With,
+        in_state, not, Entity, EventReader, EventWriter, IntoSystemConfigs, NextState, OnEnter,
+        Plugin, Query, Res, ResMut, Resource, States, Update, With,
     },
-    window::{PrimaryWindow, Window},
+    window::{PrimaryWindow, Window, WindowCloseRequested},
 };
 use bevy_egui::{egui, EguiContext, EguiContexts, EguiUserTextures};
 
 use crate::{
-    client::ui::{
-        test::toggle_ui,
-        tool_bar::{tool_bar, ToolBar},
-        tool_box::tool_box,
-        UiPicResourceManager,
+    client::{
+        player::controller::back_grab_cursor,
+        ui::{
+            test::toggle_ui,
+            tool_bar::{tool_bar, ToolBar},
+            tool_box::tool_box,
+            UiPicResourceManager,
+        },
     },
     staff::StaffInfoStroge,
     tools::string::{is_port, is_valid_server_address},
@@ -40,12 +43,17 @@ impl Plugin for MenuPlugin {
         app.add_state::<MenuState>();
         app.insert_resource(TestResource::default());
         app.insert_resource(ToolBar::default());
-        app.add_systems(OnEnter(GameState::Menu), setup);
+        app.add_systems(OnEnter(GameState::Menu), (setup, back_grab_cursor));
         app.add_systems(Update, menu_main.run_if(in_state(MenuState::Main)));
         app.add_systems(Update, test.run_if(in_state(MenuState::Test)));
         app.add_systems(
             Update,
             menu_multiplayer.run_if(in_state(MenuState::Multiplayer)),
+        );
+
+        app.add_systems(
+            Update,
+            disconnect_on_close_without_connected.run_if(not(in_state(GameState::Game))),
         );
     }
 }
@@ -190,5 +198,14 @@ fn test(
                 }
             });
         }
+    }
+}
+
+fn disconnect_on_close_without_connected(
+    mut exit: EventWriter<AppExit>,
+    mut closed: EventReader<WindowCloseRequested>,
+) {
+    for _ in closed.iter() {
+        exit.send(AppExit);
     }
 }

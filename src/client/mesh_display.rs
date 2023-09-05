@@ -488,3 +488,22 @@ fn cycle_check_mesh(
         }
     }
 }
+
+pub fn mesh_chunk_map_setdown(
+    mut commands: Commands,
+    mut mesh_manager: ResMut<MeshManager>,
+    mut chunk_sync_task: ResMut<ChunkSyncTask>,
+    mut chunk_map: ResMut<ChunkMap>,
+    mut chunk_update_task: ResMut<ChunkUpdateTask>,
+) {
+    chunk_update_task.tasks.drain(..);
+    chunk_sync_task.tasks.drain(..);
+    chunk_map.map_data.clear();
+    for (_, entity) in mesh_manager.entities.clone() {
+        commands.entity(entity).despawn();
+    }
+    for (_, entity) in mesh_manager.water_entities.clone() {
+        commands.entity(entity).despawn();
+    }
+    *mesh_manager.as_mut() = MeshManager::default();
+}

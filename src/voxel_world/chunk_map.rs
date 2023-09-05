@@ -20,6 +20,45 @@ impl ChunkMap {
         Self { map_data: data_map }
     }
 
+    // 获取某个位置的方块
+    pub fn get_block(&self, chunk_key: ChunkKey, xyz: [u32; 3]) -> Option<Voxel> {
+        type DataShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
+        let index = DataShape::linearize(xyz) as usize;
+        if let Some(voxels) = self.get(chunk_key) {
+            return Some(voxels[index]);
+        }
+        None
+    }
+
+    // 寻找y轴上最进的数据
+    pub fn find_closest_block_y(
+        &self,
+        chunk_key: ChunkKey,
+        xyz: [u32; 3],
+        id: u8,
+    ) -> Option<(ChunkKey, [u32; 3])> {
+        type DataShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
+        for chunk_y in chunk_key.0.y..=128 / CHUNK_SIZE {
+            let start = if chunk_y == chunk_key.0.y { xyz[1] } else { 0 };
+            let new_chunk_key = ChunkKey(IVec3 {
+                x: chunk_key.0.x,
+                y: chunk_y,
+                z: chunk_key.0.z,
+            });
+            if let Some(chunk_data) = self.get(new_chunk_key) {
+                for y in start..CHUNK_SIZE_U32 {
+                    let pos = [xyz[0], y, xyz[2]];
+                    let index = DataShape::linearize(pos);
+                    let data = chunk_data[index as usize];
+                    if data.id == id {
+                        return Some((new_chunk_key, pos));
+                    }
+                }
+            }
+        }
+        None
+    }
+
     pub fn chunk_for_mesh_ready(&self, chunk_key: ChunkKey) -> bool {
         let px = &IVec3::new(1, 0, 0);
         let nx = &IVec3::new(-1, 0, 0);
