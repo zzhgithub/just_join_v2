@@ -1,5 +1,5 @@
 // 合成相关UI
-
+use bevy_easy_localize::Localize;
 use bevy::{
     prelude::{Entity, Query, Res, ResMut, With},
     window::{PrimaryWindow, Window},
@@ -36,11 +36,12 @@ pub fn staff_rules_ui(
     staff_rules: Res<StaffRules>,
     staff_info_stroge: Res<StaffInfoStroge>,
     mut client: ResMut<RenetClient>,
+    localize: Res<Localize>,
 ) {
     // 这里显示合成列表
     if let Ok((_, ctx, _)) = q.get_single_mut() {
         let ctx = ctx.into_inner().get_mut();
-        let windows = egui::Window::new("合成列表")
+        let windows = egui::Window::new(localize.get("合成列表"))
             .id(egui::Id::new("staff Rules"))
             .fixed_size(Vec2::new(800., 600.))
             .resizable(false)

@@ -10,7 +10,7 @@ use bevy_easy_localize::Localize;
 use bevy_egui::{egui, EguiContext, EguiContexts, EguiUserTextures};
 use std::time::Duration;
 
-use super::ENGLISH;
+use super::{ENGLISH, CHINESE};
 use super::{notification::Notification, ConnectionAddr, GameState};
 use crate::{
     client::ui::{
@@ -60,18 +60,20 @@ fn menu_multiplayer(
 ) {
     let ctx = contexts.ctx_mut();
     egui::CentralPanel::default().show(ctx, |ui| {
-        ui.heading("多人游戏");
-        ui.label("Server:");
+        ui.heading(localize.get("多人游戏"));
+        ui.label(localize.get("服务器"));
         ui.text_edit_singleline(&mut connection_addr.server);
 
-        ui.label("Port:");
+        ui.label(localize.get("端口"));
         ui.text_edit_singleline(&mut connection_addr.port);
 
-        ui.label("Nickname:");
+        ui.label(localize.get("昵称"));
         ui.text_edit_singleline(&mut connection_addr.nickname);
-        if ui.button("切换语言测试").clicked() {
-
+        if ui.button("切换英语").clicked() {
             localize.set_language(ENGLISH);
+        }
+        if ui.button("切换中文").clicked() {
+            localize.set_language(CHINESE);
         }
         if ui.button(localize.get("开始")).clicked() {
             // 这开始游戏相关数据
@@ -105,7 +107,7 @@ fn menu_multiplayer(
                 game_state.set(GameState::Game);
             }
         }
-        if ui.button("返回").clicked() {
+        if ui.button(localize.get("返回")).clicked() {
             // 状态转移到 多人游戏的设置
             menu_state.set(MenuState::Main);
         }
@@ -114,6 +116,7 @@ fn menu_multiplayer(
 
 // 游戏主界面
 fn menu_main(
+    localize: Res<Localize>,
     mut contexts: EguiContexts,
     mut app_exit_events: EventWriter<AppExit>,
     mut menu_state: ResMut<NextState<MenuState>>,
@@ -122,18 +125,18 @@ fn menu_main(
     egui::CentralPanel::default().show(contexts.ctx_mut(), |ui| {
         ui.heading("Welcome to Just Join!");
         // ui.image(texture_id, size)
-        if ui.button("多人游戏").clicked() {
+        if ui.button(localize.get("多人游戏")).clicked() {
             // 状态转移到 多人游戏的设置
             menu_state.set(MenuState::Multiplayer)
         }
-        if ui.button("设置").clicked() {
+        if ui.button(localize.get("设置")).clicked() {
             // 转到设计游戏的地方
         }
-        if ui.button("退出").clicked() {
+        if ui.button(localize.get("退出")).clicked() {
             // 退出游戏
             app_exit_events.send(AppExit);
         }
-        if ui.button("关于").clicked() {
+        if ui.button(localize.get("关于")).clicked() {
             // 显示游戏制作人和版本号
             menu_state.set(MenuState::Disabled);
             game_state.set(GameState::Splash);

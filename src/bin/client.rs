@@ -3,7 +3,7 @@ use std::time::Duration;
 use bevy::{
     asset::ChangeWatcher,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{App, AssetPlugin, PluginGroup, ResMut, Startup, Update},
+    prelude::{App, AssetPlugin, PluginGroup, Update},
     window::{ExitCondition, WindowPlugin},
     DefaultPlugins,
 };
@@ -18,7 +18,7 @@ use just_join::{
         debug::ClientDebugPlugin,
         state_manager::{
             game::GamePlugin, menu::MenuPlugin, notification::NotificationPlugin,
-            splash::SplashPlugin, ConnectionAddr, GameState, CHINESE,
+            splash::SplashPlugin, ConnectionAddr, GameState,
         },
         ui::UiResourcePlugin,
     },
@@ -68,12 +68,15 @@ fn main() {
             LogDiagnosticsPlugin::default(),
         ));
     }
-    app.add_systems(Startup, setting_language);
+    //app.add_systems(Startup, setting_language);
     app.run();
 }
 
 //setting of switch the lanuguage
-fn setting_language(mut localize: ResMut<Localize>) {
-    localize.set_language(CHINESE);
-    println!("开始是:{}", localize.get("开始"));
-}
+// fn setting_language(mut localize: ResMut<Localize>) {
+//     localize.set_language(CHINESE);
+   
+//     println!("开始是:{}", localize.get("开始"));
+// }
+
+// 快速注释 Ctrl + ?
