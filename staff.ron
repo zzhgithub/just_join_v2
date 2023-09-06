@@ -6,5 +6,7 @@
         (id:3,name:"Sand",icon_string:"textures/沙子.png",staff_type:Voxel((id:6))),
         (id:4,name:"Sown",icon_string:"textures/雪.png",staff_type:Voxel((id:4))),
         (id:5,name:"FireWork",icon_string:"staff/烟花.png",staff_type:Consumable(0)),
+        (id:6,name:"DryGrass",icon_string:"textures/干草地.png",staff_type:Voxel((id:8))),
+        (id:7,name:"BlueGrass",icon_string:"textures/苍翠地.png",staff_type:Voxel((id:9))),
     ]
 )

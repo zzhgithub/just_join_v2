@@ -9,7 +9,7 @@ use crate::{CHUNK_SIZE, CHUNK_SIZE_U32};
 
 use super::{
     chunk::ChunkKey,
-    voxel::{Grass, Sand, Soli, Sown, Stone, Voxel, VoxelMaterial},
+    voxel::{BuleGrass, DryGrass, Grass, Sand, Sown, Voxel, VoxelMaterial},
 };
 
 // 处理 生物群落
@@ -33,21 +33,24 @@ pub fn biomes_generate(
         let [x, _, z] = SampleShape::delinearize(index);
         let index_2d = PanleShap::linearize([x, z]);
         let atrr = noise[index_2d as usize];
-        voxels[index as usize] = f_to_v(atrr);
+        if voxels[index as usize].id != Sown::ID {
+            voxels[index as usize] = f_to_v(atrr);
+        }
     }
 }
 
+// Tmp: 临时测试代码
 fn f_to_v(data: f32) -> Voxel {
     if data < 0.1 {
-        return Stone::into_voxel();
+        return Grass::into_voxel();
     } else if data < 0.4 {
-        return Sand::into_voxel();
+        return DryGrass::into_voxel();
     } else if data < 0.6 {
         return Sown::into_voxel();
     } else if data < 0.8 {
-        return Grass::into_voxel();
+        return Sand::into_voxel();
     } else {
-        return Soli::into_voxel();
+        return BuleGrass::into_voxel();
     }
 }
 
@@ -55,7 +58,7 @@ pub fn biomes_noise(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {
     let noise = Worley::new(seed as u32)
         .set_distance_function(euclidean)
         .set_return_type(ReturnType::Value)
-        .set_frequency(0.01);
+        .set_frequency(0.008);
 
     let x_offset = (chunk_key.0.x * CHUNK_SIZE) as f64;
     let z_offset = (chunk_key.0.z * CHUNK_SIZE) as f64;

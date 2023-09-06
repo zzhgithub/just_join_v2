@@ -37,7 +37,9 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
         if p_y <= top {
             if p_y + 1.0 > top && p_y - 1.0 < top 
             // 必须大于海平面之上
-            && p_y > -60. + 76. {
+            && p_y >= -60. + 76. 
+            // 在山之下
+            && p_y < -60. + 100. {
                 suface_index.push(i);
             }
             if p_y >= -60. + 110. {
