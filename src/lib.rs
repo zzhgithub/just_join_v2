@@ -27,11 +27,13 @@ pub const CHUNK_SIZE: i32 = 16;
 pub const CHUNK_SIZE_U32: u32 = CHUNK_SIZE as u32;
 pub const CHUNK_SIZE_ADD_2_U32: u32 = CHUNK_SIZE_U32 + 2;
 // 贴图个数
-pub const MAX_TEXTURE_COUNT: usize = 9;
+pub const MAX_TEXTURE_COUNT: usize = 13;
 // 物体选择半径
 pub const TOUCH_RADIUS: f32 = 5.;
 pub const CLIENT_DEBUG: bool = false;
 pub const CLIENT_FPS: bool = false;
+// 是否每次都重新生成地形
+pub const CLIENT_MAP_GEN: bool = true;
 
 // 最大物品堆放
 pub const MAX_STAFF_FIXED: usize = 999;

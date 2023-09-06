@@ -77,3 +77,5 @@ voxel_material!(Sown, 雪方块, 4);
 voxel_material!(Water, 水, 5);
 voxel_material!(Sand, 沙子, 6);
 voxel_material!(BasicStone, 基岩, 7);
+voxel_material!(DryGrass, 干草地, 8);
+voxel_material!(BuleGrass, 苍翠地, 9);

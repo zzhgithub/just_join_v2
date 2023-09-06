@@ -7,7 +7,7 @@ use bevy::{
 use ndshape::{ConstShape, ConstShape3u32};
 use sled::Db;
 
-use crate::{voxel_world::map_generator::gen_chunk_data_by_seed, CHUNK_SIZE_U32};
+use crate::{voxel_world::map_generator::gen_chunk_data_by_seed, CHUNK_SIZE_U32, CLIENT_MAP_GEN};
 
 use super::{chunk::ChunkKey, voxel::Voxel};
 
@@ -36,7 +36,7 @@ impl MapDataBase {
         }
         let key = chunk_key.as_u8_array();
         match self.db.get(key) {
-            Ok(rs) => match rs {
+            Ok(rs) => match if CLIENT_MAP_GEN { None } else { rs } {
                 Some(data) => bincode::deserialize(&data).unwrap(),
                 // 这里在没有获取到的情况下使用算法的值
                 None => {
