@@ -1,5 +1,9 @@
 # Just Join (来噻)
 
+![f](pic/f.png)
+
+----
+
 此仓库是 https://github.com/zzhgithub/just_join 的网络化重构施工中。敬请期待。
 
 
@@ -30,6 +34,12 @@ cargo run --release --bin client
 - E 打开合成表
 - Q 丢弃toolbar上激活中的物品
 
+# LIB 中的配置常量
+```rust
+// 是否每次都重新生成地形
+// 游戏前 请设置成false
+pub const CLIENT_MAP_GEN: bool = true;
+```
 
 # 功能列表
 
@@ -61,6 +71,8 @@ cargo run --release --bin client
   - [ ] 增强交互（显示当前背包）
   - [ ] 支撑合成公式搜索
   - [ ] 添加更多游戏内的公式
+- [x] 更多群落支撑 
+  - [ ] 装饰群落
 - [ ] 任务系统
 - [ ] 领地系统
 - [ ] 风场
