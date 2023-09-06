@@ -69,10 +69,10 @@ fn menu_multiplayer(
 
         ui.label(localize.get("昵称"));
         ui.text_edit_singleline(&mut connection_addr.nickname);
-        if ui.button("切换英语").clicked() {
+        if ui.button(localize.get("切换英语")).clicked() {
             localize.set_language(ENGLISH);
         }
-        if ui.button("切换中文").clicked() {
+        if ui.button(localize.get("切换中文")).clicked() {
             localize.set_language(CHINESE);
         }
         if ui.button(localize.get("开始")).clicked() {
