@@ -69,11 +69,8 @@ fn menu_multiplayer(
 
         ui.label("Nickname:");
         ui.text_edit_singleline(&mut connection_addr.nickname);
-<<<<<<< Updated upstream
         if ui.button("切换语言测试").clicked() {
-=======
-        if ui.button("切换语言测试").clicked(){
->>>>>>> Stashed changes
+
             localize.set_language(ENGLISH);
         }
         if ui.button(localize.get("开始")).clicked() {

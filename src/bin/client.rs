@@ -3,22 +3,12 @@ use std::time::Duration;
 use bevy::{
     asset::ChangeWatcher,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-<<<<<<< Updated upstream
     prelude::{App, AssetPlugin, PluginGroup, ResMut, Startup, Update},
     window::{ExitCondition, WindowPlugin},
     DefaultPlugins,
 };
 use bevy_easy_localize::{Localize, LocalizePlugin};
-=======
-    prelude::{App, AssetPlugin, PluginGroup, Update},
-    window::{ExitCondition, WindowPlugin},
-    DefaultPlugins,
-};
-use std::time::Duration;
 
-use std::fs::read_to_string;
-use bevy_easy_localize::{Localize,LocalizePlugin};
->>>>>>> Stashed changes
 use bevy_egui::EguiPlugin;
 use bevy_mod_billboard::prelude::BillboardPlugin;
 use bevy_renet::{transport::NetcodeClientPlugin, RenetClientPlugin};
@@ -54,15 +44,8 @@ fn main() {
     );
     app.add_state::<GameState>();
     app.insert_resource(ConnectionAddr::default());
-<<<<<<< Updated upstream
     app.add_plugins(LocalizePlugin);
     app.insert_resource(Localize::from_asset_path("translation.csv"));
-=======
-    app.insert_resource(Localize::from_data(
-        &read_to_string("assets/translation.csv").unwrap(),
-    ));
-    app.add_plugins(LocalizePlugin);
->>>>>>> Stashed changes
     app.add_plugins(BillboardPlugin);
     app.add_plugins(RenetClientPlugin);
     app.add_plugins(NetcodeClientPlugin);
