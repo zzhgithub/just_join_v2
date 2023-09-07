@@ -42,6 +42,7 @@ egui-notify = "0.8.0"
 rand = "0.8.5"
 seldom_state = "0.7.0"
 bevy_sprite3d = "2.5.0"
+bit-vec = { version = "0.6", features = ["serde"] }
 # 解决依赖冲突
 num-rational = "^0.4.1"
 fxhash = "^0.2.1"
@@ -50,7 +51,13 @@ bevy_mod_billboard = "0.4.0"
 notify = "6.1.1"
 egui_extras = "0.22.0"
 bevy_easy_localize = "0.3.0"
-
+huffman-compress = { git = "https://github.com/zzhgithub/rust-huffman-compress", branch = "features-serde", features = [
+    "serde",
+] }
+noise = { version = "0.8.2" }
+#  解决冲突
+lock_api = "0.4.10"
+codespan-reporting = "0.11.1"
 
 [profile.dev.package.bevy_rapier3d]
 opt-level = 3
@@ -61,13 +68,8 @@ codegen-units = 1
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 simdnoise = { version = "3.1.6" }
 
-[target.'cfg(target_arch = "aarch64")'.dependencies]
-noise = { version = "0.8.2" }
-#  解决冲突
-lock_api = "0.4.10"
-codespan-reporting = "0.11.1"
-inotify = "0.9.6"
-
+# [target.'cfg(target_arch = "aarch64")'.dependencies]
+# noise = { version = "0.8.2" }
 
 [features]
 default = ["server_ui"]

@@ -168,3 +168,13 @@ fn sync_filled_objects(
         }
     }
 }
+
+pub fn setdown_filled_object(
+    mut commands: Commands,
+    mut filled_object_pool: ResMut<FilledObjectPool>,
+) {
+    for (_, entity) in filled_object_pool.entities_map.clone() {
+        commands.entity(entity).despawn();
+    }
+    filled_object_pool.entities_map = HashMap::new();
+}

@@ -9,7 +9,9 @@ use bevy::{
 use bevy_egui::EguiSet;
 use bevy_renet::renet::RenetClient;
 
-use crate::client::{ state_manager::GameState, message_def::{player_input::PlayerInput, ClientChannel},
+use crate::client::{
+    message_def::{player_input::PlayerInput, ClientChannel},
+    state_manager::GameState,
 };
 
 use super::{
@@ -138,7 +140,7 @@ fn initial_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow
     }
 }
 
-fn back_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
+pub fn back_grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
     if let Ok(mut window) = primary_window.get_single_mut() {
         {
             window.cursor.grab_mode = CursorGrabMode::None;

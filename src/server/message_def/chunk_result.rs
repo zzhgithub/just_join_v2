@@ -1,4 +1,6 @@
 use bevy::prelude::Component;
+use bit_vec::BitVec;
+use huffman_compress::Tree;
 use serde::{Deserialize, Serialize};
 
 use crate::voxel_world::{chunk::ChunkKey, voxel::Voxel};
@@ -7,9 +9,9 @@ use crate::voxel_world::{chunk::ChunkKey, voxel::Voxel};
 pub enum ChunkResult {
     ChunkData {
         key: ChunkKey,
-        data: Vec<Voxel>,
+        data: (BitVec, Tree<Voxel>),
     },
-    ChunkEmpty(ChunkKey),
+    ChunkSame((ChunkKey,Voxel)),
     ChunkUpdateOne {
         chunk_key: ChunkKey,
         pos: [u32; 3],

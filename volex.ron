@@ -1,5 +1,13 @@
 (
     voxels:{
+        9:(type_name:"BuleGrass",type_ch_name:"苍翠地",default:(index:12,path:"textures/苍翠侧面.png"),normal:{
+            4:(index:11,path:"textures/苍翠地.png"),
+            1:(index:1,path:"textures/003.png"),
+        }),
+        8:(type_name:"DryGrass",type_ch_name:"干草块",default:(index:9,path:"textures/干草侧面.png"),normal:{
+            4:(index:10,path:"textures/干草地.png"),
+            1:(index:1,path:"textures/003.png"),
+        }),
         7:(type_name:"BaiscSton",type_ch_name:"基岩",default:(index:8,path:"textures/基岩.png"),normal:{}),
         6:(type_name:"Sand",type_ch_name:"沙子",default:(index:7,path:"textures/沙子.png"),normal:{}),
         5:(type_name:"Water",type_ch_name:"水",default:(index:6,path:"textures/水.png"),normal:{}),
@@ -11,13 +19,20 @@
         1:(type_name:"Stone",type_ch_name:"岩石块",default:(index:0,path:"textures/002.png"),normal:{}),
         2:(type_name:"Soli",type_ch_name:"土壤",default:(index:1,path:"textures/003.png"),normal:{})},
         files:[
+            // 0
             "textures/002.png",
             "textures/003.png",
             "textures/001.png",
             "textures/草坪.png",
             "textures/grass_a.png",
+            //5
             "textures/雪.png",
             "textures/水.png",
             "textures/沙子.png",
-            "textures/基岩.png"
+            "textures/基岩.png",
+            "textures/干草侧面.png",
+            // 10
+            "textures/干草地.png",
+            "textures/苍翠地.png",
+            "textures/苍翠侧面.png"
             ])

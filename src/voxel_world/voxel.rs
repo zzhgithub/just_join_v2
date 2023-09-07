@@ -5,9 +5,21 @@ use serde::{Deserialize, Serialize};
 /**
  * 体素类型
  */
-#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, Reflect)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, Reflect, PartialEq, Eq, Hash)]
 pub struct Voxel {
     pub id: u8,
+}
+
+impl PartialOrd for Voxel {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.id.partial_cmp(&other.id)
+    }
+}
+
+impl Ord for Voxel {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.id.cmp(&other.id)
+    }
 }
 
 impl Voxel {
@@ -65,3 +77,5 @@ voxel_material!(Sown, 雪方块, 4);
 voxel_material!(Water, 水, 5);
 voxel_material!(Sand, 沙子, 6);
 voxel_material!(BasicStone, 基岩, 7);
+voxel_material!(DryGrass, 干草地, 8);
+voxel_material!(BuleGrass, 苍翠地, 9);

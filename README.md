@@ -1,5 +1,9 @@
 # Just Join (来噻)
 
+![f](pic/f.png)
+
+----
+
 this rep is rebuild from https://github.com/zzhgithub/just_join. The goal is to make the original project support the online multiplayer game
 
 > ~~Ka Le on windows i5 cpu. optimizing!~~
@@ -18,6 +22,14 @@ For Client
 cargo run --release --bin client
 ```
 
+# Src/lib.rs Const 
+```rust
+// generate map every time when you restart game(use in test mode)
+// Before game you should set to flase
+pub const CLIENT_MAP_GEN: bool = true;
+```
+
+
 # Controller
 - W - forward
 - S - backward
@@ -26,8 +38,8 @@ cargo run --release --bin client
 - Space - Jump
 - ESC - toggle grab cursor
 - T - toggle One/Thrid Person
-- E Open composite rules list
-- Q throw active toolbar object
+- E - Open composite rules list
+- Q - throw active toolbar object
 
 # Feature List
 - [x] Load unlimited maps
@@ -58,6 +70,8 @@ cargo run --release --bin client
   - [ ] opmtimize UI（Show current toolbar and knapsack）
   - [ ] support search
   - [ ] add more formula
+- [x] more biomes support
+  - [ ] decorate_terrain
 - [ ] task system
 - [ ] manor system
 - [ ] wind zone
