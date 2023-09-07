@@ -71,12 +71,3 @@ fn main() {
     //app.add_systems(Startup, setting_language);
     app.run();
 }
-
-//setting of switch the lanuguage
-// fn setting_language(mut localize: ResMut<Localize>) {
-//     localize.set_language(CHINESE);
-   
-//     println!("开始是:{}", localize.get("开始"));
-// }
-
-// 快速注释 Ctrl + ?

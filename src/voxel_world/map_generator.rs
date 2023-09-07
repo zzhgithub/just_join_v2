@@ -12,9 +12,12 @@ use crate::{
     CHUNK_SIZE, CHUNK_SIZE_U32,
 };
 
-use super::{chunk::ChunkKey, voxel::Voxel};
+use super::{biomes::TreeGentor, chunk::ChunkKey, voxel::Voxel};
 
-pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
+pub fn gen_chunk_data_by_seed(
+    seed: i32,
+    chunk_key: ChunkKey,
+) -> (Vec<Voxel>, Vec<(Vec<ChunkKey>, TreeGentor)>) {
     // let base_x = (chunk_key.0.x * CHUNK_SIZE) as f32;
     let base_y: f32 = (chunk_key.0.y * CHUNK_SIZE) as f32;
     // let base_z = (chunk_key.0.z * CHUNK_SIZE) as f32;
@@ -35,11 +38,8 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
         let index = PanleShap::linearize([x, z]);
         let top = h + fn_height(noise[index as usize]) + noise2[index as usize] * 5.0;
         if p_y <= top {
-            if p_y + 1.0 > top && p_y - 1.0 < top 
-            // 必须大于海平面之上
-            && p_y >= -60. + 76. 
-            // 在山之下
-            && p_y < -60. + 100. {
+            // 必须大于海平面
+            if p_y + 1.0 > top && p_y - 1.0 < top && p_y >= -60. + 76. {
                 suface_index.push(i);
             }
             if p_y >= -60. + 110. {
@@ -81,7 +81,8 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
     }
 
     // 处理不同群落
-    biomes_generate(chunk_key, seed, suface_index, &mut voxels);
+    let others: Vec<(Vec<ChunkKey>, crate::voxel_world::biomes::TreeGentor)> =
+        biomes_generate(chunk_key, seed, suface_index, &mut voxels);
 
     //生成 沙子
     if water_flag {
@@ -116,7 +117,7 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
     //     }
     // }
 
-    voxels
+    (voxels, others)
 }
 
 pub fn check_water(voxels: Vec<Voxel>, point: [u32; 3]) -> bool {

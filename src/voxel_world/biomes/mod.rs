@@ -1,6 +1,8 @@
-use std::marker::PhantomData;
-
-use bevy::prelude::Vec3;
+use bevy::{
+    prelude::{IVec3, Plugin, ResMut, Resource, Update, Vec3},
+    tasks::AsyncComputeTaskPool,
+    utils::{HashMap, HashSet},
+};
 use ndshape::{ConstShape, ConstShape2u32, ConstShape3u32};
 use noise::{
     core::worley::{distance_functions::euclidean, ReturnType},
@@ -8,16 +10,24 @@ use noise::{
     Worley,
 };
 
-use crate::{tools::chunk_key_any_xyz_to_vec3, CHUNK_SIZE, CHUNK_SIZE_U32};
+use crate::{
+    server::{async_chunk::ChunkResultTasks, message_def::chunk_result::ChunkResult},
+    tools::chunk_key_any_xyz_to_vec3,
+    CHUNK_SIZE, CHUNK_SIZE_U32,
+};
 
 use self::{
-    basic_land::BasicLandBiomes, bule_land::BuleLandBoimes, dry_land::DryLandBiomes,
-    sand_land::SandLandBiomes, snow_land::SnowLandBiomes,
+    basic_land::BasicLandBiomes,
+    bule_land::BuleLandBoimes,
+    dry_land::DryLandBiomes,
+    sand_land::SandLandBiomes,
+    sdf::{sd_cut_sphere, trunk},
+    snow_land::SnowLandBiomes,
 };
 
 use super::{
-    chunk::ChunkKey,
-    voxel::{Voxel, VoxelMaterial},
+    chunk::ChunkKey, chunk_map::ChunkMap, compress::compress, map_database::DbSaveTasks,
+    voxel::Voxel,
 };
 
 pub mod basic_land;
@@ -36,9 +46,10 @@ pub fn biomes_generate(
     seed: i32,
     suface_index: Vec<u32>,
     voxels: &mut Vec<Voxel>,
-) {
+) -> Vec<(Vec<ChunkKey>, TreeGentor)> {
+    let mut ret = Vec::new();
     if suface_index.len() == 0 {
-        return;
+        return ret;
     }
     // 生成噪声
     let noise = biomes_noise(chunk_key, seed);
@@ -54,11 +65,12 @@ pub fn biomes_generate(
         generator.gen_land(chunk_key.clone(), voxels, index, index_2d);
         // fixme: 这里要记录对于其他方块的影响
         if tree_noise[index_2d as usize] > 0.8 {
-            if let Some((key_list, tree_genter)) =
-                generator.make_tree(chunk_key.clone(), voxels, index, index_2d)
-            {}
+            if let Some(rs) = generator.make_tree(chunk_key.clone(), voxels, index, index_2d) {
+                ret.push(rs);
+            }
         }
     }
+    ret
 }
 
 // 获取不同的生成器
@@ -195,24 +207,125 @@ pub const MOUNTAIN_LEVEL: f32 = -60. + 100.;
 // 雪线
 pub const SNOW_LEVEL: f32 = -60. + 100.;
 
+#[derive(Debug, Clone)]
 pub struct TreeGentor {
     pub tree: Voxel,
     pub leaf: Voxel,
-    pub trunk_fn: Box<dyn FnMut(Vec3) -> f32>,
-    pub leafs_fn: Box<dyn FnMut(Vec3) -> f32>,
+    pub trunk_params: (Vec3, u32),
+    pub leafs_params: (Vec3, f32, f32),
 }
 
 impl TreeGentor {
     pub fn make_tree_for_chunk(&mut self, voxels: &mut Vec<Voxel>, chunk_key: ChunkKey) {
+        let mut trunk_fn = trunk(self.trunk_params.0, self.trunk_params.1);
+        let mut leaf_fn = sd_cut_sphere(
+            self.leafs_params.0,
+            self.leafs_params.1,
+            self.leafs_params.2,
+        );
+
         for index in 0..SampleShape::SIZE {
             let inner_xyz = SampleShape::delinearize(index);
             let check_pos = chunk_key_any_xyz_to_vec3(chunk_key, inner_xyz);
-            if self.trunk_fn.as_mut()(check_pos.clone()) <= 0.0 {
+            if trunk_fn(check_pos.clone()) <= 0.0 {
                 voxels[index as usize] = self.tree.clone();
-            } else if self.leafs_fn.as_mut()(check_pos.clone()) <= 0.0
-                && voxels[index as usize].id != self.leaf.id
+            } else if leaf_fn(check_pos.clone()) <= 0.0 && voxels[index as usize].id != self.leaf.id
             {
                 voxels[index as usize] = self.leaf.clone();
+            }
+        }
+    }
+}
+
+pub fn find_out_chunk_keys(xyz: [u32; 3], chunk_key: ChunkKey, h: u32, r: u32) -> Vec<ChunkKey> {
+    let mut ret = Vec::new();
+    let [x, y, z] = xyz;
+    if x < r {
+        ret.push(chunk_key.add_ivec3(IVec3::new(-1, 0, 0)));
+    }
+    if x + r >= CHUNK_SIZE_U32 {
+        ret.push(chunk_key.add_ivec3(IVec3::new(1, 0, 0)));
+    }
+    if z < r {
+        ret.push(chunk_key.add_ivec3(IVec3::new(0, 0, -1)));
+    }
+    if z + r >= CHUNK_SIZE_U32 {
+        ret.push(chunk_key.add_ivec3(IVec3::new(-0, 0, 1)));
+    }
+
+    if y + h - 1 + r >= CHUNK_SIZE_U32 {
+        ret.push(chunk_key.add_ivec3(IVec3::new(0, 1, 0)));
+    }
+    ret
+}
+
+#[derive(Resource)]
+pub struct OtherTreeTasksMap {
+    pub tree_map: HashMap<ChunkKey, Vec<TreeGentor>>,
+}
+
+impl OtherTreeTasksMap {
+    pub fn insert(&mut self, list: Vec<(Vec<ChunkKey>, TreeGentor)>) {
+        for (keys, tree_gentor) in list.into_iter() {
+            for key in keys.iter() {
+                self.tree_map
+                    .entry(*key)
+                    .or_insert(Vec::new())
+                    .push(tree_gentor.clone());
+            }
+        }
+    }
+}
+
+pub struct OtherTreePlugin;
+
+impl Plugin for OtherTreePlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(OtherTreeTasksMap {
+            tree_map: HashMap::new(),
+        });
+        app.add_systems(Update, deal_other_tree);
+    }
+}
+
+fn deal_other_tree(
+    mut db_save_task: ResMut<DbSaveTasks>,
+    mut chunk_map: ResMut<ChunkMap>,
+    mut other_tree_tasks_map: ResMut<OtherTreeTasksMap>,
+    mut tasks: ResMut<ChunkResultTasks>,
+) {
+    let pool = AsyncComputeTaskPool::get();
+    let mut exit_keys: HashSet<ChunkKey> = HashSet::new();
+
+    for (chunk_key, list) in other_tree_tasks_map.tree_map.iter_mut() {
+        if let Some(voxels) = chunk_map.map_data.get_mut(&chunk_key.clone()) {
+            for tree_gentor in list {
+                tree_gentor.make_tree_for_chunk(voxels, chunk_key.clone());
+                exit_keys.insert(chunk_key.clone());
+            }
+        }
+    }
+
+    for key in exit_keys {
+        if let Some(_) = other_tree_tasks_map.tree_map.remove(&key) {
+            if let Some(data) = chunk_map.map_data.get(&key) {
+                let voxels = data.clone();
+                let (buffer, tree) = compress(voxels.clone());
+                let message = if buffer.len() == 0 {
+                    bincode::serialize(&ChunkResult::ChunkSame((key, voxels[0]))).unwrap()
+                } else {
+                    bincode::serialize(&ChunkResult::ChunkData {
+                        key: key,
+                        data: (buffer, tree),
+                    })
+                    .unwrap()
+                };
+
+                let task = pool.spawn(async move { (0, message) });
+                tasks.tasks.push(task);
+
+                let task = pool.spawn(async move { (key.as_u8_array(), voxels.clone()) });
+                db_save_task.tasks.push(task);
             }
         }
     }

@@ -3,6 +3,7 @@ use bevy::prelude::{Last, Plugin, Res, ResMut, Update};
 use crate::{
     common::ServerClipSpheres,
     voxel_world::{
+        biomes::OtherTreeTasksMap,
         chunk::{
             find_chunk_keys_by_shpere_to_full_height, generate_offset_resoure, NeighbourOffest,
         },
@@ -21,6 +22,7 @@ pub fn server_chunk_generate_system(
     server_clip_spheres: Res<ServerClipSpheres>,
     mut db: ResMut<MapDataBase>,
     mut db_save_tasks: ResMut<DbSaveTasks>,
+    mut other_tree_tasks_map: ResMut<OtherTreeTasksMap>,
 ) {
     for (_client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
         // 通过球体计算 chunkey
@@ -32,7 +34,11 @@ pub fn server_chunk_generate_system(
                 // chunk_map.gen_chunk_data(key);
                 if !chunk_map.map_data.contains_key(&key) {
                     //  这里可以判断一下是否是 已经加载的数据
-                    let data = db.find_by_chunk_key(key, db_save_tasks.as_mut());
+                    let data = db.find_by_chunk_key(
+                        key,
+                        db_save_tasks.as_mut(),
+                        other_tree_tasks_map.as_mut(),
+                    );
                     chunk_map.write_chunk(key, data);
                 }
             },

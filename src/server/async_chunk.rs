@@ -10,6 +10,7 @@ use crate::{
     server::{message_def::ServerChannel, object_filing::put_object::put_object},
     staff::StaffInfoStroge,
     voxel_world::{
+        biomes::OtherTreeTasksMap,
         chunk::ChunkKey,
         chunk_map::ChunkMap,
         compress::compress,
@@ -47,6 +48,7 @@ pub fn deal_chunk_query_system(
     // 获取玩家当前状态 和处理
     mut query_state: Query<&mut PlayerOntimeState>,
     server_lobby: Res<ServerLobby>,
+    mut other_tree_tasks_map: ResMut<OtherTreeTasksMap>,
 ) {
     let pool = AsyncComputeTaskPool::get();
     for client_id in server.clients_id() {
@@ -63,7 +65,11 @@ pub fn deal_chunk_query_system(
                         if let Some(data) = chunk_map.map_data.get(&new_key) {
                             voxels = data.clone();
                         } else {
-                            voxels = db.find_by_chunk_key(new_key, db_save_task.as_mut());
+                            voxels = db.find_by_chunk_key(
+                                new_key,
+                                db_save_task.as_mut(),
+                                other_tree_tasks_map.as_mut(),
+                            );
                         }
                         let (buffer, tree) = compress(voxels.clone());
                         let message = if buffer.len() == 0 {
@@ -264,7 +270,11 @@ pub fn send_message(mut tasks: ResMut<ChunkResultTasks>, mut server: ResMut<Rene
         if let Some((client_id, message)) =
             futures_lite::future::block_on(futures_lite::future::poll_once(ele))
         {
-            server.send_message(client_id, ServerChannel::ChunkResult, message);
+            if client_id == 0 {
+                server.broadcast_message(ServerChannel::ChunkResult, message);
+            } else {
+                server.send_message(client_id, ServerChannel::ChunkResult, message);
+            }
         }
     }
 }
