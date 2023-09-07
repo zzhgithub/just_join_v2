@@ -1,10 +1,6 @@
-// 树干
-
-use std::cmp::max;
-
 use bevy::{
     math::{vec2, Vec3Swizzles},
-    prelude::{Vec2, Vec3},
+    prelude::Vec3,
 };
 
 /**
