@@ -77,7 +77,7 @@ pub const CLIENT_MAP_GEN: bool = true;
 - [ ] wind zone
 - [ ] support load mod and interface doc
   - [ ] furniture mod
-- [ ] i18n
+- [x] i18n
 - [ ] Tools
   - [ ] tp commands
 - [ ] optimize

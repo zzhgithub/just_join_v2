@@ -78,7 +78,7 @@ pub const CLIENT_MAP_GEN: bool = true;
 - [ ] 风场
 - [ ] 游戏mod化
   - [ ] 家具mod
-- [ ] 国际化支撑
+- [x] 国际化支撑
 - [ ] 工具
   - [ ] tp命令
 - [ ] 优化

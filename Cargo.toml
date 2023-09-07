@@ -50,6 +50,7 @@ simba = "^0.8"
 bevy_mod_billboard = "0.4.0"
 notify = "6.1.1"
 egui_extras = "0.22.0"
+bevy_easy_localize = "0.3.0"
 huffman-compress = { git = "https://github.com/zzhgithub/rust-huffman-compress", branch = "features-serde", features = [
     "serde",
 ] }

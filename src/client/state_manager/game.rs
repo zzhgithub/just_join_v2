@@ -10,6 +10,7 @@ use bevy::{
     },
     window::{CursorGrabMode, PrimaryWindow, Window, WindowCloseRequested},
 };
+use bevy_easy_localize::Localize;
 use bevy_egui::{
     egui::{self, epaint::Shadow, Color32},
     EguiContext, EguiContexts, EguiSet, EguiUserTextures,
@@ -211,6 +212,7 @@ fn panic_on_error_system(mut renet_error: EventReader<NetcodeTransportError>) {
 }
 
 fn client_do_disconnected(
+    localize: Res<Localize>,
     client: Res<RenetClient>,
     mut play_state: ResMut<NextState<PlayState>>,
     mut game_state: ResMut<NextState<GameState>>,
@@ -225,7 +227,7 @@ fn client_do_disconnected(
     }
     notification
         .toasts
-        .error(message)
+        .error(localize.get(message))
         .set_duration(Some(Duration::from_secs(5)));
     play_state.set(PlayState::Disabled);
     game_state.set(GameState::Menu);
