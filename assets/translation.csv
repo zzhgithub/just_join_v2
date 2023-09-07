@@ -1,16 +1,20 @@
 Keyword,Comment,Chinese,English
 连接异常,none,连接异常,connection_exception
 用户名已存在,none,用户名已存在,Username has exits
-开始,none,开始,Start_game
+开始,none,开始,Start game
 端口,none,端口,Port
 服务器,none,服务器,Server
 多人游戏,none,多人游戏,Mutiplayer
-进入服务器,none,进入服务器,Enter_Server
+进入服务器,none,进入服务器,Enter Server
 昵称,none,昵称,Nickname
 返回,none,返回,Back
-设置,none,设置,setting
+设置,none,设置,Setting
 退出,none,退出,Exit
-关于,none,关于,about
+关于,none,关于,Sbout
 合成列表,none,合成列表,Craft
 切换英语,none,切换英语,English
 切换中文,none,切换中文,Chinese
+依赖,none,依赖,Base on
+规则,none,规则,Formula
+输出,none,输出,Output
+操作,none,操作,Actions

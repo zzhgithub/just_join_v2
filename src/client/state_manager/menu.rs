@@ -10,8 +10,8 @@ use bevy_easy_localize::Localize;
 use bevy_egui::{egui, EguiContext, EguiContexts, EguiUserTextures};
 use std::time::Duration;
 
-use super::{ENGLISH, CHINESE};
 use super::{notification::Notification, ConnectionAddr, GameState};
+use super::{CHINESE, ENGLISH};
 use crate::{
     client::{
         player::controller::back_grab_cursor,
@@ -31,6 +31,7 @@ use crate::{
 pub enum MenuState {
     Main,
     Test,
+    Settings,
     Multiplayer,
     #[default]
     Disabled,
@@ -46,6 +47,7 @@ impl Plugin for MenuPlugin {
         app.add_systems(OnEnter(GameState::Menu), (setup, back_grab_cursor));
         app.add_systems(Update, menu_main.run_if(in_state(MenuState::Main)));
         app.add_systems(Update, test.run_if(in_state(MenuState::Test)));
+        app.add_systems(Update, menu_settings.run_if(in_state(MenuState::Settings)));
         app.add_systems(
             Update,
             menu_multiplayer.run_if(in_state(MenuState::Multiplayer)),
@@ -58,8 +60,28 @@ impl Plugin for MenuPlugin {
     }
 }
 
-fn menu_multiplayer(
+fn menu_settings(
     mut localize: ResMut<Localize>,
+    mut contexts: EguiContexts,
+    mut menu_state: ResMut<NextState<MenuState>>,
+) {
+    egui::CentralPanel::default().show(contexts.ctx_mut(), |ui| {
+        ui.heading(localize.get("设置"));
+        if ui.button(localize.get("切换英语")).clicked() {
+            localize.set_language(ENGLISH);
+        }
+        if ui.button(localize.get("切换中文")).clicked() {
+            localize.set_language(CHINESE);
+        }
+        if ui.button(localize.get("返回")).clicked() {
+            // 状态转移到 多人游戏的设置
+            menu_state.set(MenuState::Main);
+        }
+    });
+}
+
+fn menu_multiplayer(
+    localize: Res<Localize>,
     mut contexts: EguiContexts,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut connection_addr: ResMut<ConnectionAddr>,
@@ -77,12 +99,6 @@ fn menu_multiplayer(
 
         ui.label(localize.get("昵称"));
         ui.text_edit_singleline(&mut connection_addr.nickname);
-        if ui.button(localize.get("切换英语")).clicked() {
-            localize.set_language(ENGLISH);
-        }
-        if ui.button(localize.get("切换中文")).clicked() {
-            localize.set_language(CHINESE);
-        }
         if ui.button(localize.get("开始")).clicked() {
             // 这开始游戏相关数据
             if connection_addr.server.is_empty() {
@@ -139,6 +155,7 @@ fn menu_main(
         }
         if ui.button(localize.get("设置")).clicked() {
             // 转到设计游戏的地方
+            menu_state.set(MenuState::Settings);
         }
         if ui.button(localize.get("退出")).clicked() {
             // 退出游戏

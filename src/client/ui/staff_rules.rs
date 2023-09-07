@@ -70,16 +70,16 @@ pub fn staff_rules_ui(
                                 table
                                     .header(20.0, |mut header| {
                                         header.col(|ui| {
-                                            ui.strong("Base On");
+                                            ui.strong(localize.get("依赖"));
                                         });
                                         header.col(|ui| {
-                                            ui.strong("Rule");
+                                            ui.strong(localize.get("规则"));
                                         });
                                         header.col(|ui| {
-                                            ui.strong("Output");
+                                            ui.strong(localize.get("输出"));
                                         });
                                         header.col(|ui| {
-                                            ui.strong("Action");
+                                            ui.strong(localize.get("操作"));
                                         });
                                     })
                                     .body(|mut body| {
