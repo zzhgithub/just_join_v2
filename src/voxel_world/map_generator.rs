@@ -102,19 +102,19 @@ pub fn gen_chunk_data_by_seed(seed: i32, chunk_key: ChunkKey) -> Vec<Voxel> {
     }
 
     //侵蚀 洞穴
-    let noise_3d = noise3d_2(chunk_key, seed);
-    for i in 0..SampleShape::SIZE {
-        // let [x, y, z] = SampleShape::delinearize(i);
-        // let index = SampleShape::linearize([x, z, y]);
-        let flag: f32 = noise_3d[i as usize];
-        if flag < 0.05
-            && flag > -0.05
-            && voxels[i as usize].id != Water::ID
-            && voxels[i as usize].id != BasicStone::ID
-        {
-            voxels[i as usize] = Voxel::EMPTY;
-        }
-    }
+    // let noise_3d = noise3d_2(chunk_key, seed);
+    // for i in 0..SampleShape::SIZE {
+    //     // let [x, y, z] = SampleShape::delinearize(i);
+    //     // let index = SampleShape::linearize([x, z, y]);
+    //     let flag: f32 = noise_3d[i as usize];
+    //     if flag < 0.05
+    //         && flag > -0.05
+    //         && voxels[i as usize].id != Water::ID
+    //         && voxels[i as usize].id != BasicStone::ID
+    //     {
+    //         voxels[i as usize] = Voxel::EMPTY;
+    //     }
+    // }
 
     voxels
 }

@@ -1,10 +1,20 @@
 // 基础大陆
 
+use bevy::prelude::Vec3;
 use ndshape::ConstShape;
 
-use crate::voxel_world::voxel::{Grass, Soli, Sown, Stone, Voxel, VoxelMaterial};
+use crate::{
+    tools::chunk_key_any_xyz_to_vec3,
+    voxel_world::{
+        chunk::ChunkKey,
+        voxel::{AppleLeaf, AppleWood, Grass, Soli, Sown, Stone, Voxel, VoxelMaterial},
+    },
+};
 
-use super::{BiomesGenerator, SampleShape, MOUNTAIN_LEVEL, SEE_LEVEL, SNOW_LEVEL};
+use super::{
+    sdf::{sd_cut_sphere, trunk},
+    BiomesGenerator, SampleShape, TreeGentor, MOUNTAIN_LEVEL, SEE_LEVEL, SNOW_LEVEL,
+};
 
 // 基础大陆
 // 1. 雪顶
@@ -45,5 +55,30 @@ impl BiomesGenerator for BasicLandBiomes {
                 }
             }
         }
+    }
+
+    fn make_tree_with_info(
+        &self,
+        chunk_key: crate::voxel_world::chunk::ChunkKey,
+        voxels: &mut Vec<Voxel>,
+        _chunk_index: u32,
+        _plane_index: u32,
+        _height: f32,
+        xyz: [u32; 3],
+    ) -> Option<(Vec<ChunkKey>, TreeGentor)> {
+        let root_pos = chunk_key_any_xyz_to_vec3(chunk_key, xyz);
+        let leaf_center = root_pos + Vec3::new(0.0, 4.0, 0.0);
+        let trunk_fn = trunk(root_pos, 5);
+        let leaf_fn = sd_cut_sphere(leaf_center, 3.6, 0.0);
+        // 判断 是否需要给其他的模块处理？
+        // 这里 可以判断的又5个方向
+        let mut tree_gentor = TreeGentor {
+            tree: AppleWood::into_voxel(),
+            leaf: AppleLeaf::into_voxel(),
+            trunk_fn: Box::new(trunk_fn),
+            leafs_fn: Box::new(leaf_fn),
+        };
+        tree_gentor.make_tree_for_chunk(voxels, chunk_key.clone());
+        Some((Vec::new(), tree_gentor))
     }
 }
