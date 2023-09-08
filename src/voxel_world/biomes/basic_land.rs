@@ -67,21 +67,21 @@ impl BiomesGenerator for BasicLandBiomes {
         height: f32,
         xyz: [u32; 3],
     ) -> Option<(Vec<ChunkKey>, TreeGentor)> {
+        if height >= MOUNTAIN_LEVEL {
+            return None;
+        }
         let mut rng = rand::thread_rng();
-
         let root_pos = chunk_key_any_xyz_to_vec3(chunk_key, xyz);
-        let leaf_center = root_pos + Vec3::new(0.0, 4.0, 0.0);
+
         // 判断 是否需要给其他的模块处理？
-        let h = rng.gen_range(3..5);
-        let r = rng.gen_range(2.9..4.6);
+        let h = rng.gen_range(1..5);
+        let r = rng.gen_range(2.0..4.6);
+
+        let leaf_center = root_pos + Vec3::new(0.0, h as f32 - 1.0, 0.0);
         // 这里 可以判断的又5个方向
         let mut tree_gentor = TreeGentor {
             tree: AppleWood::into_voxel(),
-            leaf: if height >= -60. + 110. {
-                Voxel::EMPTY
-            } else {
-                AppleLeaf::into_voxel()
-            },
+            leaf: AppleLeaf::into_voxel(),
             trunk_params: (root_pos, h),
             leafs_params: (leaf_center, r, 0.0),
         };

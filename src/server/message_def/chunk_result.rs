@@ -11,6 +11,10 @@ pub enum ChunkResult {
         key: ChunkKey,
         data: (BitVec, Tree<Voxel>),
     },
+    UpdateChunkData {
+        key: ChunkKey,
+        data: (BitVec, Tree<Voxel>),
+    },
     ChunkSame((ChunkKey, Voxel)),
     ChunkUpdateOne {
         chunk_key: ChunkKey,

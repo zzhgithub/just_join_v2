@@ -64,7 +64,7 @@ pub fn biomes_generate(
         let generator = get_generator_by_atrr(atrr);
         generator.gen_land(chunk_key.clone(), voxels, index, index_2d);
         // fixme: 这里要记录对于其他方块的影响
-        if tree_noise[index_2d as usize] > 0.8 {
+        if tree_noise[index_2d as usize] > 0.99 {
             if let Some(rs) = generator.make_tree(chunk_key.clone(), voxels, index, index_2d) {
                 ret.push(rs);
             }
@@ -205,7 +205,7 @@ pub const SEE_LEVEL: f32 = -60. + 76.;
 // 山峰线
 pub const MOUNTAIN_LEVEL: f32 = -60. + 100.;
 // 雪线
-pub const SNOW_LEVEL: f32 = -60. + 100.;
+pub const SNOW_LEVEL: f32 = -60. + 110.;
 
 #[derive(Debug, Clone)]
 pub struct TreeGentor {
@@ -229,7 +229,8 @@ impl TreeGentor {
             let check_pos = chunk_key_any_xyz_to_vec3(chunk_key, inner_xyz);
             if trunk_fn(check_pos.clone()) <= 0.0 {
                 voxels[index as usize] = self.tree.clone();
-            } else if leaf_fn(check_pos.clone()) <= 0.0 && voxels[index as usize].id != self.leaf.id
+            } else if leaf_fn(check_pos.clone()) <= 0.0
+                && voxels[index as usize].id == Voxel::EMPTY.id
             {
                 voxels[index as usize] = self.leaf.clone();
             }
@@ -240,22 +241,43 @@ impl TreeGentor {
 pub fn find_out_chunk_keys(xyz: [u32; 3], chunk_key: ChunkKey, h: u32, r: u32) -> Vec<ChunkKey> {
     let mut ret = Vec::new();
     let [x, y, z] = xyz;
+    let mut x_offset = 0;
+    let mut z_offset = 0;
     if x < r {
         ret.push(chunk_key.add_ivec3(IVec3::new(-1, 0, 0)));
-    }
-    if x + r >= CHUNK_SIZE_U32 {
+        x_offset = -1;
+    } else if x + r >= CHUNK_SIZE_U32 {
         ret.push(chunk_key.add_ivec3(IVec3::new(1, 0, 0)));
+        x_offset = -1;
     }
     if z < r {
         ret.push(chunk_key.add_ivec3(IVec3::new(0, 0, -1)));
+        z_offset = -1;
+    } else if z + r >= CHUNK_SIZE_U32 {
+        ret.push(chunk_key.add_ivec3(IVec3::new(0, 0, 1)));
+        z_offset = 1;
     }
-    if z + r >= CHUNK_SIZE_U32 {
-        ret.push(chunk_key.add_ivec3(IVec3::new(-0, 0, 1)));
-    }
-
+    let mut y_offset = 0;
     if y + h - 1 + r >= CHUNK_SIZE_U32 {
         ret.push(chunk_key.add_ivec3(IVec3::new(0, 1, 0)));
+        y_offset = 1;
     }
+
+    if x_offset != 0 && z_offset != 0 {
+        ret.push(chunk_key.add_ivec3(IVec3::new(x_offset, 0, z_offset)));
+    }
+    if y_offset != 0 {
+        if x_offset != 0 {
+            ret.push(chunk_key.add_ivec3(IVec3::new(x_offset, y_offset, 0)));
+        }
+        if z_offset != 0 {
+            ret.push(chunk_key.add_ivec3(IVec3::new(0, y_offset, z_offset)));
+        }
+        if x_offset != 0 && z_offset != 0 {
+            ret.push(chunk_key.add_ivec3(IVec3::new(x_offset, y_offset, z_offset)));
+        }
+    }
+
     ret
 }
 
@@ -314,7 +336,7 @@ fn deal_other_tree(
                 let message = if buffer.len() == 0 {
                     bincode::serialize(&ChunkResult::ChunkSame((key, voxels[0]))).unwrap()
                 } else {
-                    bincode::serialize(&ChunkResult::ChunkData {
+                    bincode::serialize(&ChunkResult::UpdateChunkData {
                         key: key,
                         data: (buffer, tree),
                     })

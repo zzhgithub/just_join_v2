@@ -15,6 +15,13 @@ use crate::{common::Sphere3, CHUNK_SIZE};
 pub struct ChunkKey(pub IVec3);
 
 impl ChunkKey {
+
+    pub fn to_y_zore(&self)->ChunkKey {
+        let mut ivec3 = self.0.clone();
+        ivec3.y = 0;
+        ChunkKey(ivec3)
+    }
+    
     pub fn add_ivec3(&self, key: IVec3) -> ChunkKey {
         let ivec3 = self.0.clone();
         ChunkKey(ivec3 + key)
