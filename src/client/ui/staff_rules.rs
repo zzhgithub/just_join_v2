@@ -114,13 +114,24 @@ pub fn staff_rules_ui(
                                                     }
                                                 });
                                                 row.col(|ui| {
-                                                    if let Some(staff) =
-                                                        staff_info_stroge.get(staff_rule.output_id)
-                                                    {
-                                                        if let Some(txt_id) =
-                                                            user_textures.image_id(&staff.icon)
+                                                    for pair in staff_rule.output {
+                                                        if let Some(staff) =
+                                                            staff_info_stroge.get(pair.staff_id)
                                                         {
-                                                            ui.image(txt_id, Vec2::new(64., 64.));
+                                                            if let Some(txt_id) =
+                                                                user_textures.image_id(&staff.icon)
+                                                            {
+                                                                ui.image(
+                                                                    txt_id,
+                                                                    Vec2::new(64., 64.),
+                                                                );
+                                                                if pair.num_needed > 1 {
+                                                                    ui.label(format!(
+                                                                        "x {}",
+                                                                        pair.num_needed
+                                                                    ));
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 });

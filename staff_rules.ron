@@ -3,13 +3,15 @@
         id:0,
         input:[
             (staff_id:0,num_needed:1),
-            (staff_id:2,num_needed:2),
-            (staff_id:4,num_needed:3),
-            (staff_id:3,num_needed:4),
+            // (staff_id:2,num_needed:2),
+            // (staff_id:4,num_needed:3),
+            // (staff_id:3,num_needed:4),
         ],
         // 合成烟花
-        output_id: 5,
+        output: [
+            (staff_id:5,num_needed:4),
+        ],
         base_on:None,
-        desc:"测试使用的合成烟花的公式",
+        desc:"测试使用的合成烟花的公式(测试一个合成多个)",
     ),
 ]
