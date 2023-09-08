@@ -1,5 +1,10 @@
 (
     voxels:{
+        11:(type_name:"AppleLeaf",type_ch_name:"苹果树叶子",default:(index:15,path:"textures/苹果叶子.png"),normal:{}),
+        10:(type_name:"AppleWood",type_ch_name:"苹果树原木",default:(index:13,path:"textures/苹果树A面.png"),normal:{
+            4:(index:14,path:"textures/苹果树B面.png"),
+            1:(index:14,path:"textures/苹果树B面.png"),
+        }),
         9:(type_name:"BuleGrass",type_ch_name:"苍翠地",default:(index:12,path:"textures/苍翠侧面.png"),normal:{
             4:(index:11,path:"textures/苍翠地.png"),
             1:(index:1,path:"textures/003.png"),
@@ -34,5 +39,9 @@
             // 10
             "textures/干草地.png",
             "textures/苍翠地.png",
-            "textures/苍翠侧面.png"
+            "textures/苍翠侧面.png",
+            "textures/苹果树A面.png",
+            "textures/苹果树B面.png",
+            //15
+            "textures/苹果叶子.png",
             ])

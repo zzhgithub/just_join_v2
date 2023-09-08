@@ -5,7 +5,7 @@ use std::{
 
 use bevy::{
     prelude::{
-        AlphaMode, AssetServer, Assets, Color, Commands, Component, Entity, Handle,
+        AlphaMode, AssetServer, Assets, Color, Commands, Component, Entity, Handle, IVec3,
         IntoSystemConfigs, Last, MaterialMeshBundle, MaterialPlugin, Mesh, Plugin, PreUpdate, Res,
         ResMut, Resource, StandardMaterial, Startup, Transform, Update,
     },
@@ -165,6 +165,15 @@ pub fn async_chunk_result(
     while let Some(message) = client.receive_message(ServerChannel::ChunkResult) {
         let chunk_result: ChunkResult = bincode::deserialize(&message).unwrap();
         match chunk_result {
+            ChunkResult::UpdateChunkData { key, data } => {
+                let voxel = uncompress(&data.0, data.1);
+                chunk_map.write_chunk(key.clone(), voxel);
+                key_set.insert((1, key.to_y_zore()));
+                key_set.insert((0, key.to_y_zore().add_ivec3(IVec3::new(1, 0, 0))));
+                key_set.insert((0, key.to_y_zore().add_ivec3(IVec3::new(-1, 0, 0))));
+                key_set.insert((0, key.to_y_zore().add_ivec3(IVec3::new(0, 0, 1))));
+                key_set.insert((0, key.to_y_zore().add_ivec3(IVec3::new(0, 0, -1))));
+            }
             ChunkResult::ChunkData { key, data } => {
                 let task = pool.spawn(async move { (key, uncompress(&data.0, data.1)) });
                 chunk_sync_task.tasks.push(task);

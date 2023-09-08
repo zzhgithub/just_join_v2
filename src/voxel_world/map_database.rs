@@ -9,7 +9,7 @@ use sled::Db;
 
 use crate::{voxel_world::map_generator::gen_chunk_data_by_seed, CHUNK_SIZE_U32, CLIENT_MAP_GEN};
 
-use super::{chunk::ChunkKey, voxel::Voxel};
+use super::{biomes::OtherTreeTasksMap, chunk::ChunkKey, voxel::Voxel};
 
 #[derive(Resource)]
 pub struct MapDataBase {
@@ -27,6 +27,7 @@ impl MapDataBase {
         &mut self,
         chunk_key: ChunkKey,
         db_tasks: &mut DbSaveTasks,
+        other_tree_tasks_map: &mut OtherTreeTasksMap,
     ) -> Vec<Voxel> {
         let pool = AsyncComputeTaskPool::get();
         let mut voxels = Vec::new();
@@ -40,10 +41,11 @@ impl MapDataBase {
                 Some(data) => bincode::deserialize(&data).unwrap(),
                 // 这里在没有获取到的情况下使用算法的值
                 None => {
-                    let new_voxels = gen_chunk_data_by_seed(1512354854, chunk_key);
+                    let (new_voxels, other_trees) = gen_chunk_data_by_seed(1512354854, chunk_key);
                     let new_voxels_clone = new_voxels.clone();
                     let task = pool.spawn(async move { (key, new_voxels_clone) });
                     db_tasks.tasks.push(task);
+                    other_tree_tasks_map.insert(other_trees);
                     new_voxels
                 }
             },

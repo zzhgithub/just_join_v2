@@ -10,6 +10,8 @@ use bevy_rapier3d::prelude::{
 
 use crate::voxel_world::player_state::{PlayerOntimeState, PlayerState};
 
+use super::cross_through_check::CossTroughCheck;
+
 #[derive(Debug, Component)]
 pub struct Player {
     pub id: u64,
@@ -54,6 +56,7 @@ pub fn server_create_player(
             Group::GROUP_3,
             Group::GROUP_1 | Group::GROUP_3,
         ))
+        .insert(CossTroughCheck)
         .id()
 }
 

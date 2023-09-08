@@ -1,9 +1,9 @@
 // 合成相关UI
-use bevy_easy_localize::Localize;
 use bevy::{
     prelude::{Entity, Query, Res, ResMut, With},
     window::{PrimaryWindow, Window},
 };
+use bevy_easy_localize::Localize;
 use bevy_egui::{
     egui::{self, Align2, Vec2},
     EguiContext, EguiUserTextures,

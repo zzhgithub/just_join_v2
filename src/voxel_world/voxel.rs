@@ -79,3 +79,5 @@ voxel_material!(Sand, 沙子, 6);
 voxel_material!(BasicStone, 基岩, 7);
 voxel_material!(DryGrass, 干草地, 8);
 voxel_material!(BuleGrass, 苍翠地, 9);
+voxel_material!(AppleWood, 苹果树原木, 10);
+voxel_material!(AppleLeaf, 苹果树叶子, 11);

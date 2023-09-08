@@ -24,6 +24,7 @@ use just_join::{
     },
     sky::ServerSkyPlugins,
     staff::ServerStaffInfoPlugin,
+    voxel_world::biomes::OtherTreePlugin,
     PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
@@ -119,6 +120,7 @@ fn main() {
         ObjectFilingPlugin,
         ServerStaffRulePlugin,
         CossTroughCheckPlugin,
+        OtherTreePlugin,
     ));
 
     let (server, transport) = new_renet_server();
