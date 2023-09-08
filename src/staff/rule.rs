@@ -18,7 +18,7 @@ pub struct StaffRule<T> {
     // 输入要求
     pub input: Vec<StaffNumPair>,
     // 输出类型
-    pub output_id: usize,
+    pub output: Vec<StaffNumPair>,
     // 需要的依赖
     pub base_on: Option<T>,
     // 描述

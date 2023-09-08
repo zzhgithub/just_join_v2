@@ -5,4 +5,5 @@ use serde::{Deserialize, Serialize};
 pub struct StaffRuleMessage {
     pub staff_rule_id: u32,
     pub need: Vec<(usize, usize, usize)>,
+    pub times:usize,
 }

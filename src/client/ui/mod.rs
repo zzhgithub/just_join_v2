@@ -1,9 +1,11 @@
 use bevy::prelude::{
     AssetServer, Commands, Handle, Image, IntoSystemConfigs, Plugin, Res, Resource, Startup,
 };
-use bevy_egui::EguiContexts;
+use bevy_egui::{egui, EguiContexts};
 
 use crate::staff::{StaffInfoStroge, StaffSet};
+
+use self::staff_rules::MyMemory;
 
 // 这里是尝试管理自定义UI的
 pub mod staff_rules;
@@ -24,6 +26,7 @@ pub struct UiResourcePlugin;
 impl Plugin for UiResourcePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, init_egui_resource.after(StaffSet::Init));
+        app.insert_resource(MyMemory(egui::Memory::default()));
     }
 }
 
