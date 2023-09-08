@@ -36,6 +36,7 @@ pub fn deal_with_staff_rule(
             let StaffRuleMessage {
                 staff_rule_id,
                 need,
+                times,
             } = bincode::deserialize(&message).unwrap();
             if let Some(rule) = staff_rules.rules.get(&staff_rule_id) {
                 if let Some(entity) = lobby.players.get(&client_id) {
@@ -53,7 +54,7 @@ pub fn deal_with_staff_rule(
                         } in rule.output.clone()
                         {
                             if let Some(out_staff) = staff_info_stroge.get(staff_id) {
-                                for _ in 0..num_needed {
+                                for _ in 0..num_needed * times {
                                     let center = trf.translation;
                                     let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(center);
                                     // 生成新的掉落物
