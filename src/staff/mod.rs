@@ -5,6 +5,7 @@ use bevy::{
     },
     utils::HashMap,
 };
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::voxel_world::voxel::Voxel;
@@ -41,9 +42,15 @@ pub enum StaffType {
 pub struct StaffInfoStroge {
     pub data: HashMap<usize, Staff>,
     pub voxel_staff: HashMap<u8, Staff>,
+    // 灵活的 体素和物品掉落的关系
+    pub filled_map: HashMap<usize, FilledMeta>,
 }
 
 impl StaffInfoStroge {
+    fn register_filled(&mut self, fill_mate: FilledMeta) {
+        self.filled_map
+            .insert(fill_mate.voxel_id, fill_mate.clone());
+    }
     fn register(&mut self, staff: Staff) {
         if self.data.contains_key(&staff.id) {
             warn!("{} is already registered", staff.id);
@@ -57,6 +64,38 @@ impl StaffInfoStroge {
     pub fn voxel_to_staff(&self, voxel: Voxel) -> Option<&Staff> {
         self.voxel_staff.get(&voxel.id)
     }
+
+    // 通过体素获取掉落物
+    pub fn voxel_to_staff_list(&self, voxel: Voxel) -> Option<Vec<Staff>> {
+        let mut ret: Vec<Staff> = Vec::new();
+        let voxle_id = voxel.id;
+        if let Some(mate) = self.filled_map.get(&(voxle_id as usize)) {
+            for FilledPair {
+                possible,
+                staff_id,
+                times,
+            } in mate.filled_config.iter()
+            {
+                if let Some(staff) = self.get(*staff_id) {
+                    for _ in 0..*times {
+                        let mut rng = rand::thread_rng();
+                        if rng.gen_bool(*possible as f64) {
+                            ret.push(staff.clone());
+                        }
+                    }
+                }
+            }
+        } else {
+            if let Some(staff) = self.voxel_staff.get(&voxel.id) {
+                ret.push(staff.clone());
+            }
+        }
+        if ret.len() > 0 {
+            return Some(ret);
+        }
+        None
+    }
+
     // 通过 物品点 获取物品id
     pub fn get(&self, staff_id: usize) -> Option<Staff> {
         self.data.get(&staff_id).map(|a| a.clone())
@@ -76,6 +115,7 @@ impl Plugin for StaffInfoPlugin {
         app.insert_resource(StaffInfoStroge {
             data: HashMap::default(),
             voxel_staff: HashMap::default(),
+            filled_map: HashMap::default(),
         });
         app.add_systems(Startup, setup.in_set(StaffSet::Init));
     }
@@ -93,6 +133,7 @@ impl Plugin for ServerStaffInfoPlugin {
         app.insert_resource(StaffInfoStroge {
             data: HashMap::default(),
             voxel_staff: HashMap::default(),
+            filled_map: HashMap::default(),
         });
         app.add_systems(Startup, server_setup.in_set(StaffSet::Init));
     }
@@ -111,8 +152,24 @@ pub struct StaffMeta {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilledMeta {
+    // 体素类型的id
+    voxel_id: usize,
+    filled_config: Vec<FilledPair>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilledPair {
+    possible: f32,
+    staff_id: usize,
+    times: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StaffConfigs {
     pub configs: Vec<StaffMeta>,
+    // 掉落物的特性
+    pub filled_configs: Vec<FilledMeta>,
 }
 
 fn load_staff_configs(
@@ -140,6 +197,9 @@ fn load_staff_configs(
                         staff_type: mate.staff_type,
                     });
                 }
+            }
+            for mate in res.filled_configs {
+                staff_info_stroge.register_filled(mate);
             }
         }
         Err(_) => {
