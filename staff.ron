@@ -10,5 +10,13 @@
         (id:7,name:"BlueGrass",icon_string:"textures/苍翠地.png",staff_type:Voxel((id:9))),
         (id:8,name:"AppleWood",icon_string:"textures/苹果树A面.png",staff_type:Voxel((id:10))),
         (id:9,name:"AppleLeaf",icon_string:"textures/苹果叶子.png",staff_type:Voxel((id:11))),
-    ]
+        (id:10,name:"Apple",icon_string:"textures/苹果.png",staff_type:Consumable(0)),
+    ],
+    // 掉落配置
+    filled_configs:[
+        // 叶子有 20% 概率掉 一个苹果
+        (voxel_id:11,filled_config:[
+            (possible: 0.2,staff_id: 10,times: 1),
+        ]),
+    ],
 )

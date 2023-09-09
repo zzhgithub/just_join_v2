@@ -154,14 +154,18 @@ pub fn deal_chunk_query_system(
                         // FIXME: 这里要考虑把代码格式简化 一下
                         // 发送物体被打下来的消息 old_voxel  chunk_key, pos, 还原物体的位置!
                         if old_voxel.id != Voxel::EMPTY.id && voxel_type.id == Voxel::EMPTY.id {
-                            // 物体时被打下来了
-                            if let Some(staff) = staff_info_stroge.voxel_to_staff(old_voxel) {
-                                fill_event.send(ObjectFillEvent {
-                                    chunk_key,
-                                    xyz: pos,
-                                    center,
-                                    staff: staff.clone(),
-                                });
+                            // 物体时被打下来了 这里通过配置掉落
+                            if let Some(staff_list) =
+                                staff_info_stroge.voxel_to_staff_list(old_voxel)
+                            {
+                                for staff in staff_list.into_iter() {
+                                    fill_event.send(ObjectFillEvent {
+                                        chunk_key,
+                                        xyz: pos,
+                                        center,
+                                        staff: staff,
+                                    });
+                                }
                             }
                         }
                         // 4. 判断 并更新codiller 存在的情况下才更新
