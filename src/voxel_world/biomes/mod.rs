@@ -18,7 +18,7 @@ use crate::{
 
 use self::{
     basic_land::BasicLandBiomes,
-    bule_land::BuleLandBoimes,
+    blue_land::BuleLandBoimes,
     dry_land::DryLandBiomes,
     sand_land::SandLandBiomes,
     sdf::{sd_cut_sphere, trunk},
@@ -31,24 +31,24 @@ use super::{
 };
 
 pub mod basic_land;
-pub mod bule_land;
+pub mod blue_land;
 pub mod dry_land;
 pub mod sand_land;
 pub mod sdf;
 pub mod snow_land;
 
 pub type SampleShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
-pub type PanleShap = ConstShape2u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
+pub type PanelShape = ConstShape2u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
 
 // 处理 生物群落
 pub fn biomes_generate(
     chunk_key: ChunkKey,
     seed: i32,
-    suface_index: Vec<u32>,
+    surface_index: Vec<u32>,
     voxels: &mut Vec<Voxel>,
 ) -> Vec<(Vec<ChunkKey>, TreeGentor)> {
     let mut ret = Vec::new();
-    if suface_index.len() == 0 {
+    if surface_index.len() == 0 {
         return ret;
     }
     // 生成噪声
@@ -56,12 +56,12 @@ pub fn biomes_generate(
     // 这里产生一个 种树的噪声
     let tree_noise = tree_noise(chunk_key, seed);
 
-    for index in suface_index {
+    for index in surface_index {
         // 由噪声生产的特征值
         let [x, _, z] = SampleShape::delinearize(index);
-        let index_2d = PanleShap::linearize([x, z]);
-        let atrr = noise[index_2d as usize];
-        let generator = get_generator_by_atrr(atrr);
+        let index_2d = PanelShape::linearize([x, z]);
+        let attr = noise[index_2d as usize];
+        let generator = get_generator_by_attr(attr);
         generator.gen_land(chunk_key.clone(), voxels, index, index_2d);
         // fixme: 这里要记录对于其他方块的影响
         if tree_noise[index_2d as usize] > 0.99 {
@@ -74,18 +74,18 @@ pub fn biomes_generate(
 }
 
 // 获取不同的生成器
-fn get_generator_by_atrr(data: f32) -> Box<dyn BiomesGenerator> {
-    if data < 0.1 {
-        return BasicLandBiomes.into_boxed_generator();
+fn get_generator_by_attr(data: f32) -> Box<dyn BiomesGenerator> {
+    return if data < 0.1 {
+        BasicLandBiomes.into_boxed_generator()
     } else if data < 0.4 {
-        return DryLandBiomes.into_boxed_generator();
+        DryLandBiomes.into_boxed_generator()
     } else if data < 0.6 {
-        return SnowLandBiomes.into_boxed_generator();
+        SnowLandBiomes.into_boxed_generator()
     } else if data < 0.8 {
-        return SandLandBiomes.into_boxed_generator();
+        SandLandBiomes.into_boxed_generator()
     } else {
-        return BuleLandBoimes.into_boxed_generator();
-    }
+        BuleLandBoimes.into_boxed_generator()
+    };
 }
 
 pub fn tree_noise(chunk_key: ChunkKey, seed: i32) -> Vec<f32> {

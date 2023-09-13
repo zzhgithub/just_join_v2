@@ -23,8 +23,8 @@ use crate::{
     tools::get_all_v_chunk,
     voxel_world::{
         chunk::{
-            find_chunk_keys_array_by_shpere_y_0, generate_offset_resoure,
-            generate_offset_resoure_min_1, ChunkKey, NeighbourOffest,
+            find_chunk_keys_array_by_sphere_y_0, generate_offset_resource,
+            generate_offset_resource_min_1, ChunkKey, NeighbourOffset,
         },
         chunk_map::ChunkMap,
         compress::uncompress,
@@ -75,7 +75,7 @@ impl Plugin for ClientMeshPlugin {
         app.insert_resource(ChunkMap::new());
         app.insert_resource(MeshManager::default());
         app.insert_resource(MeshTasks { tasks: Vec::new() });
-        app.insert_resource(generate_offset_resoure(VIEW_RADIUS));
+        app.insert_resource(generate_offset_resource(VIEW_RADIUS));
         app.insert_resource(ChunkSyncTask { tasks: Vec::new() });
         app.insert_resource(ChunkUpdateTask { tasks: Vec::new() });
         app.insert_resource(CycleCheckTimer(Timer::new(
@@ -119,13 +119,13 @@ pub fn gen_mesh_system(
     chunk_map: Res<ChunkMap>,
     mut mesh_manager: ResMut<MeshManager>,
     clip_spheres: Res<ClipSpheres>,
-    neighbour_offest: Res<NeighbourOffest>,
+    neighbour_offest: Res<NeighbourOffset>,
     mut mesh_task: ResMut<MeshTasks>,
     mut client: ResMut<RenetClient>,
 ) {
     let pool = AsyncComputeTaskPool::get();
     for key in
-        find_chunk_keys_array_by_shpere_y_0(clip_spheres.new_sphere, neighbour_offest.0.clone())
+        find_chunk_keys_array_by_sphere_y_0(clip_spheres.new_sphere, neighbour_offest.0.clone())
             .drain(..)
     {
         if !mesh_manager.entities.contains_key(&key) && !mesh_manager.fast_key.contains(&key) {
@@ -423,19 +423,19 @@ pub fn update_mesh_system(
 pub fn deleter_mesh_system(
     mut commands: Commands,
     mut mesh_manager: ResMut<MeshManager>,
-    neighbour_offest: Res<NeighbourOffest>,
+    neighbour_offest: Res<NeighbourOffset>,
     clip_spheres: Res<ClipSpheres>,
 ) {
     let mut chunks_to_remove = HashSet::new();
     for key in
-        find_chunk_keys_array_by_shpere_y_0(clip_spheres.old_sphere, neighbour_offest.0.clone())
+        find_chunk_keys_array_by_sphere_y_0(clip_spheres.old_sphere, neighbour_offest.0.clone())
             .drain(..)
     {
         chunks_to_remove.insert(key);
     }
 
     for key in
-        find_chunk_keys_array_by_shpere_y_0(clip_spheres.new_sphere, neighbour_offest.0.clone())
+        find_chunk_keys_array_by_sphere_y_0(clip_spheres.new_sphere, neighbour_offest.0.clone())
             .drain(..)
     {
         chunks_to_remove.remove(&key);
@@ -468,9 +468,9 @@ fn cycle_check_mesh(
 ) {
     timer.0.tick(time.delta());
     if timer.0.finished() {
-        let need_keys: HashSet<ChunkKey> = find_chunk_keys_array_by_shpere_y_0(
+        let need_keys: HashSet<ChunkKey> = find_chunk_keys_array_by_sphere_y_0(
             clip_spheres.new_sphere,
-            generate_offset_resoure_min_1(VIEW_RADIUS).0,
+            generate_offset_resource_min_1(VIEW_RADIUS).0,
         )
         .iter()
         .copied()

@@ -5,7 +5,7 @@ use crate::{
     voxel_world::{
         biomes::OtherTreeTasksMap,
         chunk::{
-            find_chunk_keys_by_shpere_to_full_height, generate_offset_resoure, NeighbourOffest,
+            find_chunk_keys_by_sphere_to_full_height, generate_offset_resource, NeighbourOffset,
         },
         chunk_map::ChunkMap,
         map_database::{save_db_task_system, DbSaveTasks, MapDataBase},
@@ -18,7 +18,7 @@ use crate::{
  */
 pub fn server_chunk_generate_system(
     mut chunk_map: ResMut<ChunkMap>,
-    neighbour_offest: Res<NeighbourOffest>,
+    neighbour_offest: Res<NeighbourOffset>,
     server_clip_spheres: Res<ServerClipSpheres>,
     mut db: ResMut<MapDataBase>,
     mut db_save_tasks: ResMut<DbSaveTasks>,
@@ -26,7 +26,7 @@ pub fn server_chunk_generate_system(
 ) {
     for (_client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
         // 通过球体计算 chunkey
-        find_chunk_keys_by_shpere_to_full_height(
+        find_chunk_keys_by_sphere_to_full_height(
             clip_spheres.new_sphere,
             neighbour_offest.0.clone(),
             |key| {
@@ -52,7 +52,7 @@ impl Plugin for ServerChunkPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         // init MapData
         app.insert_resource(MapDataBase::new(WORD_PATH));
-        app.insert_resource(generate_offset_resoure(VIEW_RADIUS));
+        app.insert_resource(generate_offset_resource(VIEW_RADIUS));
         app.insert_resource(ChunkMap::new());
         app.insert_resource(DbSaveTasks { tasks: Vec::new() });
 

@@ -8,7 +8,7 @@ use crate::{
         StaffInfoStroge,
     },
     tools::vec3_to_chunk_key_any_xyz,
-    voxel_world::player_state::PlayerOntimeState,
+    voxel_world::player_state::PlayerOnTimeState,
 };
 
 use super::{
@@ -26,7 +26,7 @@ impl Plugin for ServerStaffRulePlugin {
 pub fn deal_with_staff_rule(
     mut server: ResMut<RenetServer>,
     lobby: ResMut<ServerLobby>,
-    mut query: Query<(Entity, &Transform, &mut PlayerOntimeState)>,
+    mut query: Query<(Entity, &Transform, &mut PlayerOnTimeState)>,
     staff_rules: Res<StaffRules>,
     mut fill_event: EventWriter<ObjectFillEvent>,
     staff_info_stroge: Res<StaffInfoStroge>,

@@ -15,7 +15,7 @@ use ndshape::{ConstShape, ConstShape3u32};
 use crate::{
     common::ServerClipSpheres,
     voxel_world::{
-        chunk::{find_chunk_keys_array_by_shpere, generate_offset_array, ChunkKey},
+        chunk::{find_chunk_keys_array_by_sphere, generate_offset_array, ChunkKey},
         chunk_map::ChunkMap,
         voxel::Voxel,
     },
@@ -44,7 +44,7 @@ pub fn server_update_collider_task_system(
 ) {
     let pool = AsyncComputeTaskPool::get();
     for (_client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
-        for chunk_key in find_chunk_keys_array_by_shpere(
+        for chunk_key in find_chunk_keys_array_by_sphere(
             clip_spheres.new_sphere,
             generate_offset_array(PY_DISTANCE),
         )
@@ -109,14 +109,14 @@ pub fn despawn_collider(
     let mut chunks_to_remove = HashSet::new();
     for (_client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
         for key in
-            find_chunk_keys_array_by_shpere(clip_spheres.old_sphere, neighbour_offest.clone())
+            find_chunk_keys_array_by_sphere(clip_spheres.old_sphere, neighbour_offest.clone())
                 .drain(..)
         {
             chunks_to_remove.insert(key);
         }
 
         for key in
-            find_chunk_keys_array_by_shpere(clip_spheres.new_sphere, neighbour_offest.clone())
+            find_chunk_keys_array_by_sphere(clip_spheres.new_sphere, neighbour_offest.clone())
                 .drain(..)
         {
             chunks_to_remove.remove(&key);

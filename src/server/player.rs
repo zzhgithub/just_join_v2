@@ -8,7 +8,7 @@ use bevy_rapier3d::prelude::{
     Ccd, Collider, ColliderMassProperties, CollisionGroups, Group, LockedAxes, RigidBody, Sleeping,
 };
 
-use crate::voxel_world::player_state::{PlayerOntimeState, PlayerState};
+use crate::voxel_world::player_state::{PlayerOnTimeState, PlayerState};
 
 use super::cross_through_check::CossTroughCheck;
 
@@ -51,7 +51,7 @@ pub fn server_create_player(
         .insert(Ccd::enabled())
         .insert(YawValue::default())
         .insert(PitchValue::default())
-        .insert(PlayerOntimeState(player_state))
+        .insert(PlayerOnTimeState(player_state))
         .insert(CollisionGroups::new(
             Group::GROUP_3,
             Group::GROUP_1 | Group::GROUP_3,

@@ -16,7 +16,7 @@ use crate::{
     users::Username,
     voxel_world::{
         map_database::MapDataBase,
-        player_state::{PlayerOntimeState, PlayerState, StorgePlayerState},
+        player_state::{PlayerOnTimeState, PlayerState, StoragePlayerState},
     },
 };
 
@@ -43,7 +43,7 @@ pub fn server_connect_system(
     mut commands: Commands,
     mut server_events: EventReader<ServerEvent>,
     mut visualizer: ResMut<RenetServerVisualizer<200>>,
-    players: Query<(Entity, &Player, &Transform, &PlayerOntimeState)>,
+    players: Query<(Entity, &Player, &Transform, &PlayerOnTimeState)>,
     mut server: ResMut<RenetServer>,
     mut server_lobby: ResMut<ServerLobby>,
     transport: Res<NetcodeServerTransport>,
