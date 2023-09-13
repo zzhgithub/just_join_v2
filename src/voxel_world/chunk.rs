@@ -15,13 +15,12 @@ use crate::{common::Sphere3, CHUNK_SIZE};
 pub struct ChunkKey(pub IVec3);
 
 impl ChunkKey {
-
-    pub fn to_y_zore(&self)->ChunkKey {
+    pub fn to_y_zore(&self) -> ChunkKey {
         let mut ivec3 = self.0.clone();
         ivec3.y = 0;
         ChunkKey(ivec3)
     }
-    
+
     pub fn add_ivec3(&self, key: IVec3) -> ChunkKey {
         let ivec3 = self.0.clone();
         ChunkKey(ivec3 + key)
@@ -60,17 +59,17 @@ pub fn generate_offset_array(chunk_distance: i32) -> Vec<IVec3> {
 }
 
 #[derive(Debug, Resource, Clone)]
-pub struct NeighbourOffest(pub Vec<IVec3>);
+pub struct NeighbourOffset(pub Vec<IVec3>);
 
-pub fn generate_offset_resoure(radius: f32) -> NeighbourOffest {
+pub fn generate_offset_resource(radius: f32) -> NeighbourOffset {
     let chunk_distance = radius as i32 / CHUNK_SIZE;
     let mut offsets = generate_offset_array_with_y_0(chunk_distance);
     // itself
     offsets.push(IVec3::ZERO);
 
-    NeighbourOffest(offsets)
+    NeighbourOffset(offsets)
 }
-pub fn generate_offset_resoure_min_1(radius: f32) -> NeighbourOffest {
+pub fn generate_offset_resource_min_1(radius: f32) -> NeighbourOffset {
     let mut chunk_distance = radius as i32 / CHUNK_SIZE;
     chunk_distance -= 1;
 
@@ -82,10 +81,10 @@ pub fn generate_offset_resoure_min_1(radius: f32) -> NeighbourOffest {
     // itself
     offsets.push(IVec3::ZERO);
 
-    NeighbourOffest(offsets)
+    NeighbourOffset(offsets)
 }
 
-pub fn find_chunk_keys_array_by_shpere_y_0(sphere: Sphere3, offsets: Vec<IVec3>) -> Vec<ChunkKey> {
+pub fn find_chunk_keys_array_by_sphere_y_0(sphere: Sphere3, offsets: Vec<IVec3>) -> Vec<ChunkKey> {
     let mut center_chunk_point = get_chunk_key_i3_by_vec3(sphere.center);
     center_chunk_point.y = 0;
     offsets
@@ -94,7 +93,7 @@ pub fn find_chunk_keys_array_by_shpere_y_0(sphere: Sphere3, offsets: Vec<IVec3>)
         .collect()
 }
 
-pub fn find_chunk_keys_array_by_shpere(sphere: Sphere3, offsets: Vec<IVec3>) -> Vec<ChunkKey> {
+pub fn find_chunk_keys_array_by_sphere(sphere: Sphere3, offsets: Vec<IVec3>) -> Vec<ChunkKey> {
     let center_chunk_point = get_chunk_key_i3_by_vec3(sphere.center);
     offsets
         .iter()
@@ -103,7 +102,7 @@ pub fn find_chunk_keys_array_by_shpere(sphere: Sphere3, offsets: Vec<IVec3>) -> 
 }
 
 // offsets 已经改变成了平面为零的情况 数据需要扩展的是y轴c
-pub fn find_chunk_keys_by_shpere_to_full_height(
+pub fn find_chunk_keys_by_sphere_to_full_height(
     sphere: Sphere3,
     offsets: Vec<IVec3>,
     mut rt: impl FnMut(ChunkKey),

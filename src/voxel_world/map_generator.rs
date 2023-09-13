@@ -22,7 +22,7 @@ pub fn gen_chunk_data_by_seed(
     let base_y: f32 = (chunk_key.0.y * CHUNK_SIZE) as f32;
     // let base_z = (chunk_key.0.z * CHUNK_SIZE) as f32;
     type SampleShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
-    type PanleShap = ConstShape2u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
+    type PanelShape = ConstShape2u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
     let mut voxels = Vec::new();
 
     let noise = noise2d(chunk_key, seed);
@@ -35,7 +35,7 @@ pub fn gen_chunk_data_by_seed(
         let [x, y, z] = SampleShape::delinearize(i);
         let p_y = base_y + y as f32;
         let h = -60.;
-        let index = PanleShap::linearize([x, z]);
+        let index = PanelShape::linearize([x, z]);
         let top = h + fn_height(noise[index as usize]) + noise2[index as usize] * 5.0;
         if p_y <= top {
             // 必须大于海平面

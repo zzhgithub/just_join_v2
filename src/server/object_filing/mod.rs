@@ -18,7 +18,7 @@ use crate::{
     staff::{Staff, StaffInfoStroge},
     tools::vec3_to_chunk_key_any_xyz,
     voxel_world::{
-        chunk::{find_chunk_keys_array_by_shpere, generate_offset_array, ChunkKey},
+        chunk::{find_chunk_keys_array_by_sphere, generate_offset_array, ChunkKey},
         map_database::MapDataBase,
     },
     PY_DISTANCE,
@@ -115,7 +115,7 @@ fn sync_filled_object_to_client(
     for (client_id, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
         let mut staff_list: Vec<(Entity, usize, [f32; 3])> = Vec::new();
         // 对每个球体展开一阶
-        for chunk_key in find_chunk_keys_array_by_shpere(
+        for chunk_key in find_chunk_keys_array_by_sphere(
             clip_spheres.new_sphere,
             generate_offset_array(PY_DISTANCE),
         )
@@ -201,7 +201,7 @@ fn load_filled(
 ) {
     let mut hashed_object = map_chunk_key_filled_object(&query);
     for (_, clip_spheres) in server_clip_spheres.clip_spheres.iter() {
-        for chunk_key in find_chunk_keys_array_by_shpere(
+        for chunk_key in find_chunk_keys_array_by_sphere(
             clip_spheres.new_sphere,
             generate_offset_array(PY_DISTANCE),
         )

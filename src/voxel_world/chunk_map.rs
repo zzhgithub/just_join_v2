@@ -67,9 +67,9 @@ impl ChunkMap {
         let n_self = &IVec3::new(0, 0, 0);
 
         let offsets = [px, nx, pz, nz, n_self];
-        let last_inex = -128 / CHUNK_SIZE + 1;
+        let last_index = -128 / CHUNK_SIZE + 1;
 
-        for y_offset in last_inex..=128 / CHUNK_SIZE {
+        for y_offset in last_index..=128 / CHUNK_SIZE {
             for offset in offsets.iter() {
                 let mut new_key = chunk_key;
                 new_key.0.y = y_offset;
@@ -90,8 +90,8 @@ impl ChunkMap {
         self.map_data.insert(chunk_key, item);
     }
 
-    pub fn get_by_index(volex: Option<&Vec<Voxel>>, index: u32) -> Voxel {
-        match volex {
+    pub fn get_by_index(voxel: Option<&Vec<Voxel>>, index: u32) -> Voxel {
+        match voxel {
             Some(list) => list[index as usize],
             None => Voxel::EMPTY,
         }

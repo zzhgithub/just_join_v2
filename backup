@@ -7,3 +7,9 @@ mesh周围添加外边框 https://github.com/komadori/bevy_mod_outline
 视觉特效包 https://github.com/torsteingrindvik/bevy-vfx-bag (暂时没有更新到0.11.0)
 草的mesh 生成https://github.com/EmiOnGit/warbler_grass
 3d的2D精灵 https://github.com/FraserLee/bevy_sprite3d
+
+运动学 https://github.com/Kurble/bevy_mod_inverse_kinematics
+别人的技能整理 https://github.com/NexusSocial/skilltree
+载具可能的例子 https://github.com/gavlig/gryazevichki
+glrf生成碰撞mesh的库 https://github.com/Defernus/bevy_gltf_collider
+画笔工具 https://github.com/eliotbo/bevy_pen_tool

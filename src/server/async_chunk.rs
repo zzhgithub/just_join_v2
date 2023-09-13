@@ -15,7 +15,7 @@ use crate::{
         chunk_map::ChunkMap,
         compress::compress,
         map_database::{DbSaveTasks, MapDataBase},
-        player_state::PlayerOntimeState,
+        player_state::PlayerOnTimeState,
         voxel::{BasicStone, Voxel, VoxelMaterial},
     },
     CHUNK_SIZE, CHUNK_SIZE_U32,
@@ -46,7 +46,7 @@ pub fn deal_chunk_query_system(
     mut fill_event: EventWriter<ObjectFillEvent>,
     staff_info_stroge: Res<StaffInfoStroge>,
     // 获取玩家当前状态 和处理
-    mut query_state: Query<&mut PlayerOntimeState>,
+    mut query_state: Query<&mut PlayerOnTimeState>,
     server_lobby: Res<ServerLobby>,
     mut other_tree_tasks_map: ResMut<OtherTreeTasksMap>,
 ) {

@@ -11,7 +11,7 @@ use crate::{
     server::{player::ServerLobby, tool_bar_sync::send_all_tool_bar},
     staff::StaffInfoStroge,
     tools::vec3_to_chunk_key_any_xyz,
-    voxel_world::player_state::PlayerOntimeState,
+    voxel_world::player_state::PlayerOnTimeState,
 };
 
 use super::gen_filled_object;
@@ -23,7 +23,7 @@ pub fn deal_with_throw_object(
     mut commands: Commands,
     mut server: ResMut<RenetServer>,
     server_lobby: Res<ServerLobby>,
-    mut query: Query<(Entity, &Transform, &mut PlayerOntimeState)>,
+    mut query: Query<(Entity, &Transform, &mut PlayerOnTimeState)>,
     staff_info_stroge: Res<StaffInfoStroge>,
 ) {
     for client_id in server.clients_id() {

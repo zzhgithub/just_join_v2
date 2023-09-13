@@ -25,7 +25,7 @@ use crate::{
         message_def::{tool_bar_message::ToolBarMessage, ServerChannel},
         player::Player,
     },
-    voxel_world::player_state::PlayerOntimeState,
+    voxel_world::player_state::PlayerOnTimeState,
     CLOSE_RANGE, NEAR_RANGE, PICK_SPEED,
 };
 
@@ -211,7 +211,7 @@ fn not_follow_change_type(
 fn pick_up_entity(
     mut commands: Commands,
     // 有状态的角色
-    mut palyer_states: Query<(Entity, &Player, &mut PlayerOntimeState)>,
+    mut palyer_states: Query<(Entity, &Player, &mut PlayerOnTimeState)>,
     // 被捡起的数据
     pick_query: Query<(Entity, &FilledObject, &Picked)>,
     mut server: ResMut<RenetServer>,
@@ -220,7 +220,7 @@ fn pick_up_entity(
         // 1. 获取到pick的目标受体
         if let Ok((_, player, mut player_state)) = palyer_states.get_mut(picked.target) {
             // 2. 检查可以使用的空位 并修改数据
-            if let Some((index, _, num)) = player_state.0.put_statff(filled_object.staff.id) {
+            if let Some((index, _, num)) = player_state.0.put_staff(filled_object.staff.id) {
                 // 找到位置并摆放
                 // 发送消息销毁对象
                 let message = bincode::serialize(&ToolBarMessage::SyncToolbar {
