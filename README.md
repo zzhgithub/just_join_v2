@@ -40,6 +40,7 @@ pub const CLIENT_MAP_GEN: bool = true;
 - T - toggle One/Thrid Person
 - E - Open composite rules list
 - Q - throw active toolbar object
+- (Hold Left-Shift Left-Click)-rotation Cube Direction
 
 # Feature List
 - [x] Load unlimited maps
