@@ -10,7 +10,7 @@ use ndshape::{ConstShape, ConstShape3u32, Shape};
 
 use crate::{
     client::voxels::mesh_material::ATTRIBUTE_DATA,
-    voxel_world::voxel::{Voxel, VoxelMaterial, Water},
+    voxel_world::voxel::{Voxel, VoxelDirection, VoxelMaterial, Water},
     CHUNK_SIZE, CHUNK_SIZE_ADD_2_U32,
 };
 
@@ -52,13 +52,52 @@ where
             indices.extend_from_slice(&face.quad_mesh_indices(positions.len() as u32));
             positions.extend_from_slice(&face.quad_mesh_positions(quad, 1.0));
             normals.extend_from_slice(&face.quad_mesh_normals());
-            tex_coords.extend_from_slice(&face.tex_coords(
-                RIGHT_HANDED_Y_UP_CONFIG.u_flip_face,
-                true,
-                quad,
-            ));
-            // 这里可以生成Data???? 但是怎么知道 是那个面的？
+            // 这里可以生成Data 但是怎么知道 是那个面的？
             let index = <S as ConstShape<3>>::linearize(quad.minimum);
+
+            // 这里处理一下问题
+            if block_face_normal_index == 1 || block_face_normal_index == 4 {
+                match voxels[index as usize].direction.clone() {
+                    VoxelDirection::Z => {
+                        tex_coords.extend_from_slice(&[
+                            [0.0, quad.height as f32],
+                            [quad.width as f32, quad.height as f32],
+                            [0.0, 0.0],
+                            [quad.width as f32, 0.0],
+                        ]);
+                    }
+                    VoxelDirection::X => {
+                        tex_coords.extend_from_slice(&[
+                            [quad.width as f32, quad.height as f32],
+                            [quad.width as f32, 0.0],
+                            [0.0, quad.height as f32],
+                            [0.0, 0.0],
+                        ]);
+                    }
+                    VoxelDirection::NZ => {
+                        tex_coords.extend_from_slice(&[
+                            [quad.width as f32, 0.0],
+                            [0.0, 0.0],
+                            [quad.width as f32, quad.height as f32],
+                            [0.0, quad.height as f32],
+                        ]);
+                    }
+                    VoxelDirection::NX => {
+                        tex_coords.extend_from_slice(&[
+                            [0.0, 0.0],
+                            [0.0, quad.height as f32],
+                            [quad.width as f32, 0.0],
+                            [quad.width as f32, quad.height as f32],
+                        ]);
+                    }
+                }
+            } else {
+                tex_coords.extend_from_slice(&face.tex_coords(
+                    RIGHT_HANDED_Y_UP_CONFIG.u_flip_face,
+                    true,
+                    quad,
+                ));
+            }
 
             // 法向量值
             let normol_num = (block_face_normal_index as u32) << 8u32;
@@ -67,8 +106,10 @@ where
                 material_config.clone(),
                 block_face_normal_index as u8,
                 &voxels[index as usize].id,
+                voxels[index as usize].direction.clone(),
             );
-            // todo 这里后面要知道是那个面的方便渲染
+
+            //  这里后面要知道是那个面的方便渲染
             data.extend_from_slice(&[normol_num | (txt_index); 4]);
         }
     }
@@ -165,6 +206,7 @@ pub fn gen_mesh_water(voxels: Vec<Voxel>, material_config: MaterailConfiguration
                 material_config.clone(),
                 block_face_normal_index as u8,
                 &Water::ID,
+                VoxelDirection::Z,
             );
             data.extend_from_slice(&[normol_num | (txt_index); 4]);
         }

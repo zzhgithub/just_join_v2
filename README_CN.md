@@ -33,6 +33,8 @@ cargo run --release --bin client
 - T 切换视角
 - E 打开合成表
 - Q 丢弃toolbar上激活中的物品
+- 按住左Shirt+左键单机。旋转方块方向
+
 
 # LIB 中的配置常量
 ```rust

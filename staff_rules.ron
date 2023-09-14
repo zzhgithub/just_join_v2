@@ -14,4 +14,16 @@
         base_on:None,
         desc:"测试使用的合成烟花的公式(测试一个合成多个)",
     ),
+    (
+        id:1,
+        input:[
+            (staff_id:0,num_needed:1),
+        ],
+        // 合成测试方块
+        output: [
+            (staff_id:12,num_needed:1),
+        ],
+        base_on:None,
+        desc:"合成测试使用的摆放方块",
+    ),
 ]

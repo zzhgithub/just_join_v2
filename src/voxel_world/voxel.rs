@@ -4,11 +4,46 @@ use serde::{Deserialize, Serialize};
 
 /**
  * 体素类型
+ *
+ * 这里要设计使用 u32的数据
+ * voxel_data >> 8u & 0b111 8位后的数据 9 10 11位置的数据
+ * voxel_data & 255u 表示取最后的8位
+ * 方块是否透明是否要记录呢？不用在数据库中，但是转回来的时候我要知道。并且可以生成对应的mesh在地图中
+ *
+ * 存储类型：
+ * 体素类型  方块方向
+ * [0-8]   [9 10]
+ * todo 在某种情况下计算不同位置的 图片索引和贴图？
+ *
+ * 展示时的数据
+ * 贴图索引  法向量  方块方向
+ * [0-8]   [9-11] [12 13]
+ *
+ * 是否可视等 是在其他地方定义的
+ *
  */
 #[derive(Debug, Clone, Copy, Default, Deserialize, Serialize, Reflect, PartialEq, Eq, Hash)]
 pub struct Voxel {
     pub id: u8,
+    pub direction: VoxelDirection,
 }
+
+// 体素方向
+#[derive(Debug, Clone, Copy, Reflect, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+pub enum VoxelDirection {
+    #[default]
+    Z,
+    NZ, // 指向Z的负数半轴
+    X,
+    NX, // 指向X的负数半轴
+}
+
+pub const VOXEL_DIRECTION_VEC: [VoxelDirection; 4] = [
+    VoxelDirection::Z,
+    VoxelDirection::NZ,
+    VoxelDirection::X,
+    VoxelDirection::NX,
+];
 
 impl PartialOrd for Voxel {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -23,8 +58,53 @@ impl Ord for Voxel {
 }
 
 impl Voxel {
-    pub const EMPTY: Self = Self { id: 0 };
-    pub const FILLED: Self = Self { id: 1 };
+    pub const EMPTY: Self = Self {
+        id: 0,
+        direction: VoxelDirection::Z,
+    };
+    pub const FILLED: Self = Self {
+        id: 1,
+        direction: VoxelDirection::Z,
+    };
+
+    // 转换成32位的存在类型
+    pub fn into_save_u32(&self) -> u32 {
+        let direction_base = match self.direction {
+            VoxelDirection::Z => 0u32 << 8u32,
+            VoxelDirection::NZ => 1u32 << 8u32,
+            VoxelDirection::X => 2u32 << 8u32,
+            VoxelDirection::NX => 3u32 << 8u32,
+        };
+        (self.id as u32) | direction_base
+    }
+
+    // u32 位置类型转换成 体素类型
+    pub fn u32_into_voxel(data: u32) -> Self {
+        Self {
+            id: Self::pick_id(data),
+            direction: Self::pick_direction(data),
+        }
+    }
+
+    pub fn pick_id(data: u32) -> u8 {
+        (data & 255u32) as u8
+    }
+
+    pub fn pick_direction(data: u32) -> VoxelDirection {
+        VOXEL_DIRECTION_VEC[(data >> 8u32 & 0b11) as usize]
+    }
+
+    pub fn next_direction(&self) -> Self {
+        Self {
+            id: self.id,
+            direction: match self.direction {
+                VoxelDirection::Z => VoxelDirection::X,
+                VoxelDirection::X => VoxelDirection::NZ,
+                VoxelDirection::NZ => VoxelDirection::NX,
+                VoxelDirection::NX => VoxelDirection::Z,
+            },
+        }
+    }
 }
 
 impl MeshVoxel for Voxel {
@@ -49,7 +129,18 @@ pub trait VoxelMaterial {
     const ID: u8;
 
     fn into_voxel() -> Voxel {
-        Voxel { id: Self::ID }
+        Voxel {
+            id: Self::ID,
+            ..Default::default()
+        }
+    }
+
+    // 转化成 有方向的体素数据
+    fn into_voxel_with_dir(direction: VoxelDirection) -> Voxel {
+        Voxel {
+            id: Self::ID,
+            direction,
+        }
     }
 }
 
@@ -81,3 +172,4 @@ voxel_material!(DryGrass, 干草地, 8);
 voxel_material!(BuleGrass, 苍翠地, 9);
 voxel_material!(AppleWood, 苹果树原木, 10);
 voxel_material!(AppleLeaf, 苹果树叶子, 11);
+voxel_material!(TestCube, 测试方块, 12);
