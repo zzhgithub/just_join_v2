@@ -27,7 +27,7 @@ pub const CHUNK_SIZE: i32 = 16;
 pub const CHUNK_SIZE_U32: u32 = CHUNK_SIZE as u32;
 pub const CHUNK_SIZE_ADD_2_U32: u32 = CHUNK_SIZE_U32 + 2;
 // 贴图个数
-pub const MAX_TEXTURE_COUNT: usize = 16;
+pub const MAX_TEXTURE_COUNT: usize = 22;
 // 物体选择半径
 pub const TOUCH_RADIUS: f32 = 5.;
 pub const CLIENT_DEBUG: bool = false;

@@ -5,7 +5,7 @@ use bevy_inspector_egui::prelude::*;
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
-use crate::voxel_world::voxel::{Grass, Soli, Stone, VoxelMaterial};
+use crate::voxel_world::voxel::{Grass, Soli, Stone, VoxelDirection, VoxelMaterial};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, Reflect, InspectorOptions)]
 #[reflect(InspectorOptions)]
@@ -124,10 +124,17 @@ impl MaterailConfiguration {
     }
 
     // 通过面 和 体素类型获取 图片的索引
-    pub fn find_volex_index(self, normal: u8, volex_type: &u8) -> u32 {
+    pub fn find_volex_index(self, normal: u8, volex_type: &u8, direction: VoxelDirection) -> u32 {
+        let change_normal = match direction {
+            VoxelDirection::Z => rotate_times(normal, 0),
+            VoxelDirection::X => rotate_times(normal, 1),
+            VoxelDirection::NZ => rotate_times(normal, 2),
+            VoxelDirection::NX => rotate_times(normal, 3),
+        };
+
         return match self.voxels.get(volex_type) {
             Some(config) => {
-                return match config.normal.get(&normal) {
+                return match config.normal.get(&change_normal) {
                     Some(vconfig) => vconfig.index,
                     None => config.default.index,
                 };
@@ -135,4 +142,24 @@ impl MaterailConfiguration {
             None => 0,
         };
     }
+}
+
+fn rotate_times(normal: u8, times: usize) -> u8 {
+    let mut ret = normal;
+    if times > 0 {
+        for _ in 0..times {
+            ret = rotate_half_pi(ret);
+        }
+    }
+    ret
+}
+
+fn rotate_half_pi(normal: u8) -> u8 {
+    return match normal {
+        0 => 5,
+        2 => 0,
+        3 => 2,
+        5 => 3,
+        _ => normal,
+    };
 }

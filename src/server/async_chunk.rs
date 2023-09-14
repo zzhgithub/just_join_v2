@@ -105,7 +105,10 @@ pub fn deal_chunk_query_system(
                             warn!("基岩无法破坏");
                             continue;
                         }
-                        if old_voxel.id != Voxel::EMPTY.id && voxel_type.id != Voxel::EMPTY.id {
+                        if old_voxel.id != Voxel::EMPTY.id
+                            && voxel_type.id != Voxel::EMPTY.id
+                            && active_index != None
+                        {
                             warn!("放置错误");
                             continue;
                         }
@@ -130,7 +133,11 @@ pub fn deal_chunk_query_system(
                                     }
                                 } else {
                                     warn!("{}|角色没有当前生成的index", client_id);
-                                    continue;
+                                    if old_voxel.direction == voxel_type.direction {
+                                        continue;
+                                    } else {
+                                        println!("转动方向");
+                                    }
                                 }
                             } else {
                                 warn!("{}|{}没有找到资源对应关系", client_id, voxel_type.id);

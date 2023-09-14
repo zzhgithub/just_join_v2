@@ -1,6 +1,6 @@
 use bevy::{
     prelude::{
-        in_state, warn, Event, EventReader, EventWriter, IVec3, Input, IntoSystemConfigs,
+        in_state, warn, Event, EventReader, EventWriter, IVec3, Input, IntoSystemConfigs, KeyCode,
         MouseButton, Plugin, Query, Res, ResMut, Resource, Transform, Update, Vec3,
     },
     time::{Time, Timer, TimerMode},
@@ -16,7 +16,7 @@ use crate::{
     },
     server::player::Player,
     tools::{vec3_to_chunk_key_any_xyz, zone::check_player_put_object_available},
-    voxel_world::{chunk::ChunkKey, voxel::Voxel},
+    voxel_world::{chunk::ChunkKey, chunk_map::ChunkMap, voxel::Voxel},
 };
 
 use super::controller::ControllerFlag;
@@ -79,17 +79,43 @@ pub fn deal_broken_cube_event(
 //鼠标操作
 pub fn mouse_button_system(
     mouse_button_input: Res<Input<MouseButton>>,
+    keyboard_input: Res<Input<KeyCode>>,
     choose_cube: Res<ChooseCube>,
     controller_flag: Res<ControllerFlag>,
     mut client: ResMut<RenetClient>,
     tool_bar_data: Res<ToolBar>,
     mut attack_timer: ResMut<AttackTimer>,
     player_query: Query<(&Player, &Transform)>,
+    chunk_map: Res<ChunkMap>,
 ) {
     if !controller_flag.flag {
         // println!("3:{}", controller_flag.flag);
         return;
     }
+
+    // 移动数据的方向
+    if mouse_button_input.just_released(MouseButton::Left)
+        && keyboard_input.pressed(KeyCode::ShiftLeft)
+    {
+        if let Some(pos) = choose_cube.center {
+            let (chunk_key, xyz) = vec3_to_chunk_key_any_xyz(pos);
+            if let Some(voxel_type) = chunk_map.get_block(chunk_key, xyz) {
+                // FIXME: 这里要判断是否每种情况都可以去旋转!
+                let new_voxel = voxel_type.next_direction();
+                println!("这里发送了旋转方块的指令{:?}", new_voxel);
+                let message = bincode::serialize(&ChunkQuery::Change {
+                    chunk_key,
+                    pos: xyz,
+                    voxel_type: new_voxel,
+                    center: pos,
+                    active_index: None,
+                })
+                .unwrap();
+                client.send_message(ClientChannel::ChunkQuery, message);
+            }
+        }
+    }
+
     if mouse_button_input.just_pressed(MouseButton::Left) || attack_timer.pressed {
         attack_timer.pressed = true;
         // println!("4:{}", controller_flag.flag);

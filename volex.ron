@@ -1,5 +1,13 @@
 (
     voxels:{
+        12:(type_name:"TestCube",type_ch_name:"测试使用方块",default:(index:21,path:"textures/测试6.png"),normal:{
+            1:(index:16,path:"textures/测试1.png"),
+            2:(index:17,path:"textures/测试2.png"),
+            3:(index:18,path:"textures/测试3.png"),
+            4:(index:19,path:"textures/测试4.png"),
+            5:(index:20,path:"textures/测试5.png"),
+            0:(index:21,path:"textures/测试6.png"),
+        }),
         11:(type_name:"AppleLeaf",type_ch_name:"苹果树叶子",default:(index:15,path:"textures/苹果叶子.png"),normal:{}),
         10:(type_name:"AppleWood",type_ch_name:"苹果树原木",default:(index:13,path:"textures/苹果树A面.png"),normal:{
             4:(index:14,path:"textures/苹果树B面.png"),
@@ -44,4 +52,11 @@
             "textures/苹果树B面.png",
             //15
             "textures/苹果叶子.png",
+            "textures/测试1.png",
+            "textures/测试2.png",
+            "textures/测试3.png",
+            "textures/测试4.png",
+            //20
+            "textures/测试5.png",
+            "textures/测试6.png",
             ])
