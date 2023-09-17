@@ -1,7 +1,10 @@
 use bevy::prelude::{Handle, Image, Resource};
 use bevy_egui::egui;
 
-use crate::staff::{Staff, StaffType};
+use crate::{
+    staff::{Staff, StaffType},
+    voxel_world::voxel::Voxel,
+};
 
 use super::tool_box::tool_box;
 
@@ -78,6 +81,20 @@ impl ToolBar {
             .as_ref()
             .map(|staff| staff.staff_type.clone())
     }
+    // 当前激活中的物品
+    pub fn staff_type_try_to_voxel(&self) -> Option<StaffType> {
+        self.tools[self.active_index]
+            .staff
+            .as_ref()
+            .map(|staff| match staff.staff_type.clone() {
+                StaffType::Sp(x) => StaffType::Voxel(Voxel {
+                    id: x,
+                    direction: crate::voxel_world::voxel::VoxelDirection::Z,
+                }),
+                _ => staff.staff_type.clone(),
+            })
+    }
+
     pub fn active(&mut self, index: usize) {
         self.active_index = index;
         for i in 0..=9 {

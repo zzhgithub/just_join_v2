@@ -161,8 +161,12 @@ pub fn mouse_button_system(
     }
 
     if mouse_button_input.just_pressed(MouseButton::Right) {
-        if let Some(crate::staff::StaffType::Voxel(voxel_type)) = tool_bar_data.staff_type() {
+        // Note: 这里放置时尝试转换成体素再传递
+        if let Some(crate::staff::StaffType::Voxel(voxel_type)) =
+            tool_bar_data.staff_type_try_to_voxel()
+        {
             if let Some(pos) = choose_cube.out_center {
+                println!("放置物品{:?}", voxel_type);
                 // 判断当前这里是否和 其他的player的位置冲突
                 if check_player_put_object_available(pos.clone(), &player_query) {
                     // 还要发送当前生效的 tool_bar的 index

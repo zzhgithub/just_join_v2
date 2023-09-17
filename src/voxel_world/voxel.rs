@@ -1,6 +1,10 @@
-use bevy::reflect::Reflect;
+use std::f32::consts::PI;
+
+use bevy::{prelude::Quat, reflect::Reflect};
 use block_mesh::{MergeVoxel, Voxel as MeshVoxel, VoxelVisibility};
 use serde::{Deserialize, Serialize};
+
+use super::voxel_mesh::VOXEL_MESH_MAP;
 
 /**
  * 体素类型
@@ -36,6 +40,17 @@ pub enum VoxelDirection {
     NZ, // 指向Z的负数半轴
     X,
     NX, // 指向X的负数半轴
+}
+
+impl VoxelDirection {
+    pub fn to_quat(&self) -> Quat {
+        match self {
+            VoxelDirection::Z => Quat::from_rotation_y(0.0),
+            VoxelDirection::X => Quat::from_rotation_y(PI / 2.0),
+            VoxelDirection::NZ => Quat::from_rotation_y(PI),
+            VoxelDirection::NX => Quat::from_rotation_y(3.0 * PI / 2.0),
+        }
+    }
 }
 
 pub const VOXEL_DIRECTION_VEC: [VoxelDirection; 4] = [
@@ -109,6 +124,10 @@ impl Voxel {
 
 impl MeshVoxel for Voxel {
     fn get_visibility(&self) -> VoxelVisibility {
+        // 这里控制显示问题
+        if VOXEL_MESH_MAP.contains_key(&self.id) {
+            return VoxelVisibility::Empty;
+        }
         // 这里过滤掉水
         if self.id > 0 && self.id != 5 {
             return VoxelVisibility::Opaque;
@@ -173,3 +192,4 @@ voxel_material!(BuleGrass, 苍翠地, 9);
 voxel_material!(AppleWood, 苹果树原木, 10);
 voxel_material!(AppleLeaf, 苹果树叶子, 11);
 voxel_material!(TestCube, 测试方块, 12);
+voxel_material!(WorkCube, 工作方块, 13);

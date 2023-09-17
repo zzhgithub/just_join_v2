@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         AlphaMode, Assets, Color, Commands, Entity, Gizmos, GlobalTransform, Mesh, PbrBundle,
-        Plugin, Query, Res, ResMut, StandardMaterial, Startup, Transform, Update, Vec3, Visibility,
-        With, Without,
+        Plugin, Quat, Query, Res, ResMut, StandardMaterial, Startup, Transform, Update, Vec3,
+        Visibility, With, Without,
     },
     reflect::Reflect,
     render::render_resource::PrimitiveTopology,
@@ -161,6 +161,9 @@ pub fn touth_mesh_ray_cast(
             }
             let center_point = get_pos_chunk_center(hit_point, normal);
             let out_center_point = get_pos_chunk_center(hit_point, -normal);
+
+            gizmos.sphere(center_point, Quat::IDENTITY, 0.5, Color::DARK_GRAY);
+            gizmos.sphere(out_center_point, Quat::IDENTITY, 0.5, Color::GREEN);
 
             *visibility = Visibility::Visible;
             *chue_pos = Transform::from_translation(center_point);

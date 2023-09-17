@@ -36,7 +36,7 @@ use crate::{
             staff_rules::staff_rules_ui,
             tool_bar::{tool_bar, ToolBar},
             UiPicResourceManager,
-        },
+        }, sp_mesh_display::SpMeshManagerPlugin,
     },
     common::ClientClipSpheresPlugin,
     sky::ClientSkyPlugins,
@@ -90,6 +90,7 @@ impl Plugin for GamePlugin {
             MouseControlPlugin,
             ClientFilledObjectnPlugin,
             ToolBarSyncPlugin,
+            SpMeshManagerPlugin,
         ));
 
         app.add_systems(

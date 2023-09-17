@@ -13,6 +13,7 @@
         (id:10,name:"Apple",icon_string:"textures/苹果.png",staff_type:Consumable(0)),
         (id:11,name:"AppleLog",icon_string:"textures/棍子.png",staff_type:Consumable(0)),
         (id:12,name:"TestCube",icon_string:"textures/测试1.png",staff_type:Voxel((id:12,direction:Z))),
+        (id:13,name:"WorkCube",icon_string:"staff/工作方块.png",staff_type:Sp(13)),
     ],
     // 掉落配置
     filled_configs:[
