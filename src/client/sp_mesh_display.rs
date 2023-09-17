@@ -26,7 +26,10 @@ use crate::{
     CHUNK_SIZE_U32, SP_MESH_DISTANCE,
 };
 
-use super::{mesh_display::TerrainMesh, state_manager::GameState};
+use super::{
+    mesh_display::{HitMeshType, TerrainMesh},
+    state_manager::GameState,
+};
 
 #[derive(Debug, Clone, Resource)]
 pub struct SpMeshManager {
@@ -144,8 +147,11 @@ fn deal_sp_mesh_tasks(
                         material: stdmats.add(Color::rgb(1., 1., 1.).into()),
                         ..Default::default()
                     })
-                    // 这可以被光线追踪
-                    .insert(TerrainMesh)
+                    // 修复这里的出现的中心的问题!
+                    .insert(TerrainMesh(HitMeshType::Sp(get_pos(
+                        chunk_key.clone(),
+                        index as u32,
+                    ))))
                     .id();
                 if let Some(inner_map) = sp_mesh_manager.entities.get_mut(&chunk_key) {
                     inner_map.insert(index as u32, (v, entity));
@@ -210,12 +216,15 @@ fn unset_all(
 
 // 通过球体生成要删除的数据
 pub type SampleShape = ConstShape3u32<CHUNK_SIZE_U32, CHUNK_SIZE_U32, CHUNK_SIZE_U32>;
-fn get_tfr(chunk_key: ChunkKey, index: u32, direction: VoxelDirection) -> Transform {
+
+fn get_pos(chunk_key: ChunkKey, index: u32) -> Vec3 {
     let xyz = SampleShape::delinearize(index);
-    let pos = chunk_key_any_xyz_to_vec3(chunk_key, xyz);
-    println!("SP的位置是[{:?},{},{}]", chunk_key, pos, index);
+    chunk_key_any_xyz_to_vec3(chunk_key, xyz)
+}
+
+fn get_tfr(chunk_key: ChunkKey, index: u32, direction: VoxelDirection) -> Transform {
     Transform {
-        translation: pos,
+        translation: get_pos(chunk_key, index),
         rotation: direction.to_quat(),
         scale: Vec3::new(1. / 32., 1. / 32., 1. / 32.),
     }
