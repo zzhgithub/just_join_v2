@@ -31,6 +31,7 @@ pub mod state_manager;
 pub mod tool_bar_manager;
 pub mod ui;
 pub mod voxels;
+pub mod sp_mesh_display;
 
 // 同步创建或者删除角色
 pub fn client_sync_players(

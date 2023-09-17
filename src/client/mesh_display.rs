@@ -7,7 +7,7 @@ use bevy::{
     prelude::{
         AlphaMode, AssetServer, Assets, Color, Commands, Component, Entity, Handle, IVec3,
         IntoSystemConfigs, Last, MaterialMeshBundle, MaterialPlugin, Mesh, Plugin, PreUpdate, Res,
-        ResMut, Resource, StandardMaterial, Startup, Transform, Update,
+        ResMut, Resource, StandardMaterial, Startup, Transform, Update, Vec3,
     },
     tasks::{AsyncComputeTaskPool, Task},
     time::{Time, Timer, TimerMode},
@@ -327,7 +327,14 @@ pub fn save_chunk_result(
 }
 
 #[derive(Debug, Component)]
-pub struct TerrainMesh;
+pub struct TerrainMesh(pub HitMeshType);
+
+// 可以被识别的方式!
+#[derive(Debug, Clone)]
+pub enum HitMeshType {
+    Common,
+    Sp(Vec3),
+}
 
 #[derive(Debug, Component)]
 pub struct WaterMesh;
@@ -372,7 +379,7 @@ pub fn update_mesh_system(
                                     material: materials.0.clone(),
                                     ..Default::default()
                                 },
-                                TerrainMesh,
+                                TerrainMesh(HitMeshType::Common),
                                 RaycastMesh::<MyRaycastSet>::default(), // Make this mesh ray cast-able
                             ))
                             .id(),

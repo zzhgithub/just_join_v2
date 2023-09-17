@@ -24,7 +24,7 @@ use just_join::{
     },
     sky::ServerSkyPlugins,
     staff::ServerStaffInfoPlugin,
-    voxel_world::biomes::OtherTreePlugin,
+    voxel_world::{biomes::OtherTreePlugin, voxel_mesh::VoxelMeshPlugin},
     PROTOCOL_ID,
 };
 use renet_visualizer::RenetServerVisualizer;
@@ -43,7 +43,11 @@ use {
 };
 
 #[cfg(feature = "headless")]
-use bevy::MinimalPlugins;
+use bevy::{
+    asset::AssetPlugin,
+    prelude::{AddAsset, Mesh},
+    MinimalPlugins,
+};
 
 fn new_renet_server() -> (RenetServer, NetcodeServerTransport) {
     let server = RenetServer::new(connection_config());
@@ -101,6 +105,8 @@ fn main() {
     #[cfg(feature = "headless")]
     {
         app.add_plugins(MinimalPlugins);
+        app.add_plugins(AssetPlugin::default());
+        app.add_asset::<Mesh>();
     }
 
     app.add_plugins(RenetServerPlugin);
@@ -121,6 +127,7 @@ fn main() {
         ServerStaffRulePlugin,
         CossTroughCheckPlugin,
         OtherTreePlugin,
+        VoxelMeshPlugin,
     ));
 
     let (server, transport) = new_renet_server();

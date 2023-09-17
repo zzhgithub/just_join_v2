@@ -24,6 +24,7 @@ use just_join::{
     },
     staff::StaffInfoPlugin,
     tools::inspector_egui::inspector_ui,
+    voxel_world::voxel_mesh::VoxelMeshPlugin,
     CLIENT_DEBUG, CLIENT_FPS,
 };
 fn main() {
@@ -53,6 +54,7 @@ fn main() {
     app.add_plugins(StaffInfoPlugin);
     app.add_plugins(UiResourcePlugin);
     app.add_plugins(Sprite3dPlugin);
+    app.add_plugins(VoxelMeshPlugin);
 
     app.add_plugins((SplashPlugin, MenuPlugin, NotificationPlugin, GamePlugin));
     // 调试工具

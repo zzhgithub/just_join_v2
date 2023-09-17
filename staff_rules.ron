@@ -26,4 +26,17 @@
         base_on:None,
         desc:"合成测试使用的摆放方块",
     ),
+     (
+        id:2,
+        input:[
+            (staff_id:11,num_needed:4),
+            (staff_id:8,num_needed:4),
+        ],
+        // 合成工作台
+        output: [
+            (staff_id:13,num_needed:1),
+        ],
+        base_on:None,
+        desc:"合成工作台",
+    ),
 ]

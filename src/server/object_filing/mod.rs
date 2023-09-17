@@ -65,7 +65,9 @@ fn deal_object_filing(mut commands: Commands, mut fill_event: EventReader<Object
     for event in fill_event.iter() {
         // 通过staff 生成不同物体的加载模式
         match event.staff.staff_type {
-            crate::staff::StaffType::Voxel(_) | crate::staff::StaffType::Consumable(_) => {
+            crate::staff::StaffType::Voxel(_)
+            | crate::staff::StaffType::Consumable(_)
+            | crate::staff::StaffType::Sp(_) => {
                 // 渲染一个正方形的 并且添加物理引擎
                 gen_filled_object(
                     &mut commands,

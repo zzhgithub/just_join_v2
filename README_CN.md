@@ -21,6 +21,7 @@ cargo run --release --no-default-features --features headless --bin server
 For Client
 ```shell
 cargo run --release --bin client
+# WGPU_BACKEND=opengl 
 ```
 
 # 控制

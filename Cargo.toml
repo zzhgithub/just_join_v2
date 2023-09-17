@@ -55,9 +55,13 @@ huffman-compress = { git = "https://github.com/zzhgithub/rust-huffman-compress",
     "serde",
 ] }
 noise = { version = "0.8.2" }
+lazy_static = "1.4.0"
+bevy_vox_mesh = { git = "https://github.com/zzhgithub/bevy_vox_mesh.git", branch = "fix" }
+
 #  解决冲突
 lock_api = "0.4.10"
 codespan-reporting = "0.11.1"
+
 
 [profile.dev.package.bevy_rapier3d]
 opt-level = 3

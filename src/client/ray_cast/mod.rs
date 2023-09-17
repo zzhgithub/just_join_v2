@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         AlphaMode, Assets, Color, Commands, Entity, Gizmos, GlobalTransform, Mesh, PbrBundle,
-        Plugin, Query, Res, ResMut, StandardMaterial, Startup, Transform, Update, Vec3, Visibility,
-        With, Without,
+        Plugin, Quat, Query, Res, ResMut, StandardMaterial, Startup, Transform, Update, Vec3,
+        Visibility, With, Without,
     },
     reflect::Reflect,
     render::render_resource::PrimitiveTopology,
@@ -118,7 +118,7 @@ pub fn touth_mesh_ray_cast(
     query: Query<&GlobalTransform, With<CameraTag>>,
     mut choose_cube: ResMut<ChooseCube>,
     mut gizmos: Gizmos,
-    query_mesh: Query<Entity, &TerrainMesh>,
+    query_mesh: Query<(Entity, &TerrainMesh)>,
     mut query_help_cube: Query<
         (&mut Transform, &mut Visibility),
         (With<HelpCube>, Without<CameraTag>),
@@ -147,7 +147,8 @@ pub fn touth_mesh_ray_cast(
         },
     );
 
-    if let Some((_, hit)) = hits.first() {
+    if let Some((entity, hit)) = hits.first() {
+        let (_, mesh_data) = query_mesh.get(*entity).unwrap();
         let hit_point = hit.position();
         if ray_pos.distance(hit_point) <= TOUCH_RADIUS {
             let normal = hit.normal();
@@ -159,15 +160,27 @@ pub fn touth_mesh_ray_cast(
                 let rate = timer.elapsed().as_millis() as f32 / timer.duration().as_millis() as f32;
                 gizmos.circle(hit_point, normal, 0.1 * rate, Color::BLUE);
             }
-            let center_point = get_pos_chunk_center(hit_point, normal);
-            let out_center_point = get_pos_chunk_center(hit_point, -normal);
 
+            let center_point: Vec3;
+            match mesh_data.0 {
+                super::mesh_display::HitMeshType::Common => {
+                    center_point = get_pos_chunk_center(hit_point, normal);
+                    let out_center_point = get_pos_chunk_center(hit_point, -normal);
+                    gizmos.sphere(out_center_point, Quat::IDENTITY, 0.5, Color::GREEN);
+                    choose_cube.out_center = Some(out_center_point);
+                }
+                super::mesh_display::HitMeshType::Sp(center) => {
+                    center_point = center;
+                    choose_cube.out_center = None;
+                }
+            }
+
+            gizmos.sphere(center_point, Quat::IDENTITY, 0.5, Color::DARK_GRAY);
             *visibility = Visibility::Visible;
             *chue_pos = Transform::from_translation(center_point);
 
             choose_cube.choose_on = Some(hit_point);
             choose_cube.center = Some(center_point);
-            choose_cube.out_center = Some(out_center_point);
         } else {
             hidden_help_cube(choose_cube.as_mut(), &mut visibility);
         }

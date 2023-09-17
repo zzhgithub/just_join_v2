@@ -32,8 +32,8 @@ pub enum StaffType {
     Voxel(Voxel),
     // 工具(staff id)
     Tool(usize),
-    // 特殊的可放置的物体
-    Sp(usize),
+    // 特殊的可放置的物体 需要一个体素id对应
+    Sp(u8),
     // 消耗品
     Consumable(usize),
 }
@@ -55,8 +55,14 @@ impl StaffInfoStroge {
         if self.data.contains_key(&staff.id) {
             warn!("{} is already registered", staff.id);
         }
-        if let StaffType::Voxel(voxel) = staff.staff_type {
-            self.voxel_staff.insert(voxel.id, staff.clone());
+        match staff.staff_type {
+            StaffType::Voxel(voxel) => {
+                self.voxel_staff.insert(voxel.id, staff.clone());
+            }
+            StaffType::Sp(id) => {
+                self.voxel_staff.insert(id, staff.clone());
+            }
+            _ => {}
         }
         self.data.insert(staff.id, staff);
     }
