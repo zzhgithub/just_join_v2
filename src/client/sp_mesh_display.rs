@@ -6,7 +6,8 @@
 
 use bevy::{
     prelude::{
-        Assets, Color, Commands, Entity, OnExit, PbrBundle, Plugin, Res, ResMut, Resource,
+        in_state, Assets, Color, Commands, Component, DespawnRecursiveExt, Entity,
+        IntoSystemConfigs, OnExit, PbrBundle, Plugin, Query, Res, ResMut, Resource,
         StandardMaterial, Transform, Update, Vec3,
     },
     tasks::{AsyncComputeTaskPool, Task},
@@ -42,6 +43,8 @@ pub struct SpMeshTasks {
     pub tasks: Vec<Task<(Voxel, ChunkKey, usize)>>,
 }
 
+#[derive(Debug, Component)]
+pub struct NeedDelete;
 pub struct SpMeshManagerPlugin;
 
 impl Plugin for SpMeshManagerPlugin {
@@ -52,7 +55,13 @@ impl Plugin for SpMeshManagerPlugin {
         app.insert_resource(SpMeshTasks { tasks: Vec::new() });
         app.add_systems(
             Update,
-            (sp_mesh_tasks_update, deal_sp_mesh_tasks, despawn_sp_mesh),
+            (
+                sp_mesh_tasks_update,
+                deal_sp_mesh_delete,
+                deal_sp_mesh_tasks,
+                despawn_sp_mesh,
+            )
+                .run_if(in_state(GameState::Game)),
         );
         app.add_systems(OnExit(GameState::Game), unset_all);
     }
@@ -114,14 +123,23 @@ fn sp_mesh_tasks_update(
             }
             // 有一批要删除的数据
             for del_key in old_keys.iter() {
+                println!("要删除的数据{:?}", old_keys);
                 if let Some(index_voxels_entity_map) = sp_mesh_manager.entities.get_mut(&chunk_key)
                 {
                     if let Some((_, entity)) = index_voxels_entity_map.remove(del_key) {
-                        commands.entity(entity).despawn();
+                        println!("删除的entity[{:?}]", entity);
+                        commands.entity(entity).insert(NeedDelete);
+                        println!("删除了mesh{}", del_key);
                     }
                 }
             }
         }
+    }
+}
+
+fn deal_sp_mesh_delete(mut commands: Commands, mesh_query: Query<Entity, &NeedDelete>) {
+    for entity in mesh_query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }
 
@@ -154,8 +172,15 @@ fn deal_sp_mesh_tasks(
                     ))))
                     .id();
                 if let Some(inner_map) = sp_mesh_manager.entities.get_mut(&chunk_key) {
-                    inner_map.insert(index as u32, (v, entity));
+                    if !inner_map.contains_key(&(index as u32)) {
+                        println!("创建的entity[{:?}]", entity);
+                        inner_map.insert(index as u32, (v, entity));
+                    } else {
+                        // 这要处理不需要的数据！
+                        commands.entity(entity).despawn();
+                    }
                 } else {
+                    println!("第一次创建的entity[{:?}]", entity);
                     let mut map = HashMap::new();
                     map.insert(index as u32, (v, entity));
                     sp_mesh_manager.entities.insert(chunk_key, map);
@@ -189,7 +214,7 @@ fn despawn_sp_mesh(
             if let Some(inner_map) = sp_mesh_manager.entities.remove(&key) {
                 println!("要清理的数据{}", inner_map.len());
                 for (_, (_, entity)) in inner_map {
-                    commands.entity(entity).despawn();
+                    commands.entity(entity).despawn_recursive();
                 }
             }
         }
