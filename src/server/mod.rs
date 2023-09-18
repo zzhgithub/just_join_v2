@@ -31,6 +31,7 @@ pub mod cross_through_check;
 pub mod message_def;
 pub mod object_filing;
 pub mod player;
+pub mod sp_physics;
 pub mod staff_rule_sync;
 pub mod terrain_physics;
 pub mod tool_bar_sync;

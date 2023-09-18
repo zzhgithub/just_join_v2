@@ -61,6 +61,7 @@ fn init_mesh_resource(assets: Res<AssetServer>, mut voxel_mesh_storge: ResMut<Vo
     for (key, config) in VOXEL_MESH_MAP.iter() {
         let mut vox_list: Vec<Handle<Mesh>> = Vec::new();
         for vox_str in config.vox_list.iter() {
+            println!("加载了模型: {}", vox_str);
             vox_list.push(assets.load(vox_str));
         }
         let mut image_list: Vec<Handle<Image>> = Vec::new();
@@ -76,4 +77,3 @@ fn init_mesh_resource(assets: Res<AssetServer>, mut voxel_mesh_storge: ResMut<Vo
         );
     }
 }
-

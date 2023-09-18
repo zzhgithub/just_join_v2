@@ -17,6 +17,7 @@ use crate::{
         map_database::{DbSaveTasks, MapDataBase},
         player_state::PlayerOnTimeState,
         voxel::{BasicStone, Voxel, VoxelMaterial},
+        voxel_mesh::VOXEL_MESH_MAP,
     },
     CHUNK_SIZE, CHUNK_SIZE_U32,
 };
@@ -25,6 +26,7 @@ use super::{
     message_def::chunk_result::ChunkResult,
     object_filing::ObjectFillEvent,
     player::ServerLobby,
+    sp_physics::DespawnSpEvent,
     terrain_physics::{ColliderManager, ColliderTasksManager, ColliderUpdateTasksManager},
 };
 
@@ -49,6 +51,7 @@ pub fn deal_chunk_query_system(
     mut query_state: Query<&mut PlayerOnTimeState>,
     server_lobby: Res<ServerLobby>,
     mut other_tree_tasks_map: ResMut<OtherTreeTasksMap>,
+    mut event_writer: EventWriter<DespawnSpEvent>,
 ) {
     let pool = AsyncComputeTaskPool::get();
     for client_id in server.clients_id() {
@@ -164,6 +167,14 @@ pub fn deal_chunk_query_system(
                         // 发送物体被打下来的消息 old_voxel  chunk_key, pos, 还原物体的位置!
                         if old_voxel.id != Voxel::EMPTY.id && voxel_type.id == Voxel::EMPTY.id {
                             println!("cube被打下来了: {:?}", old_voxel);
+                            if VOXEL_MESH_MAP.contains_key(&old_voxel.id) {
+                                // 如果是特殊物体被破坏要处理物理地形
+                                event_writer.send(DespawnSpEvent {
+                                    chunk_key,
+                                    index: index.clone(),
+                                });
+                            }
+
                             // 物体时被打下来了 这里通过配置掉落
                             if let Some(staff_list) =
                                 staff_info_stroge.voxel_to_staff_list(old_voxel)
