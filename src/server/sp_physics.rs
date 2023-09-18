@@ -230,6 +230,7 @@ fn deal_events(
 ) {
     for event in event_reader.iter() {
         if let Some(entity) = sp_physics_manager.remove(event.chunk_key, event.index) {
+            // println!("这里销毁了碰撞体");
             commands.entity(entity).despawn();
         }
     }
@@ -237,7 +238,7 @@ fn deal_events(
 
 // 通过mesh生成碰撞体
 fn get_collider_by_mesh(mesh: &Mesh) -> Option<Collider> {
-    let collider_vertices: Vec<Vec3> = mesh
+    let mut collider_vertices: Vec<Vec3> = mesh
         .attribute(Mesh::ATTRIBUTE_POSITION)
         .unwrap()
         .as_float3()
@@ -251,6 +252,13 @@ fn get_collider_by_mesh(mesh: &Mesh) -> Option<Collider> {
     let collider_indices: Vec<[u32; 3]> = indices.chunks(3).map(|i| [i[0], i[1], i[2]]).collect();
     // println!("{:?}", collider_vertices);
     // println!("{:?}", collider_indices);
+    #[cfg(feature = "headless")]
+    {
+        collider_vertices = collider_vertices
+            .iter()
+            .map(|x| *x * Vec3::splat(1.0 / 32.0))
+            .collect();
+    }
     let collider = Collider::trimesh(collider_vertices, collider_indices);
     Some(collider)
 }
