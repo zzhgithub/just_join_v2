@@ -97,7 +97,7 @@ fn sp_mesh_tasks_update(
                         if let Some((v, entity)) = index_voxels_entity_map.get(&(i as u32)) {
                             // 如果方向发生了变化里面 马上改变方向
                             if v.direction != voxels[i].direction {
-                                commands.entity(*entity).insert(get_tfr(
+                                commands.entity(*entity).insert(get_sp_tfr(
                                     chunk_key.clone(),
                                     i as u32,
                                     voxels[i].direction,
@@ -159,7 +159,7 @@ fn deal_sp_mesh_tasks(
             if let Some(meta) = voxel_mesh_storge.data.get(&v.id) {
                 let entity = commands
                     .spawn(PbrBundle {
-                        transform: get_tfr(chunk_key.clone(), index as u32, v.direction),
+                        transform: get_sp_tfr(chunk_key.clone(), index as u32, v.direction),
                         // FIXME:这里 暂时取第一个 后面要根据生成器取置换
                         mesh: meta.vox_list[0].clone(),
                         material: stdmats.add(Color::rgb(1., 1., 1.).into()),
@@ -247,7 +247,7 @@ fn get_pos(chunk_key: ChunkKey, index: u32) -> Vec3 {
     chunk_key_any_xyz_to_vec3(chunk_key, xyz)
 }
 
-fn get_tfr(chunk_key: ChunkKey, index: u32, direction: VoxelDirection) -> Transform {
+pub fn get_sp_tfr(chunk_key: ChunkKey, index: u32, direction: VoxelDirection) -> Transform {
     Transform {
         translation: get_pos(chunk_key, index),
         rotation: direction.to_quat(),
