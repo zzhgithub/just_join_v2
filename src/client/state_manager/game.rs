@@ -83,7 +83,7 @@ impl Plugin for GamePlugin {
         );
         app.add_systems(
             Update,
-            (egui_center_cursor_system, mian_ui, controller_tool_bar)
+            (egui_center_cursor_system, mian_ui, controller_tool_bar,chat_window)
                 .run_if(in_state(PlayState::Main))
                 .after(EguiSet::InitContexts),
         );
