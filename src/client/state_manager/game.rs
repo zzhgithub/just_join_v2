@@ -6,7 +6,7 @@ use bevy::{
     prelude::{
         in_state, AmbientLight, Commands, DespawnRecursiveExt, Entity, EventReader, EventWriter,
         Input, IntoSystemConfigs, KeyCode, Local, NextState, OnEnter, OnExit, Plugin, Query, Res,
-        ResMut, State, States, Update, Vec2, With,
+        ResMut, State, States, Update, Vec2, With,Resource,
     },
     window::{CursorGrabMode, PrimaryWindow, Window, WindowCloseRequested},
 };
@@ -44,6 +44,13 @@ use crate::{
 
 use super::{new_renet_client, notification::Notification, ConnectionAddr, GameState};
 
+
+#[derive(Default,Resource)]
+pub struct TextEditDemo {
+   pub input: String,
+}
+
+
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum PlayState {
     Main,
@@ -62,6 +69,7 @@ impl Plugin for GamePlugin {
         app.add_systems(OnEnter(GameState::Game), setup);
 
         // app.insert_resource();
+        app.insert_resource(TextEditDemo::default());
         app.insert_resource(RenetClientVisualizer::<200>::new(
             RenetVisualizerStyle::default(),
         ));
@@ -411,3 +419,42 @@ fn disconnect_on_close(
         exit.send(AppExit);
     }
 }
+
+fn chat_window(
+    mut contexts:EguiContexts,
+   mut input:ResMut<TextEditDemo>,
+    
+ ) {  
+    let ctx=contexts.ctx_mut();
+    egui::Window::new("Chat")
+    .title_bar(false)
+    .vscroll(true)
+    .resizable(false)
+    .frame(egui::Frame::none().fill( egui::Color32::BLACK.gamma_multiply(0.8)))
+    .default_height(200.0)
+    .default_width(360.0)
+    .anchor(egui::Align2::LEFT_BOTTOM, [0.0,0.0])
+    .collapsible(false)
+    .show(ctx, |ui|{
+ 
+       egui::CentralPanel::default()
+       .show_inside(ui, |ui|{
+          ui.horizontal(|ui|{
+             ui.label("Player");
+             ui.label("time");
+             ui.colored_label(egui::Color32::RED, "text");
+          });
+       });
+ 
+       egui::TopBottomPanel::bottom("bottom")
+       .show_inside(ui, |ui|{
+          ui.horizontal(|ui|{
+             ui.text_edit_singleline(&mut input.input);
+             
+             if ui.button("Send").clicked(){
+               //todo
+             };
+          });     
+       })
+  });
+ }
