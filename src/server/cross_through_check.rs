@@ -20,9 +20,9 @@ pub struct CossTroughCheck;
 #[derive(Debug, Clone, Copy, Component)]
 pub struct CossTroughFixed(Vec3);
 
-pub struct CossTroughCheckPlugin;
+pub struct CrossTroughCheckPlugin;
 
-impl Plugin for CossTroughCheckPlugin {
+impl Plugin for CrossTroughCheckPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(PreUpdate, cross_through_check);
         app.add_systems(Update, cross_through_fixed);

@@ -17,7 +17,7 @@ use just_join::{
     connection_config,
     server::{
         async_chunk::ChunkDataPlugin, chunk::ServerChunkPlugin,
-        cross_through_check::CossTroughCheckPlugin, deal_message_system,
+        cross_through_check::CrossTroughCheckPlugin, deal_message_system,
         object_filing::ObjectFilingPlugin, player::ServerLobby, server_connect_system,
         sp_physics::SpPhysicsPlugin, staff_rule_sync::ServerStaffRulePlugin, sync_body_and_head,
         terrain_physics::TerrainPhysicsPlugin,
@@ -125,7 +125,7 @@ fn main() {
         ServerSkyPlugins,
         ObjectFilingPlugin,
         ServerStaffRulePlugin,
-        CossTroughCheckPlugin,
+        CrossTroughCheckPlugin,
         OtherTreePlugin,
         VoxelMeshPlugin,
         SpPhysicsPlugin,
