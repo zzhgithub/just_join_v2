@@ -4,7 +4,7 @@ use bevy::{
     asset::ChangeWatcher,
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::{App, AssetPlugin, PluginGroup, Update},
-    window::{ExitCondition, WindowPlugin},
+    window::{ExitCondition, WindowPlugin, WindowMode, Window},
     DefaultPlugins,
 };
 use bevy_easy_localize::{Localize, LocalizePlugin};
@@ -32,6 +32,10 @@ fn main() {
     app.add_plugins(WindowPlugin {
         exit_condition: ExitCondition::OnAllClosed,
         close_when_requested: false,
+        primary_window: Some(Window {
+            mode: WindowMode::BorderlessFullscreen,
+            ..Default::default()
+        }),
         ..Default::default()
     });
     app.add_plugins(
